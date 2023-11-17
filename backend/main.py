@@ -18,7 +18,8 @@ def lightonN(number: int):
 
 @app.route('/lightoff')
 def lightoff():
-    print("turn all off")
+    for i in range(50):
+        turnOffLight(i)
     return "bruh"
 
 
@@ -29,4 +30,4 @@ def lightoffN(number: int):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
