@@ -1,5 +1,5 @@
 from flask import Flask
-from util import turnOffLight, turnOnLight
+from util import turnOffLight, turnOnLight, doCool
 
 app = Flask(__name__)
 
@@ -26,6 +26,12 @@ def lightoff():
 @app.route('/lightoff/<int:number>')
 def lightoffN(number: int):
     turnOffLight(number)
+    return "bruh"
+
+
+@app.route('/doCool<int:number>')
+def lightoffN(number: int):
+    doCool(number)
     return "bruh"
 
 
