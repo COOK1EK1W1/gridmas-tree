@@ -2,3 +2,4 @@ venv/
 scanning/results/
 **/.DS_Store
 .env
+**/__pycache__/

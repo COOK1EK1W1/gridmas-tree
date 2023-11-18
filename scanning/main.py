@@ -1,11 +1,11 @@
-from cv2 import VideoCapture, destroyWindow, imwrite, imshow, waitKey
+from cv2 import VideoCapture, imwrite
 
 import requests
 import time
 
 print("init camera")
 
-cam_port = 1
+cam_port = 2
 cam = VideoCapture(cam_port)
 
 print("clearing light")
@@ -28,7 +28,7 @@ for i in range(100):
 
         # imshow("test", image)
 
-        imwrite(f"scanning/results/results-{i}.png", image)
+        imwrite(f"scanning/results/results-{i}-0.png", image)
 
     else:
         raise Exception("camera error")
