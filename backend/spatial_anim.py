@@ -117,9 +117,11 @@ def doSpin(stopFlag: threading.Event):
 
 def doPlanes(stopFlag: threading.Event):
     while not stopFlag.is_set():
+        color = (random.randint(0, 200), random.randint(
+            0, 200), random.randint(0, 200))
         coords2 = [[x, y, z] for [x, y, z] in tree.coords]
-        theta = 0.2
-        alpha = 0.1
+        theta = random.uniform(0, 6.28)
+        alpha = random.uniform(0, 6.28)
         for i, coord in enumerate(tree.coords):
             coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) +
                                                coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
@@ -130,6 +132,7 @@ def doPlanes(stopFlag: threading.Event):
         for rng in range(int(minZ*200), int(maxZ*200), 10):
             for i, coord in enumerate(coords2):
                 if rng <= coord[2]*200 < rng+10:
-                    tree.set_light(i, (255, 255, 255))
+                    tree.set_light(i, color)
             if stopFlag.is_set():
                 break
+            tree.update()

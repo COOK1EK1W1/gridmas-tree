@@ -11,8 +11,7 @@ app = Flask(__name__)
 running_task = None
 stop_flag = threading.Event()
 
-running_task = None
-stop_flag = threading.Event()
+pause_time = 0.2
 
 
 @app.route('/lighton')
@@ -32,6 +31,9 @@ def lightonN(number: int):
 
 @app.route('/lightoff')
 def lightoff():
+    stop_flag.set()
+    time.sleep(pause_time)
+    stop_flag.clear()
     for i in range(tree.num_pixels):
         tree.set_light(i, (0, 0, 0))
     tree.update()
@@ -45,33 +47,35 @@ def lightoffN(number: int):
     return "off"
 
 
-@app.route('/doCool')
-def docoool():
+### animations ###
+
+@app.route('/doXYZ')
+def doXYZ():
     global running_task
     stop_flag.set()
-    time.sleep(2)  # Allow time for the task to stop
+    time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
-    running_task = 'spin'
+    running_task = 'xyz'
     threading.Thread(target=spatial_anim.xyz_planes, args=(stop_flag,)).start()
     return "Spin started"
 
 
-@app.route('/doStandard')
-def doStandarda():
+@app.route('/doStrip')
+def doStrip():
     global running_task
     stop_flag.set()
-    time.sleep(2)  # Allow time for the task to stop
+    time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
-    running_task = 'standard'
-    threading.Thread(target=strip_anim.doStandard, args=(stop_flag,)).start()
+    running_task = 'strip'
+    threading.Thread(target=strip_anim.doStrip, args=(stop_flag,)).start()
     return "standard started"
 
 
 @app.route('/doTwinkle')
-def doTinklee():
+def doTinkle():
     global running_task
     stop_flag.set()
-    time.sleep(2)  # Allow time for the task to stop
+    time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
     running_task = 'twinkle'
     threading.Thread(target=strip_anim.doTwinkle, args=(stop_flag,)).start()
@@ -82,7 +86,7 @@ def doTinklee():
 def doSpin():
     global running_task
     stop_flag.set()
-    time.sleep(2)  # Allow time for the task to stop
+    time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
     running_task = 'spin'
     threading.Thread(target=spatial_anim.doSpin, args=(stop_flag,)).start()
@@ -93,12 +97,13 @@ def doSpin():
 def doPlanes():
     global running_task
     stop_flag.set()
-    time.sleep(2)  # Allow time for the task to stop
+    time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
     running_task = 'Planes'
     threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
     return "planes started"
 
+### animations ###
 
 @app.route('/config/setlights', methods=['POST'])
 def setLight():

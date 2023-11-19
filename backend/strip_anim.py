@@ -4,7 +4,7 @@ import time
 import threading
 
 
-def doStandard(stopFlag: threading.Event):
+def doStrip(stopFlag: threading.Event):
     while not stopFlag.is_set():
         for i in range(tree.num_pixels):
             tree.set_light(i, (255, 255, 255))
@@ -27,5 +27,3 @@ def doTwinkle(stopFlag: threading.Event):
             tree.set_light(ia, color)
         tree.update()
         time.sleep(0.02)
-        if (stopFlag.is_set()):
-            break
