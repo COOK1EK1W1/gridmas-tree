@@ -16,30 +16,26 @@ pixels = neopixel.NeoPixel(pixel_pin, pixel_num, auto_write=False)
 lights = []
 
 
-def turnOnLight(n: int, colour: tuple[int] = (255, 255, 255)):
+def setLight(n: int, colour: tuple[int, int, int] = (255, 255, 255)):
     pixels[n] = colour
+
+
+def get_light(n: int) -> tuple[int, int, int]:
+    return pixels[n]
 
 
 def turnOffLight(n: int):
     pixels[n] = (0, 0, 0)
 
-def savelights(lightLocs):
+
+def savelights(lightLocs: list[list[int]]) -> None:
     with open('bruh.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(lightLocs)
 
+
 def update():
     pixels.show()
-
-def doStandard(n: int):
-    for _ in range(n):
-        for i in range(pixel_num):
-            pixels[i] = (255, 255, 255)
-            for ia in range(pixel_num):
-                r, g, b = pixels[ia]
-                pixels[ia] = (r/1.1, g/1.1, b/1.1)
-            pixels.show()
-            time.sleep(0.01)
 
 
 def read_csv():
@@ -48,25 +44,6 @@ def read_csv():
         list_of_lists = [[int(item) for item in row] for row in reader]
     return list_of_lists
 
-def doCool(n: int):
-    lol = read_csv()
-    j = 1.1
-    fps = 1/60
-    rng = 10
-    for idk in range(n * 3):
-        color = (random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255))
-        for i in range(min(lol, key=lambda x: x[idk%3])[idk%3], max(lol, key=lambda x: x[idk%3])[idk%3], rng):
-            for ia, light in enumerate(lol):
-                if i <= light[idk%3] < i + rng:
-                    pixels[ia] = color
-                else:
-                    r, g, b = pixels[ia]
-                    pixels[ia] = (r/j, g/j, b/j)
-            pixels.show()
-            time.sleep(fps)
-        color = (random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255))
 
 def doSpin():
     coords = read_csv()
@@ -84,26 +61,25 @@ def doSpin():
     dinc = 1
 
     angle = 0
-    
+
     # how much the angle changes per cycle
     inc = 0.1
-    
+
     # the two colours in GRB order
     # if you are turning a lot of them on at once, keep their brightness down please
-    colourA = [0,50,50] # purple
-    colourB = [50,50,0] # yellow
-    
-    
+    colourA = [0, 50, 50]  # purple
+    colourB = [50, 50, 0]  # yellow
+
     # INITIALISE SOME VALUES
-    
+
     swap01 = 0
     swap02 = 0
-    
+
     # direct it move in
     direction = -1
-    
+
     # the starting point on the vertical axis
-    c = 100 
+    c = 100
     while True:
         time.sleep(0.05)
 
@@ -132,14 +108,13 @@ def doSpin():
         if angle >= 0.5*math.pi:
             if swap01 == 0:
                 colour_hold = [i for i in colourA]
-                colourA =[i for i in colourB]
+                colourA = [i for i in colourB]
                 colourB = [i for i in colour_hold]
                 swap01 = 1
 
         if angle >= 1.5*math.pi:
             if swap02 == 0:
                 colour_hold = [i for i in colourA]
-                colourA =[i for i in colourB]
+                colourA = [i for i in colourB]
                 colourB = [i for i in colour_hold]
                 swap02 = 1
-

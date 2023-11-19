@@ -29,7 +29,7 @@ for dir in dirs:
     weights: list[float] = []
     for point in points:
         minVal, maxVal, minLoc, maxLoc = point.getPosForDir(dir)
-        temp.append(maxLoc[1] * maxVal)
+        temp.append(int(maxLoc[1] * maxVal))
         weights.append(maxVal)
     centers.append(int(sum(temp) / sum(weights)))
 
