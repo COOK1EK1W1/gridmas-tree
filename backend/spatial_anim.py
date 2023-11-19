@@ -52,13 +52,13 @@ def doSpin(stopFlag: threading.Event):
     swap02 = 0
 
     # the starting point on the vertical axis
-    c = 100
+    c = -200
     while not stopFlag.is_set():
         time.sleep(0.05)
 
         LED = 0
         while LED < len(coords):
-            if math.tan(angle)*coords[LED][1] <= coords[LED][2]+c:
+            if math.tan(angle)*coords[LED][0] <= coords[LED][2]+c:
                 util.setLight(LED, colourA)
             else:
                 util.setLight(LED, colourB)
