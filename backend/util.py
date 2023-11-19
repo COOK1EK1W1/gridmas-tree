@@ -21,7 +21,7 @@ class Tree():
         self.pixels = neopixel.NeoPixel(
             pixel_pin, self.num_pixels, auto_write=False)
 
-        self.height = max([x[3] for x in self.coords])
+        self.height = max([x[2] for x in self.coords])
 
     def set_light(self, n: int, colour: tuple[int, int, int] = (255, 255, 255)):
         self.pixels[n] = colour

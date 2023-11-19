@@ -27,6 +27,8 @@ def xyz_planes(stopFlag: threading.Event):
             time.sleep(fps)
             if stopFlag.is_set():
                 break
+
+
         idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
@@ -41,6 +43,7 @@ def xyz_planes(stopFlag: threading.Event):
             time.sleep(fps)
             if stopFlag.is_set():
                 break
+
         idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
@@ -55,10 +58,6 @@ def xyz_planes(stopFlag: threading.Event):
             time.sleep(fps)
             if stopFlag.is_set():
                 break
-        idk = (idk + 1) % 3
-        color = (random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255))
-
 
 def doSpin(stopFlag: threading.Event):
     heights: list[float] = []
