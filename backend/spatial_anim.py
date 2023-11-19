@@ -28,7 +28,6 @@ def xyz_planes(stopFlag: threading.Event):
             if stopFlag.is_set():
                 break
 
-
         idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
@@ -58,6 +57,7 @@ def xyz_planes(stopFlag: threading.Event):
             time.sleep(fps)
             if stopFlag.is_set():
                 break
+
 
 def doSpin(stopFlag: threading.Event):
     heights: list[float] = []
@@ -113,3 +113,23 @@ def doSpin(stopFlag: threading.Event):
             if swap02 == 0:
                 colourA, colourB = colourB, colourA
                 swap02 = 1
+
+
+def doPlanes(stopFlag: threading.Event):
+    while not stopFlag.is_set():
+        coords2 = [[x, y, z] for [x, y, z] in tree.coords]
+        theta = 0.2
+        alpha = 0.1
+        for i, coord in enumerate(tree.coords):
+            coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) +
+                                               coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
+
+        minZ = min([x[2] for x in coords2])
+        maxZ = max([x[2] for x in coords2])
+
+        for rng in range(int(minZ*200), int(maxZ*200), 10):
+            for i, coord in enumerate(coords2):
+                if rng <= coord[2]*200 < rng+10:
+                    tree.set_light(i, (255, 255, 255))
+            if stopFlag.is_set():
+                break

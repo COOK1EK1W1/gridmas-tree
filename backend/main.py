@@ -89,6 +89,17 @@ def doSpin():
     return "spin started"
 
 
+@app.route('/doPlanes')
+def doPlanes():
+    global running_task
+    stop_flag.set()
+    time.sleep(2)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'Planes'
+    threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
+    return "planes started"
+
+
 @app.route('/config/setlights', methods=['POST'])
 def setLight():
     print(request.data)
