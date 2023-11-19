@@ -24,7 +24,7 @@ for i in range(int(num_pixels)):
         f"scanning/results/results-{i}-90.png",
         f"scanning/results/results-{i}-180.png",
         f"scanning/results/results-{i}-270.png"
-    ], [0, 90, 180, 270]))
+    ], [0, 270, 180, 90]))
 
 # find the center of each direction
 centers: list[int] = []
