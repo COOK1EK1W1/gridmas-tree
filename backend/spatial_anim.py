@@ -26,6 +26,36 @@ def xyz_planes(stopFlag: threading.Event):
                     util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
             util.update()
             time.sleep(fps)
+            if stopFlag.is_set():
+                break
+        idk = (idk + 1) % 3
+        color = (random.randint(0, 255), random.randint(
+            0, 255), random.randint(0, 255))
+        for i in range(0, 700, rng):
+            for ia, light in enumerate(lol):
+                if i <= (light[idk % 3] * 200) < i + rng:
+                    util.setLight(ia, color)
+                else:
+                    r, g, b = util.get_light(ia)
+                    util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
+            util.update()
+            time.sleep(fps)
+            if stopFlag.is_set():
+                break
+        idk = (idk + 1) % 3
+        color = (random.randint(0, 255), random.randint(
+            0, 255), random.randint(0, 255))
+        for i in range(-200, 200, rng):
+            for ia, light in enumerate(lol):
+                if i <= (light[idk % 3] * 200) < i + rng:
+                    util.setLight(ia, color)
+                else:
+                    r, g, b = util.get_light(ia)
+                    util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
+            util.update()
+            time.sleep(fps)
+            if stopFlag.is_set():
+                break
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
 
