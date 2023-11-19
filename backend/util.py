@@ -44,3 +44,12 @@ def read_csv():
         reader = csv.reader(csvfile)
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists
+
+
+coords = read_csv()
+for pixel, coord in enumerate(coords):
+    if coord[2] > 0:
+        pixels[pixel] = (100,100,100)
+    else:
+        pixels[pixel] = (0, 0, 0)
+update()
