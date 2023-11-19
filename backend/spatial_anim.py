@@ -3,11 +3,10 @@ import time
 import threading
 import math
 
-import util
+from util import tree
 
 
 def xyz_planes(stopFlag: threading.Event):
-    lol = util.read_csv()
     j = 1.1
     fps = 1/60
     rng = 10
@@ -18,27 +17,27 @@ def xyz_planes(stopFlag: threading.Event):
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
         for i in range(-200, 200, rng):
-            for ia, light in enumerate(lol):
-                if i <= (light[idk % 3] * 200) < i + rng:
-                    util.setLight(ia, color)
+            for ia, coord in enumerate(tree.coords):
+                if i <= (coord[idk % 3] * 200) < i + rng:
+                    tree.set_light(ia, color)
                 else:
-                    r, g, b = util.get_light(ia)
-                    util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
-            util.update()
+                    r, g, b = tree.get_light(ia)
+                    tree.set_light(ia, (int(r/j), int(g/j), int(b/j)))
+            tree.update()
             time.sleep(fps)
             if stopFlag.is_set():
                 break
         idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
-        for i in range(0, 700, rng):
-            for ia, light in enumerate(lol):
+        for i in range(0, int(tree.height*200), rng):
+            for ia, light in enumerate(tree.coords):
                 if i <= (light[idk % 3] * 200) < i + rng:
-                    util.setLight(ia, color)
+                    tree.set_light(ia, color)
                 else:
-                    r, g, b = util.get_light(ia)
-                    util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
-            util.update()
+                    r, g, b = tree.get_light(ia)
+                    tree.set_light(ia, (int(r/j), int(g/j), int(b/j)))
+            tree.update()
             time.sleep(fps)
             if stopFlag.is_set():
                 break
@@ -46,24 +45,24 @@ def xyz_planes(stopFlag: threading.Event):
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
         for i in range(-200, 200, rng):
-            for ia, light in enumerate(lol):
-                if i <= (light[idk % 3] * 200) < i + rng:
-                    util.setLight(ia, color)
+            for ia, coord in enumerate(tree.coords):
+                if i <= (coord[idk % 3] * 200) < i + rng:
+                    tree.set_light(ia, color)
                 else:
-                    r, g, b = util.get_light(ia)
-                    util.setLight(ia, (int(r/j), int(g/j), int(b/j)))
-            util.update()
+                    r, g, b = tree.get_light(ia)
+                    tree.set_light(ia, (int(r/j), int(g/j), int(b/j)))
+            tree.update()
             time.sleep(fps)
             if stopFlag.is_set():
                 break
+        idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
 
 
 def doSpin(stopFlag: threading.Event):
-    coords = util.read_csv()
     heights: list[float] = []
-    for i in coords:
+    for i in tree.coords:
         heights.append(i[2])
 
     angle = 0
@@ -86,15 +85,15 @@ def doSpin(stopFlag: threading.Event):
     while not stopFlag.is_set():
         time.sleep(0.05)
 
-        for led in range(len(coords)):
-            if math.tan(angle)*coords[led][1] <= coords[led][2]+c:
-                util.setLight(led, colourA)
+        for led in range(tree.num_pixels):
+            if math.tan(angle)*tree.coords[led][1] <= tree.coords[led][2]+c:
+                tree.set_light(led, colourA)
             else:
-                util.setLight(led, colourB)
+                tree.set_light(led, colourB)
 
         # use the show() option as rarely as possible as it takes ages
         # do not use show() each time you change a LED but rather wait until you have changed them all
-        util.update()
+        tree.update()
 
         # now we get ready for the next cycle
 

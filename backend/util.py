@@ -6,37 +6,40 @@ import csv
 
 load_dotenv()
 pixel_pin = board.D18
-envpixels = os.getenv("PIXELS")
-
-if envpixels == None:
-    raise Exception("No env variable")
-
-pixel_num = int(envpixels)
-pixels = neopixel.NeoPixel(pixel_pin, pixel_num, auto_write=False)
-
-lights = []
 
 
-def setLight(n: int, colour: tuple[int, int, int] = (255, 255, 255)):
-    pixels[n] = colour
+class Tree():
+    def __init__(self):
 
+        envpixels = os.getenv("PIXELS")
+        if envpixels == None:
+            raise Exception("No env variable")
+        self.num_pixels = int(envpixels)
 
-def get_light(n: int) -> tuple[int, int, int]:
-    return pixels[n]
+        self.coords = read_csv()
 
+        self.pixels = neopixel.NeoPixel(
+            pixel_pin, self.num_pixels, auto_write=False)
 
-def turnOffLight(n: int):
-    pixels[n] = (0, 0, 0)
+        self.height = max([x[3] for x in self.coords])
+
+    def set_light(self, n: int, colour: tuple[int, int, int] = (255, 255, 255)):
+        self.pixels[n] = colour
+
+    def get_light(self, n: int) -> tuple[int, int, int]:
+        return self.pixels[n]
+
+    def update(self):
+        self.pixels.show()
+
+    def turnOffLight(self, n: int):
+        pixels[n] = (0, 0, 0)
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
     with open('bruh.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(lightLocs)
-
-
-def update():
-    pixels.show()
 
 
 def read_csv():
@@ -46,10 +49,15 @@ def read_csv():
     return list_of_lists
 
 
-coords = read_csv()
-for pixel, coord in enumerate(coords):
-    if coord[2] > 0:
-        pixels[pixel] = (100,100,100)
-    else:
-        pixels[pixel] = (0, 0, 0)
-update()
+tree = Tree()
+
+
+if __name__ == "__main__":
+
+    coords = read_csv()
+    for pixel, coord in enumerate(coords):
+        if coord[2] > 0:
+            tree.pixels[pixel] = (100, 100, 100)
+        else:
+            tree.pixels[pixel] = (0, 0, 0)
+    tree.update()

@@ -1,23 +1,15 @@
 from flask import Flask, request, json
+from util import tree
 import util
 import time
 import spatial_anim
 import strip_anim
 import threading
-import os
-from dotenv import load_dotenv
 
 app = Flask(__name__)
 
 running_task = None
 stop_flag = threading.Event()
-
-load_dotenv()
-
-num_pixels = os.getenv("PIXELS")
-if num_pixels == None:
-    raise Exception("No pixels env variable")
-num_pixels = int(num_pixels)
 
 running_task = None
 stop_flag = threading.Event()
@@ -25,31 +17,31 @@ stop_flag = threading.Event()
 
 @app.route('/lighton')
 def lighton():
-    for i in range(num_pixels):
-        util.setLight(i)
-    util.update()
+    for i in range(tree.num_pixels):
+        tree.set_light(i)
+    tree.update()
     return "All On"
 
 
 @app.route('/lighton/<int:number>')
 def lightonN(number: int):
-    util.setLight(number)
-    util.update()
+    tree.set_light(number)
+    tree.update()
     return "on"
 
 
 @app.route('/lightoff')
 def lightoff():
-    for i in range(num_pixels):
-        util.turnOffLight(i)
-    util.update()
+    for i in range(tree.num_pixels):
+        tree.set_light(i, (0, 0, 0))
+    tree.update()
     return "all off"
 
 
 @app.route('/lightoff/<int:number>')
 def lightoffN(number: int):
-    util.turnOffLight(number)
-    util.update()
+    tree.set_light(number, (0, 0, 0))
+    tree.update()
     return "off"
 
 
@@ -74,6 +66,7 @@ def doStandarda():
     threading.Thread(target=strip_anim.doStandard, args=(stop_flag,)).start()
     return "standard started"
 
+
 @app.route('/doTwinkle')
 def doTinklee():
     global running_task
@@ -83,6 +76,7 @@ def doTinklee():
     running_task = 'twinkle'
     threading.Thread(target=strip_anim.doTwinkle, args=(stop_flag,)).start()
     return "Tinwkle started"
+
 
 @app.route('/doSpin')
 def doSpin():
