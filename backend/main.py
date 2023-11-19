@@ -74,6 +74,15 @@ def doStandarda():
     threading.Thread(target=strip_anim.doStandard, args=(stop_flag,)).start()
     return "standard started"
 
+@app.route('/doTwinkle')
+def doTinklee():
+    global running_task
+    stop_flag.set()
+    time.sleep(2)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'twinkle'
+    threading.Thread(target=strip_anim.doTwinkle, args=(stop_flag,)).start()
+    return "Tinwkle started"
 
 @app.route('/doSpin')
 def doSpin():

@@ -52,7 +52,7 @@ def doSpin(stopFlag: threading.Event):
     swap02 = 0
 
     # the starting point on the vertical axis
-    c = 100
+    c = -200
     while not stopFlag.is_set():
         time.sleep(0.05)
 
