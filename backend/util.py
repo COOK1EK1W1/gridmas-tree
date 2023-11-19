@@ -42,5 +42,5 @@ def update():
 def read_csv():
     with open("bruh.csv") as csvfile:
         reader = csv.reader(csvfile)
-        list_of_lists = [[int(item) for item in row] for row in reader]
+        list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists

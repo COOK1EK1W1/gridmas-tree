@@ -17,9 +17,9 @@ def xyz_planes(stopFlag: threading.Event):
         idk = (idk + 1) % 3
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
-        for i in range(min(lol, key=lambda x: x[idk % 3])[idk % 3], max(lol, key=lambda x: x[idk % 3])[idk % 3], rng):
+        for i in range(-200, 200, rng):
             for ia, light in enumerate(lol):
-                if i <= light[idk % 3] < i + rng:
+                if i <= (light[idk % 3] * 200) < i + rng:
                     util.setLight(ia, color)
                 else:
                     r, g, b = util.get_light(ia)
@@ -32,7 +32,7 @@ def xyz_planes(stopFlag: threading.Event):
 
 def doSpin(stopFlag: threading.Event):
     coords = util.read_csv()
-    heights: list[int] = []
+    heights: list[float] = []
     for i in coords:
         heights.append(i[2])
 
@@ -52,7 +52,7 @@ def doSpin(stopFlag: threading.Event):
     swap02 = 0
 
     # the starting point on the vertical axis
-    c = -200
+    c = -1
     while not stopFlag.is_set():
         time.sleep(0.05)
 
