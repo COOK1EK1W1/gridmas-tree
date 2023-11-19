@@ -28,14 +28,14 @@ def lighton():
     for i in range(num_pixels):
         util.setLight(i)
     util.update()
-    return "bruh"
+    return "All On"
 
 
 @app.route('/lighton/<int:number>')
 def lightonN(number: int):
     util.setLight(number)
     util.update()
-    return "bruh"
+    return "on"
 
 
 @app.route('/lightoff')
@@ -43,14 +43,14 @@ def lightoff():
     for i in range(num_pixels):
         util.turnOffLight(i)
     util.update()
-    return "bruh"
+    return "all off"
 
 
 @app.route('/lightoff/<int:number>')
 def lightoffN(number: int):
     util.turnOffLight(number)
     util.update()
-    return "bruh"
+    return "off"
 
 
 @app.route('/doCool')

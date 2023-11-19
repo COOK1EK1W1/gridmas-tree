@@ -56,13 +56,11 @@ def doSpin(stopFlag: threading.Event):
     while not stopFlag.is_set():
         time.sleep(0.05)
 
-        LED = 0
-        while LED < len(coords):
-            if math.tan(angle)*coords[LED][1] <= coords[LED][2]+c:
-                util.setLight(LED, colourA)
+        for led in range(len(coords)):
+            if math.tan(angle)*coords[led][1] <= coords[led][2]+c:
+                util.setLight(led, colourA)
             else:
-                util.setLight(LED, colourB)
-            LED += 1
+                util.setLight(led, colourB)
 
         # use the show() option as rarely as possible as it takes ages
         # do not use show() each time you change a LED but rather wait until you have changed them all
@@ -80,14 +78,10 @@ def doSpin(stopFlag: threading.Event):
 
         if angle >= 0.5*math.pi:
             if swap01 == 0:
-                colour_hold = [i for i in colourA]
-                colourA = [i for i in colourB]
-                colourB = [i for i in colour_hold]
+                colourA, colourB = colourB, colourA
                 swap01 = 1
 
         if angle >= 1.5*math.pi:
             if swap02 == 0:
-                colour_hold = [i for i in colourA]
-                colourA = [i for i in colourB]
-                colourB = [i for i in colour_hold]
+                colourA, colourB = colourB, colourA
                 swap02 = 1

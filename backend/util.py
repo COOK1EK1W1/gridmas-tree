@@ -1,16 +1,17 @@
 import neopixel
 import os
-import time
 import board
-import random
 from dotenv import load_dotenv
 import csv
-import math
 
 load_dotenv()
 pixel_pin = board.D18
-pixel_num = int(os.getenv("PIXELS"))
-print(pixel_num)
+envpixels = os.getenv("PIXELS")
+
+if envpixels == None:
+    raise Exception("No env variable")
+
+pixel_num = int(envpixels)
 pixels = neopixel.NeoPixel(pixel_pin, pixel_num, auto_write=False)
 
 lights = []
