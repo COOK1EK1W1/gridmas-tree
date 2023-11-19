@@ -1,6 +1,7 @@
 import random
 import time
 import threading
+import math
 
 import util
 
@@ -27,3 +28,66 @@ def xyz_planes(stopFlag: threading.Event):
             time.sleep(fps)
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255))
+
+
+def doSpin(stopFlag: threading.Event):
+    coords = util.read_csv()
+    heights: list[int] = []
+    for i in coords:
+        heights.append(i[2])
+
+    angle = 0
+
+    # how much the angle changes per cycle
+    inc = 0.1
+
+    # the two colours in GRB order
+    # if you are turning a lot of them on at once, keep their brightness down please
+    colourA = (0, 50, 50)
+    colourB = (50, 50, 0)  # yellow
+
+    # INITIALISE SOME VALUES
+
+    swap01 = 0
+    swap02 = 0
+
+    # the starting point on the vertical axis
+    c = 100
+    while not stopFlag.is_set():
+        time.sleep(0.05)
+
+        LED = 0
+        while LED < len(coords):
+            if math.tan(angle)*coords[LED][1] <= coords[LED][2]+c:
+                util.setLight(LED, colourA)
+            else:
+                util.setLight(LED, colourB)
+            LED += 1
+
+        # use the show() option as rarely as possible as it takes ages
+        # do not use show() each time you change a LED but rather wait until you have changed them all
+        util.update()
+
+        # now we get ready for the next cycle
+
+        angle += inc
+        if angle > 2*math.pi:
+            angle -= 2*math.pi
+            swap01 = 0
+            swap02 = 0
+
+        # this is all to keep track of which colour is 'on top'
+
+        if angle >= 0.5*math.pi:
+            if swap01 == 0:
+                colour_hold = [i for i in colourA]
+                colourA = [i for i in colourB]
+                colourB = [i for i in colour_hold]
+                swap01 = 1
+
+        if angle >= 1.5*math.pi:
+            if swap02 == 0:
+                colour_hold = [i for i in colourA]
+                colourA = [i for i in colourB]
+                colourB = [i for i in colour_hold]
+                swap02 = 1

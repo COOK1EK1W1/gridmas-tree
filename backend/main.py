@@ -64,12 +64,6 @@ def docoool():
     return "Spin started"
 
 
-@app.route('/doSpin')
-def dospin():
-    util.doSpin()
-    return "bruh"
-
-
 @app.route('/doStandard')
 def doStandarda():
     global running_task
@@ -89,6 +83,17 @@ def doTinklee():
     running_task = 'twinkle'
     threading.Thread(target=strip_anim.doTwinkle, args=(stop_flag,)).start()
     return "Tinwkle started"
+
+@app.route('/doSpin')
+def doSpin():
+    global running_task
+    stop_flag.set()
+    time.sleep(2)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'spin'
+    threading.Thread(target=spatial_anim.doSpin, args=(stop_flag,)).start()
+    return "spin started"
+
 
 @app.route('/config/setlights', methods=['POST'])
 def setLight():
