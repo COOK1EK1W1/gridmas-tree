@@ -103,6 +103,26 @@ def doPlanes():
     threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
     return "planes started"
 
+@app.route('/doSphereFill')
+def doSphereFill():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'SphereFill'
+    threading.Thread(target=spatial_anim.doSphereFill, args=(stop_flag,)).start()
+    return "Sphere Fill started"
+
+@app.route('/doRGB')
+def doRGB():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'RGB'
+    threading.Thread(target=strip_anim.doRGB, args=(stop_flag,)).start()
+    return "RGB started"
+
 ### animations ###
 
 @app.route('/config/setlights', methods=['POST'])
