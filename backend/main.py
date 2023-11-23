@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from flask import Flask, request, json
 from util import tree
 import util
@@ -133,6 +134,15 @@ def setLight():
     util.savelights(data)
     return "bruh"
 
+def wipe_on():
+    for rng in range(0, int(tree.height*200), 10):
+       for i in range(len(tree.pixels)):
+           if rng <= tree.coords[i][2]*200 < rng + 10:
+               tree.set_light(i, (40, 200, 10))
+       tree.update()
+       time.sleep(1/45)
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    wipe_on()
+    app.run(debug=True, host="0.0.0.0", use_reloader=False)
+
