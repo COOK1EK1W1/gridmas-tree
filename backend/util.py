@@ -61,3 +61,43 @@ if __name__ == "__main__":
         else:
             tree.pixels[pixel] = (0, 0, 0)
     tree.update()
+
+
+def hsl_to_rgb(h, s, l):
+    """
+    Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue).
+    All input values should be in the range [0, 1].
+    """
+    if s == 0:
+        # Achromatic (gray)
+        return int(l * 255), int(l * 255), int(l * 255)
+    else:
+        def hue_to_rgb(p, q, t):
+            if t < 0:
+                t += 1
+            if t > 1:
+                t -= 1
+            if t < 1/6:
+                return p + (q - p) * 6 * t
+            if t < 1/2:
+                return q
+            if t < 2/3:
+                return p + (q - p) * (2/3 - t) * 6
+            return p
+
+        q = l * (1 + s) if l < 0.5 else l + s - l * s
+        p = 2 * l - q
+        r = hue_to_rgb(p, q, h + 1/3)
+        g = hue_to_rgb(p, q, h)
+        b = hue_to_rgb(p, q, h - 1/3)
+
+        return int(r * 255), int(g * 255), int(b * 255)
+
+
+# Example usage:
+h = 0.5  # Hue (range: [0, 1])
+s = 1.0  # Saturation (range: [0, 1])
+l = 0.7  # Lightness (range: [0, 1])
+
+rgb = hsl_to_rgb(h, s, l)
+print(f"RGB: {rgb}")

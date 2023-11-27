@@ -139,6 +139,18 @@ def doRGB():
                      args=(stop_flag,)).start()
     return "wandering ball started"
 
+
+@app.route('/doHueRotate')
+def doRGB():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'hue fade'
+    threading.Thread(target=strip_anim.doHueRotate,
+                     args=(stop_flag,)).start()
+    return "hue fade started"
+
 ### animations ###
 
 
