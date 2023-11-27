@@ -80,12 +80,12 @@ def doSpin(stopFlag: threading.Event):
     swap02 = 0
 
     # the starting point on the vertical axis
-    c = -1
+    c = -tree.height/2
     while not stopFlag.is_set():
         time.sleep(0.05)
 
         for led in range(tree.num_pixels):
-            if math.tan(angle)*tree.coords[led][1] <= tree.coords[led][2]+c:
+            if math.tan(angle)*tree.coords[led][0] <= tree.coords[led][2]+c:
                 tree.set_light(led, colourA)
             else:
                 tree.set_light(led, colourB)
