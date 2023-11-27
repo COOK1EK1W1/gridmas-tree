@@ -113,6 +113,7 @@ def doPlanes():
     threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
     return "planes started"
 
+
 @app.route('/doSphereFill')
 def doSphereFill():
     global running_task
@@ -120,8 +121,10 @@ def doSphereFill():
     time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
     running_task = 'SphereFill'
-    threading.Thread(target=spatial_anim.doSphereFill, args=(stop_flag,)).start()
+    threading.Thread(target=spatial_anim.doSphereFill,
+                     args=(stop_flag,)).start()
     return "Sphere Fill started"
+
 
 @app.route('/doRGB')
 def doRGB():
@@ -133,7 +136,32 @@ def doRGB():
     threading.Thread(target=strip_anim.doRGB, args=(stop_flag,)).start()
     return "RGB started"
 
+
+@app.route('/doWanderingBall')
+def doRGB():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'wandering ball'
+    threading.Thread(target=spatial_anim.doWanderingBall,
+                     args=(stop_flag,)).start()
+    return "wandering ball started"
+
+
+@app.route('/doHueRotate')
+def doRGB():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'hue fade'
+    threading.Thread(target=strip_anim.doHueRotate,
+                     args=(stop_flag,)).start()
+    return "hue fade started"
+
 ### animations ###
+
 
 @app.route('/config/setlights', methods=['POST'])
 def setLight():
@@ -267,4 +295,3 @@ def wipe_on():
 if __name__ == '__main__':
     wipe_on()
     app.run(debug=True, host="0.0.0.0", use_reloader=False, port =80)
-
