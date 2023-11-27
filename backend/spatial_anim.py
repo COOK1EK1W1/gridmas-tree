@@ -137,14 +137,17 @@ def doPlanes(stopFlag: threading.Event):
                 break
             tree.update()
 
+
 def doSphereFill(stopFlag: threading.Event):
     while not stopFlag.is_set():
-        color = (random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
+        color = (random.randint(0, 200), random.randint(
+            0, 200), random.randint(0, 200))
         center = [0, 0, tree.height/2]  # Center of the tree
 
         # Radius expansion parameters
         min_radius = 0.1
-        max_radius = ((tree.height/2) ** 2 + 1) ** 0.5 #pythagoras, distance from the centre to the edge
+        # pythagoras, distance from the centre to the edge
+        max_radius = ((tree.height/2) ** 2 + 1) ** 0.5
         expansion_speed = 0.05
 
         radius = min_radius
@@ -175,3 +178,36 @@ def doSphereFill(stopFlag: threading.Event):
         # Clear the tree after the sphere has expanded completely
         tree.update()
 
+
+def doWanderingBall(stopFlag: threading.Event):
+    height = 0
+    angle = 0
+
+    dist = 0.2
+    radius = 0.4
+    while not stopFlag.is_set():
+        color = (255, 255, 255)
+
+        center = [dist * math.sin(angle), dist * math.cos(angle), height]
+        for i, coord in enumerate(tree.coords):
+            distance_to_center: float = math.sqrt((coord[0] - center[0]) ** 2 + (
+                coord[1] - center[1]) ** 2 + (coord[2] - center[2]) ** 2)
+
+            # Check if the current LED is within the expanding sphere
+            if distance_to_center <= radius:
+                tree.set_light(i, color)
+            else:
+                tree.set_light(i, (0, 0, 0))
+
+            # Update the tree display
+            tree.update()
+
+            # Pause for a short time to control the expansion speed
+            time.sleep(1/45)
+
+            if stopFlag.is_set():
+                break
+        angle = (angle + 0.01) % 6.28
+
+        # Clear the tree after the sphere has expanded completely
+        tree.update()

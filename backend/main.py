@@ -104,6 +104,7 @@ def doPlanes():
     threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
     return "planes started"
 
+
 @app.route('/doSphereFill')
 def doSphereFill():
     global running_task
@@ -111,8 +112,10 @@ def doSphereFill():
     time.sleep(pause_time)  # Allow time for the task to stop
     stop_flag.clear()
     running_task = 'SphereFill'
-    threading.Thread(target=spatial_anim.doSphereFill, args=(stop_flag,)).start()
+    threading.Thread(target=spatial_anim.doSphereFill,
+                     args=(stop_flag,)).start()
     return "Sphere Fill started"
+
 
 @app.route('/doRGB')
 def doRGB():
@@ -124,7 +127,20 @@ def doRGB():
     threading.Thread(target=strip_anim.doRGB, args=(stop_flag,)).start()
     return "RGB started"
 
+
+@app.route('/doWanderingBall')
+def doRGB():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'wandering ball'
+    threading.Thread(target=spatial_anim.doWanderingBall,
+                     args=(stop_flag,)).start()
+    return "wandering ball started"
+
 ### animations ###
+
 
 @app.route('/config/setlights', methods=['POST'])
 def setLight():
@@ -134,15 +150,16 @@ def setLight():
     util.savelights(data)
     return "bruh"
 
+
 def wipe_on():
     for rng in range(0, int(tree.height*200), 10):
-       for i in range(len(tree.pixels)):
-           if rng <= tree.coords[i][2]*200 < rng + 10:
-               tree.set_light(i, (40, 200, 10))
-       tree.update()
-       time.sleep(1/45)
+        for i in range(len(tree.pixels)):
+            if rng <= tree.coords[i][2]*200 < rng + 10:
+                tree.set_light(i, (40, 200, 10))
+        tree.update()
+        time.sleep(1/45)
+
 
 if __name__ == '__main__':
     wipe_on()
     app.run(debug=True, host="0.0.0.0", use_reloader=False)
-
