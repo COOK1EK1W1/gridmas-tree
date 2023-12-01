@@ -180,7 +180,7 @@ def doSphereFill(stopFlag: threading.Event):
 
 
 def doWanderingBall(stopFlag: threading.Event):
-    height = 0
+    height = 0.5
     angle = 0
 
     dist = 0.2
@@ -199,15 +199,10 @@ def doWanderingBall(stopFlag: threading.Event):
             else:
                 tree.set_light(i, (0, 0, 0))
 
-            # Update the tree display
-            tree.update()
+        time.sleep(1/45)
 
-            # Pause for a short time to control the expansion speed
-            time.sleep(1/45)
-
-            if stopFlag.is_set():
-                break
-        angle = (angle + 0.01) % 6.28
+        angle = (angle + 0.1) % 6.28
 
         # Clear the tree after the sphere has expanded completely
         tree.update()
+

@@ -138,7 +138,7 @@ def doRGB():
 
 
 @app.route('/doWanderingBall')
-def doRGB():
+def doWanderingBall():
     global running_task
     stop_flag.set()
     time.sleep(pause_time)  # Allow time for the task to stop
@@ -150,7 +150,7 @@ def doRGB():
 
 
 @app.route('/doHueRotate')
-def doRGB():
+def doHueRoatate():
     global running_task
     stop_flag.set()
     time.sleep(pause_time)  # Allow time for the task to stop
@@ -197,6 +197,8 @@ def home():
     <button onclick="doSpin()">Do spin</button>
     <button onclick="doXYZ()">Do XYZ</button>
     <button onclick="doRGB()">Do RGB</button>
+    <button onclick="doHueRotate()">Do Hue Rotate</button>
+    <button onclick="doWanderingBall()">Do Wanding Ball</button>
 
     <script>
 
@@ -221,27 +223,35 @@ def home():
         }
 
         function doStrip() {
-            sendRequest("http://87.75.95.186/doStrip");
+            sendRequest("http://192.168.1.50/doStrip");
         }
         function doPlanes() {
-            sendRequest("http://87.75.95.186/doPlanes");
+            sendRequest("http://192.168.1.50/doPlanes");
         }
         function doSphereFill() {
-            sendRequest("http://87.75.95.186/doSphereFill");
+            sendRequest("http://192.168.1.50/doSphereFill");
         }
         function doTwinkle() {
-            sendRequest("http://87.75.95.186/doTwinkle");
+            sendRequest("http://192.168.1.50/doTwinkle");
         }
         function doSpin() {
-            sendRequest("http://87.75.95.186/doSpin");
+            sendRequest("http://192.168.1.50/doSpin");
         }
 
         function doXYZ() {
-            sendRequest("http://87.75.95.186/doXYZ");
+            sendRequest("http://192.168.1.50/doXYZ");
         }
 
         function doRGB() {
-            sendRequest("http://87.75.95.186/doRGB");
+            sendRequest("http://192.168.1.50/doRGB");
+        }
+
+        function doHueRotate() {
+            sendRequest("http://192.168.1.50/doHueRotate");
+        }
+
+        function doWanderingBall() {
+            sendRequest("http://192.168.1.50/doWanderingBall");
         }
 
         function sendRequest(url) {
