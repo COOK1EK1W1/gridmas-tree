@@ -21,10 +21,10 @@ def doStrip(stopFlag: threading.Event):
 def doTwinkle(stopFlag: threading.Event):
     while not stopFlag.is_set():
         x = random.randint(0, tree.num_pixels - 1)
-        tree.set_light(x, (0, 100, 0))
+        tree.set_light(x, (120, 20, 0))
         for ia in range(tree.num_pixels):
             r, g, b = tree.get_light(ia)
-            color = (min(int(r+5), 100), min(int(g+5), 255), min(20, int(b+5)))
+            color = (min(int(r+5), 200), min(int(g+5), 55), min(1, int(b+5)))
             tree.set_light(ia, color)
         tree.update()
         time.sleep(0.02)
@@ -51,10 +51,10 @@ def doRGB(stopFlag: threading.Event):
 def doHueRotate(stopFlag: threading.Event):
     hue = 0
     while not stopFlag.is_set():
-        hue = (hue + 0.2) % 360
+        hue = (hue + 0.02) % 1
         r, g, b = util.hsl_to_rgb(hue, 1, 0.5)
         for i in range(len(tree.pixels)):
             color = (r, g, b)
             tree.set_light(i, color)
         tree.update()
-        time.sleep(1/45)
+        time.sleep(1/30)

@@ -1,4 +1,5 @@
 import random
+import cv2
 import time
 import threading
 import math
@@ -80,12 +81,12 @@ def doSpin(stopFlag: threading.Event):
     swap02 = 0
 
     # the starting point on the vertical axis
-    c = -1
+    c = -tree.height/2
     while not stopFlag.is_set():
         time.sleep(0.05)
 
         for led in range(tree.num_pixels):
-            if math.tan(angle)*tree.coords[led][1] <= tree.coords[led][2]+c:
+            if math.tan(angle)*tree.coords[led][0] <= tree.coords[led][2]+c:
                 tree.set_light(led, colourA)
             else:
                 tree.set_light(led, colourB)
@@ -180,7 +181,7 @@ def doSphereFill(stopFlag: threading.Event):
 
 
 def doWanderingBall(stopFlag: threading.Event):
-    height = 0
+    height = 0.5
     angle = 0
 
     dist = 0.2
@@ -199,15 +200,24 @@ def doWanderingBall(stopFlag: threading.Event):
             else:
                 tree.set_light(i, (0, 0, 0))
 
-            # Update the tree display
-            tree.update()
+        time.sleep(1/45)
 
-            # Pause for a short time to control the expansion speed
-            time.sleep(1/45)
-
-            if stopFlag.is_set():
-                break
-        angle = (angle + 0.01) % 6.28
+        angle = (angle + 0.1) % 6.28
 
         # Clear the tree after the sphere has expanded completely
         tree.update()
+
+def doShowImage():
+    img = cv2.imread('stocking.jpg', cv2.IMREAD_COLOR)
+    print(img)
+    print(img.shape)
+    for i in range(tree.num_pixels):
+        (x, y, z) = tree.coords[i]
+        z = int((z) * ((img.shape[0])/(tree.height + 0.1)))
+        x = int((x+1) * (img.shape[1] / 2))
+        (b, g, r) = img[z, x]
+        print((r, g, b))
+        tree.set_light(i, (r, g, b))
+
+    tree.update()
+doShowImage()
