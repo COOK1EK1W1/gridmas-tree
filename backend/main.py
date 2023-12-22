@@ -177,9 +177,13 @@ def run_all():
 def a(stopFlag: threading.Event):
     anims = [
         spatial_anim.doPlanes,
+        spatial_anim.doPlanes,
+        spatial_anim.doSphereFill,
         spatial_anim.doSphereFill,
         spatial_anim.doSpin,
+        spatial_anim.doSpin,
         spatial_anim.doWanderingBall,
+        spatial_anim.xyz_planes,
         spatial_anim.xyz_planes,
         strip_anim.doHueRotate,
         strip_anim.doRGB,
@@ -192,7 +196,7 @@ def a(stopFlag: threading.Event):
                          args=(stop_flag,)).start()
         time.sleep(5)
         stop_flag.set()
-        time.sleep(1)
+        time.sleep(0.2)
         stop_flag.clear()
         time.sleep(0.1)
 
