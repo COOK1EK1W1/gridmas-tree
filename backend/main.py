@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import random
 from flask import Flask, request, json
 from util import tree
 import util
@@ -129,7 +130,7 @@ def doRGB():
 
 
 @app.route('/doWanderingBall')
-def doRGB():
+def doWanderingBall():
     global running_task
     stop_flag.set()
     time.sleep(pause_time)  # Allow time for the task to stop
@@ -141,7 +142,7 @@ def doRGB():
 
 
 @app.route('/doHueRotate')
-def doRGB():
+def doHueRotate():
     global running_task
     stop_flag.set()
     time.sleep(pause_time)  # Allow time for the task to stop
@@ -150,6 +151,41 @@ def doRGB():
     threading.Thread(target=strip_anim.doHueRotate,
                      args=(stop_flag,)).start()
     return "hue fade started"
+
+
+@app.route('/runall')
+def run_all():
+    global running_task
+    stop_flag.set()
+    time.sleep(pause_time)  # Allow time for the task to stop
+    stop_flag.clear()
+    running_task = 'hue fade'
+    threading.Thread(target=a,
+                     args=(stop_flag,)).start()
+    return "running all started"
+
+
+def a(stopFlag: threading.Event):
+    anims = [
+        spatial_anim.doPlanes,
+        spatial_anim.doSphereFill,
+        spatial_anim.doSpin,
+        spatial_anim.doWanderingBall,
+        spatial_anim.xyz_planes,
+        strip_anim.doHueRotate,
+        strip_anim.doRGB,
+        strip_anim.doStrip,
+        strip_anim.doTwinkle,
+    ]
+    while not stopFlag.is_set():
+        x = random.randint(0, len(anims)-1)
+        threading.Thread(target=anims[x],
+                         args=(stop_flag,)).start()
+        time.sleep(5)
+        stop_flag.set()
+        time.sleep(1)
+        stop_flag.clear()
+        time.sleep(0.1)
 
 ### animations ###
 
