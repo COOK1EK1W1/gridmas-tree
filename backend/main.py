@@ -202,11 +202,11 @@ def home():
 
     <script>
 
-            function sendColor() {
+        function sendColor() {
             var selectedColor = document.getElementById("colorPicker").value;
 
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://87.75.95.186/setlight", true);
+            xhr.open("POST", "http://192.168.1.50/setlights", true);
             xhr.setRequestHeader("Content-Type", "application/json");
 
             var data = JSON.stringify({ color: selectedColor });
@@ -276,6 +276,7 @@ def home():
 
 @app.route('/setlights', methods=['POST'])
 def setLights():
+    print("setting lights")
     stop_flag.set()
     time.sleep(pause_time)
     stop_flag.clear()

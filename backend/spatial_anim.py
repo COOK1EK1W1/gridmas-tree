@@ -1,4 +1,5 @@
 import random
+import cv2
 import time
 import threading
 import math
@@ -206,3 +207,17 @@ def doWanderingBall(stopFlag: threading.Event):
         # Clear the tree after the sphere has expanded completely
         tree.update()
 
+def doShowImage():
+    img = cv2.imread('stocking.jpg', cv2.IMREAD_COLOR)
+    print(img)
+    print(img.shape)
+    for i in range(tree.num_pixels):
+        (x, y, z) = tree.coords[i]
+        z = int((z) * ((img.shape[0])/(tree.height + 0.1)))
+        x = int((x+1) * (img.shape[1] / 2))
+        (b, g, r) = img[z, x]
+        print((r, g, b))
+        tree.set_light(i, (r, g, b))
+
+    tree.update()
+doShowImage()
