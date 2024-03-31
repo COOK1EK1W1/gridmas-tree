@@ -1,12 +1,16 @@
 #!/usr/bin/python3
-import random
 from flask import Flask, request, json
-from util import tree
+
+try:
+    from util import tree
+except NotImplementedError as e:
+    print("broken")
+    exit()
+
 import util
 import time
-import spatial_anim
-import strip_anim
 import threading
+import os
 
 app = Flask(__name__)
 
@@ -57,150 +61,6 @@ def lightoffN(number: int):
     tree.update()
     return "off"
 
-
-### animations ###
-
-@app.route('/doXYZ')
-def doXYZ():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'xyz'
-    threading.Thread(target=spatial_anim.xyz_planes, args=(stop_flag,)).start()
-    return "Spin started"
-
-
-@app.route('/doStrip')
-def doStrip():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'strip'
-    threading.Thread(target=strip_anim.doStrip, args=(stop_flag,)).start()
-    return "standard started"
-
-
-@app.route('/doTwinkle')
-def doTinkle():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'twinkle'
-    threading.Thread(target=strip_anim.doTwinkle, args=(stop_flag,)).start()
-    return "Tinwkle started"
-
-
-@app.route('/doSpin')
-def doSpin():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'spin'
-    threading.Thread(target=spatial_anim.doSpin, args=(stop_flag,)).start()
-    return "spin started"
-
-
-@app.route('/doPlanes')
-def doPlanes():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'Planes'
-    threading.Thread(target=spatial_anim.doPlanes, args=(stop_flag,)).start()
-    return "planes started"
-
-
-@app.route('/doSphereFill')
-def doSphereFill():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'SphereFill'
-    threading.Thread(target=spatial_anim.doSphereFill,
-                     args=(stop_flag,)).start()
-    return "Sphere Fill started"
-
-
-@app.route('/doRGB')
-def doRGB():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'RGB'
-    threading.Thread(target=strip_anim.doRGB, args=(stop_flag,)).start()
-    return "RGB started"
-
-
-@app.route('/doWanderingBall')
-def doWanderingBall():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'wandering ball'
-    threading.Thread(target=spatial_anim.doWanderingBall,
-                     args=(stop_flag,)).start()
-    return "wandering ball started"
-
-
-@app.route('/doHueRotate')
-def doHueRotate():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'hue fade'
-    threading.Thread(target=strip_anim.doHueRotate,
-                     args=(stop_flag,)).start()
-    return "hue fade started"
-
-
-@app.route('/runall')
-def run_all():
-    global running_task
-    stop_flag.set()
-    time.sleep(pause_time)  # Allow time for the task to stop
-    stop_flag.clear()
-    running_task = 'hue fade'
-    threading.Thread(target=a,
-                     args=(stop_flag,)).start()
-    return "running all started"
-
-
-def a(stopFlag: threading.Event):
-    anims = [
-        spatial_anim.doPlanes,
-        spatial_anim.doPlanes,
-        spatial_anim.doSphereFill,
-        spatial_anim.doSphereFill,
-        spatial_anim.doSpin,
-        spatial_anim.doSpin,
-        spatial_anim.doWanderingBall,
-        spatial_anim.xyz_planes,
-        spatial_anim.xyz_planes,
-        strip_anim.doHueRotate,
-        strip_anim.doRGB,
-        strip_anim.doStrip,
-        strip_anim.doTwinkle,
-    ]
-    while not stopFlag.is_set():
-        x = random.randint(0, len(anims)-1)
-        threading.Thread(target=anims[x],
-                         args=(stop_flag,)).start()
-        time.sleep(5)
-        stop_flag.set()
-        time.sleep(0.2)
-        stop_flag.clear()
-        time.sleep(0.1)
-
-### animations ###
 
 
 @app.route('/config/setlights', methods=['POST'])
@@ -345,7 +205,16 @@ def wipe_on():
         tree.update()
         time.sleep(1/45)
 
+def load_patterns(pattern_dir):
+    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".p")]
+    print(pattern_files)
+
+
+def main():
+    pattern_dir = "patterns"
+    print(pattern_dir)
+    load_patterns(pattern_dir)
 
 if __name__ == '__main__':
-    wipe_on()
-    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
+    main()
+    # app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
