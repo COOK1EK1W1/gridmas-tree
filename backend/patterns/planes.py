@@ -3,7 +3,7 @@ import math
 
 from util import tree
 
-def doPlanes():
+def run():
     while True:
         color = (random.randint(0, 200), random.randint(
             0, 200), random.randint(0, 200))

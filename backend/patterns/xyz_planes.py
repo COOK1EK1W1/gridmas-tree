@@ -2,7 +2,7 @@ import random
 import time
 
 from util import tree
-def xyz_planes():
+def run():
     j = 1.1
     fps = 1/60
     rng = 10

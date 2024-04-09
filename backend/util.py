@@ -39,13 +39,13 @@ class Tree():
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
-    with open('bruh.csv', 'w', newline='') as file:
+    with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(lightLocs)
 
 
 def read_csv():
-    with open("bruh.csv") as csvfile:
+    with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists

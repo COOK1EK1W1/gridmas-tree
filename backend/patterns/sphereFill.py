@@ -4,7 +4,7 @@ import math
 
 from util import tree
 
-def doSphereFill():
+def run():
     while True:
         color = (random.randint(0, 200), random.randint(
             0, 200), random.randint(0, 200))
@@ -41,3 +41,5 @@ def doSphereFill():
         # Clear the tree after the sphere has expanded completely
         tree.update()
 
+if __name__ == "__main__":
+    run()

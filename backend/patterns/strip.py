@@ -1,7 +1,7 @@
 from util import tree
 import time
 
-def doStrip():
+def run():
     while True:
         for i in range(tree.num_pixels):
             tree.set_light(i, (255, 255, 255))

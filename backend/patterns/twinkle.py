@@ -2,7 +2,7 @@ from util import tree
 import time
 import random
 
-def doTwinkle():
+def run():
     while True:
         x = random.randint(0, tree.num_pixels - 1)
         tree.set_light(x, (120, 20, 0))

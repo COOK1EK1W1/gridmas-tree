@@ -1,7 +1,7 @@
 from util import tree
 import time
 
-def doRGB():
+def run():
     offset = 0
     while True:
         offset = (offset + 1) % 3

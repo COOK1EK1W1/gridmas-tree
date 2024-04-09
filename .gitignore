@@ -3,3 +3,5 @@ scanning/results/
 **/.DS_Store
 .env
 **/__pycache__/
+*.swp
+backend/tree.csv

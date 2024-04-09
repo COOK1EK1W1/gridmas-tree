@@ -3,7 +3,7 @@ import math
 
 from util import tree
 
-def doSpin():
+def run():
     heights: list[float] = []
     for i in tree.coords:
         heights.append(i[2])

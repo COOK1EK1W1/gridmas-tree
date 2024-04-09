@@ -9,6 +9,7 @@ except NotImplementedError as e:
 
 import util
 import time
+import multiprocessing
 import threading
 import os
 
@@ -206,14 +207,31 @@ def wipe_on():
         time.sleep(1/45)
 
 def load_patterns(pattern_dir):
-    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".p")]
+    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
     print(pattern_files)
-
+    patterns = []
+    for file in pattern_files:
+        print(file)
+        module_name = os.path.splitext(file)[0]
+        module = __import__("patterns."+module_name)
+        pattern_func = getattr(module, module_name)
+        patterns.append(pattern_func)
+    return patterns
 
 def main():
     pattern_dir = "patterns"
     print(pattern_dir)
-    load_patterns(pattern_dir)
+    patterns = load_patterns(pattern_dir)
+    wipe_on()
+    time.sleep(2)
+    
+    i = 0
+    while True:
+        pattern_thread = multiprocessing.Process(target=patterns[i].run)
+        pattern_thread.start()
+        time.sleep(10)
+        pattern_thread.terminate()
+        i = (i + 1) % len(patterns)
 
 if __name__ == '__main__':
     main()
