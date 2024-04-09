@@ -4,6 +4,10 @@ import math
 
 from util import tree
 
+name = "SphereFill"
+display_name = "Sphere Fill"
+
+
 def run():
     while True:
         color = (random.randint(0, 200), random.randint(

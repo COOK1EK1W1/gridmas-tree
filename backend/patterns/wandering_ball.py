@@ -3,6 +3,10 @@ import math
 
 from util import tree
 
+name = "wandering_ball"
+display_name = "Wandering Ball"
+
+
 def run():
     height = 0.5
     angle = 0
@@ -14,7 +18,7 @@ def run():
         color = (255, 255, 255)
 
         center = [dist * math.sin(angle), dist * math.cos(angle), height]
-        height = math.sin(angle) + 1
+        height = math.sin(angle2) + 1
         for i, coord in enumerate(tree.coords):
             distance_to_center: float = math.sqrt((coord[0] - center[0]) ** 2 + (
                 coord[1] - center[1]) ** 2 + (coord[2] - center[2]) ** 2)

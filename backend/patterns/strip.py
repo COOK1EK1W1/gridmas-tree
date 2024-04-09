@@ -1,6 +1,10 @@
 from util import tree
 import time
 
+name = "strip"
+display_name = "strip"
+
+
 def run():
     while True:
         for i in range(tree.num_pixels):
@@ -10,7 +14,3 @@ def run():
                 tree.set_light(ia, (int(r/1.1), int(g/1.1), int(b/1.1)))
             tree.update()
             time.sleep(0.01)
-
-
-if __name__ == "__main__":
-    doStrip()

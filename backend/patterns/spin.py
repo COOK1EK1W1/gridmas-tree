@@ -3,6 +3,10 @@ import math
 
 from util import tree
 
+name = "spin"
+display_name = "spin"
+
+
 def run():
     heights: list[float] = []
     for i in tree.coords:

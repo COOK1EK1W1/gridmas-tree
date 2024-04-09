@@ -1,31 +1,37 @@
 #!/usr/bin/python3
 from flask import Flask, request, json
 
-try:
-    from util import tree
-except NotImplementedError as e:
-    print("broken")
-    exit()
+from util import tree
 
 import util
 import time
 import multiprocessing
-import threading
 import os
 
 app = Flask(__name__)
 
 running_task = None
-stop_flag = threading.Event()
 
-pause_time = 0.2
+
+def load_patterns(pattern_dir):
+    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
+    print(pattern_files)
+    patterns = []
+    for file in pattern_files:
+        module_name = os.path.splitext(file)[0]
+        module = __import__("patterns."+module_name)
+        pattern_func = getattr(module, module_name)
+        patterns.append(pattern_func)
+    return patterns
+
+
+pattern_dir = "patterns"
+print(pattern_dir)
+patterns = load_patterns(pattern_dir)
 
 
 @app.route('/lighton')
 def lighton():
-    stop_flag.set()
-    time.sleep(pause_time)
-    stop_flag.clear()
     for i in range(tree.num_pixels):
         tree.set_light(i)
     tree.update()
@@ -34,9 +40,6 @@ def lighton():
 
 @app.route('/lighton/<int:number>')
 def lightonN(number: int):
-    stop_flag.set()
-    time.sleep(pause_time)
-    stop_flag.clear()
     tree.set_light(number)
     tree.update()
     return "on"
@@ -44,9 +47,6 @@ def lightonN(number: int):
 
 @app.route('/lightoff')
 def lightoff():
-    stop_flag.set()
-    time.sleep(pause_time)
-    stop_flag.clear()
     for i in range(tree.num_pixels):
         tree.set_light(i, (0, 0, 0))
     tree.update()
@@ -55,13 +55,9 @@ def lightoff():
 
 @app.route('/lightoff/<int:number>')
 def lightoffN(number: int):
-    stop_flag.set()
-    time.sleep(pause_time)
-    stop_flag.clear()
     tree.set_light(number, (0, 0, 0))
     tree.update()
     return "off"
-
 
 
 @app.route('/config/setlights', methods=['POST'])
@@ -73,6 +69,31 @@ def setLight():
     return "bruh"
 
 
+@app.route('/pattern/<pattern>')
+def pattern(pattern: str):
+    global running_task
+    apattern = list(filter(lambda x: x.name == pattern, patterns))
+    if len(apattern) > 0:
+        if running_task:
+            running_task.terminate()
+        running_task = multiprocessing.Process(target=apattern[0].run)
+        running_task.start()
+        return "running"
+    else:
+        return "not running"
+
+
+def button(fn, name):
+    return f'<button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" onclick="{fn}()">{name}</button>'
+
+
+def fn(fn, name):
+    return """
+        function """ + fn + """() {
+            sendRequest("/pattern/""" + fn + """");
+        }"""
+
+
 @app.route('/', methods=['GET'])
 def home():
     return """
@@ -82,6 +103,7 @@ def home():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Color Picker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 
@@ -91,17 +113,10 @@ def home():
     <input onChange="sendColor()" type="color" id="colorPicker" name="colorPicker" value="#ff0000">
 
     <button onChange="sendColor()">Set Light Color</button>
-    
-    <button onclick="doStrip()">Do strip</button>
-    <button onclick="doPlanes()">Do planes</button>
-    <button onclick="doSphereFill()">Do spherefill</button>
-    <button onclick="doTwinkle()">Do twinkle</button>
-    <button onclick="doSpin()">Do spin</button>
-    <button onclick="doXYZ()">Do XYZ</button>
-    <button onclick="doRGB()">Do RGB</button>
-    <button onclick="doHueRotate()">Do Hue Rotate</button>
-    <button onclick="doWanderingBall()">Do Wanding Ball</button>
 
+    <div class="flex flex-wrap w-full m-2 justify-center">
+    """ + "\n".join(map(lambda x: button(x.name, x.display_name), patterns)) + """
+    </div>
     <script>
 
         function sendColor() {
@@ -123,38 +138,8 @@ def home():
 
             xhr.send(data);
         }
+        """ + " ".join(map(lambda x: fn(x.name, x.name), patterns)) + """
 
-        function doStrip() {
-            sendRequest("http://192.168.1.50/doStrip");
-        }
-        function doPlanes() {
-            sendRequest("http://192.168.1.50/doPlanes");
-        }
-        function doSphereFill() {
-            sendRequest("http://192.168.1.50/doSphereFill");
-        }
-        function doTwinkle() {
-            sendRequest("http://192.168.1.50/doTwinkle");
-        }
-        function doSpin() {
-            sendRequest("http://192.168.1.50/doSpin");
-        }
-
-        function doXYZ() {
-            sendRequest("http://192.168.1.50/doXYZ");
-        }
-
-        function doRGB() {
-            sendRequest("http://192.168.1.50/doRGB");
-        }
-
-        function doHueRotate() {
-            sendRequest("http://192.168.1.50/doHueRotate");
-        }
-
-        function doWanderingBall() {
-            sendRequest("http://192.168.1.50/doWanderingBall");
-        }
 
         function sendRequest(url) {
             var xhr = new XMLHttpRequest();
@@ -180,9 +165,7 @@ def home():
 @app.route('/setlights', methods=['POST'])
 def setLights():
     print("setting lights")
-    stop_flag.set()
     time.sleep(pause_time)
-    stop_flag.clear()
     print(request.data)
     data = json.loads(request.data)
     print(data)
@@ -206,25 +189,13 @@ def wipe_on():
         tree.update()
         time.sleep(1/45)
 
-def load_patterns(pattern_dir):
-    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
-    print(pattern_files)
-    patterns = []
-    for file in pattern_files:
-        print(file)
-        module_name = os.path.splitext(file)[0]
-        module = __import__("patterns."+module_name)
-        pattern_func = getattr(module, module_name)
-        patterns.append(pattern_func)
-    return patterns
 
-def main():
-    pattern_dir = "patterns"
-    print(pattern_dir)
-    patterns = load_patterns(pattern_dir)
+if __name__ == '__main__':
     wipe_on()
-    time.sleep(2)
-    
+    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
+
+
+def a():
     i = 0
     while True:
         pattern_thread = multiprocessing.Process(target=patterns[i].run)
@@ -233,6 +204,4 @@ def main():
         pattern_thread.terminate()
         i = (i + 1) % len(patterns)
 
-if __name__ == '__main__':
-    main()
-    # app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
+

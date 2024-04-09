@@ -1,41 +1,4 @@
-import neopixel
-import os
-import board
-from dotenv import load_dotenv
 import csv
-
-load_dotenv()
-pixel_pin = board.D18
-
-
-class Tree():
-    def __init__(self):
-
-        envpixels = os.getenv("PIXELS")
-        if envpixels == None:
-            raise Exception("No env variable")
-        self.num_pixels = int(envpixels)
-
-        self.coords = read_csv()
-
-        self.pixels = neopixel.NeoPixel(
-            pixel_pin, self.num_pixels, auto_write=False)
-
-        self.height = max([x[2] for x in self.coords])
-
-    def set_light(self, n: int, colour: tuple[int, int, int] = (255, 255, 255)):
-        (r, g, b) = colour
-        self.pixels[n] = (g, r, b)
-
-    def get_light(self, n: int) -> tuple[int, int, int]:
-        (g, r, b) = self.pixels[n]
-        return (r, g, b)
-
-    def update(self):
-        self.pixels.show()
-
-    def turnOffLight(self, n: int):
-        pixels[n] = (0, 0, 0)
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -49,20 +12,6 @@ def read_csv():
         reader = csv.reader(csvfile)
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists
-
-
-tree = Tree()
-
-
-if __name__ == "__main__":
-
-    coords = read_csv()
-    for pixel, coord in enumerate(coords):
-        if coord[2] > 0:
-            tree.pixels[pixel] = (100, 100, 100)
-        else:
-            tree.pixels[pixel] = (0, 0, 0)
-    tree.update()
 
 
 def hsl_to_rgb(h, s, l):
@@ -96,10 +45,73 @@ def hsl_to_rgb(h, s, l):
         return int(r * 255), int(g * 255), int(b * 255)
 
 
-# Example usage:
-h = 0.5  # Hue (range: [0, 1])
-s = 1.0  # Saturation (range: [0, 1])
-l = 0.7  # Lightness (range: [0, 1])
+def create_pixels(num):
 
-rgb = hsl_to_rgb(h, s, l)
-print(f"RGB: {rgb}")
+    try:
+        import neopixel
+        import board
+
+        pixel_pin = board.D18
+        return neopixel.NeoPixel(pixel_pin, num, auto_write=False)
+
+    except Exception as e:
+        print("cannot find neopixel module, probably because your running on a device which is not supported")
+        print("will attempt to run in dev mode")
+
+
+        class a:
+            def __init__(self, num):
+                self.num = num
+
+            def __getitem__(self, index):
+                return (0, 0, 0)
+
+            def __setitem__(self, index, item1):
+                pass
+
+            def show(self):
+                pass
+
+            def __len__(self):
+                return self.num
+
+        return a(num)
+
+
+class Tree():
+    def __init__(self):
+
+        self.coords = read_csv()
+
+        self.num_pixels = int(len(self.coords))
+
+        self.pixels = create_pixels(self.num_pixels)
+
+        self.height = max([x[2] for x in self.coords])
+
+    def set_light(self, n: int, colour: tuple[int, int, int] = (255, 255, 255)):
+        (r, g, b) = colour
+        self.pixels[n] = (g, r, b)
+
+    def get_light(self, n: int) -> tuple[int, int, int]:
+        (g, r, b) = self.pixels[n]
+        return (r, g, b)
+
+    def update(self):
+        self.pixels.show()
+
+    def turnOffLight(self, n: int):
+        self.pixels[n] = (0, 0, 0)
+
+
+tree = Tree()
+
+if __name__ == "__main__":
+
+    coords = read_csv()
+    for pixel, coord in enumerate(coords):
+        if coord[2] > 0:
+            tree.pixels[pixel] = (100, 100, 100)
+        else:
+            tree.pixels[pixel] = (0, 0, 0)
+    tree.update()

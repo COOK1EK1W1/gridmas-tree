@@ -1,7 +1,11 @@
 import random
 import time
-
 from util import tree
+
+name = "xyz_planes"
+display_name = "xyz Planes"
+
+
 def run():
     j = 1.1
     fps = 1/60

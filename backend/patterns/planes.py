@@ -3,6 +3,10 @@ import math
 
 from util import tree
 
+name = "Planes"
+display_name = "Planes"
+
+
 def run():
     while True:
         color = (random.randint(0, 200), random.randint(

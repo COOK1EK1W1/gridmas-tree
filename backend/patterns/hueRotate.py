@@ -1,7 +1,9 @@
 from util import tree
 import time
-import threading
 import util
+
+name = "HueRotate"
+display_name = "Hue Rotate"
 
 def run():
     hue = 0
