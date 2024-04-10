@@ -27,7 +27,7 @@ coordmat = np.asmatrix(np.array(tree.coords) + np.array([0., 0., 220]),
 
 cnt = 0
 
-name = "3dOctohedron"
+name = "dOctohedron"
 display_name = "3D Octohedron"
 
 
