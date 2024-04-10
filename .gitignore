@@ -5,3 +5,5 @@ scanning/results/
 **/__pycache__/
 *.swp
 backend/tree.csv
+*.py[cod]
+*$py.class

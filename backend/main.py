@@ -4,29 +4,16 @@ from flask import Flask, request, json
 from util import tree
 
 import util
+from pattern import load_patterns
 import time
 import multiprocessing
-import os
 
 app = Flask(__name__)
 
 running_task = None
 
 
-def load_patterns(pattern_dir):
-    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
-    print(pattern_files)
-    patterns = []
-    for file in pattern_files:
-        module_name = os.path.splitext(file)[0]
-        module = __import__("patterns."+module_name)
-        pattern_func = getattr(module, module_name)
-        patterns.append(pattern_func)
-    return patterns
-
-
 pattern_dir = "patterns"
-print(pattern_dir)
 patterns = load_patterns(pattern_dir)
 
 
@@ -203,5 +190,3 @@ def a():
         time.sleep(10)
         pattern_thread.terminate()
         i = (i + 1) % len(patterns)
-
-

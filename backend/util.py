@@ -1,4 +1,5 @@
 import csv
+from colors import tcolors
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -14,14 +15,14 @@ def read_csv():
     return list_of_lists
 
 
-def hsl_to_rgb(h, s, l):
+def hsl_to_rgb(hue, sat, lit):
     """
     Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue).
     All input values should be in the range [0, 1].
     """
-    if s == 0:
+    if sat == 0:
         # Achromatic (gray)
-        return int(l * 255), int(l * 255), int(l * 255)
+        return int(lit * 255), int(lit * 255), int(lit * 255)
     else:
         def hue_to_rgb(p, q, t):
             if t < 0:
@@ -36,11 +37,11 @@ def hsl_to_rgb(h, s, l):
                 return p + (q - p) * (2/3 - t) * 6
             return p
 
-        q = l * (1 + s) if l < 0.5 else l + s - l * s
-        p = 2 * l - q
-        r = hue_to_rgb(p, q, h + 1/3)
-        g = hue_to_rgb(p, q, h)
-        b = hue_to_rgb(p, q, h - 1/3)
+        q = lit * (1 + sat) if lit < 0.5 else lit + sat - lit * sat
+        p = 2 * lit - q
+        r = hue_to_rgb(p, q, hue + 1/3)
+        g = hue_to_rgb(p, q, hue)
+        b = hue_to_rgb(p, q, hue - 1/3)
 
         return int(r * 255), int(g * 255), int(b * 255)
 
@@ -54,9 +55,9 @@ def create_pixels(num):
         pixel_pin = board.D18
         return neopixel.NeoPixel(pixel_pin, num, auto_write=False)
 
-    except Exception as e:
-        print("cannot find neopixel module, probably because your running on a device which is not supported")
-        print("will attempt to run in dev mode")
+    except Exception:
+        print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
+        print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
 
 
         class a:
