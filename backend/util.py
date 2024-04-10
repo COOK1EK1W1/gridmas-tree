@@ -1,6 +1,5 @@
 import csv
 from colors import tcolors
-from pygame.locals import *
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -60,60 +59,8 @@ def create_pixels(num):
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
         print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
 
-        import pygame
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        import numpy as np
-        import OpenGL.GL
-        import OpenGL.GLU
-        import OpenGL.GLUT
+        from simTree import SimTree
 
-        class SimTree:
-            def __init__(self):
-                self.coords = read_csv()
-                self.num = len(self.coords)
-                self.pixels = [(0, 0, 0) for _ in range(self.num)]
-                self.setup_visualisation()
-
-            def setup_visualisation(self):
-                pygame.init()
-                display = (800, 600)
-                pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-                gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
-                glRotate(-80, 0, 0, 0)
-                glTranslatef(0, 8, -3)
-
-                self.clock = pygame.time.Clock()
-
-            def draw_light(self, position, color):
-                glColor3fv((max(40/255, color[1]/255), max(40/255, color[2]/255), max(40/255, color[0]/255)))
-                glPushMatrix()
-                glTranslate(position[0], position[1], position[2])
-                glutSolidSphere(0.02, 10, 10)
-                glPopMatrix()
-
-            def show(self):
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-                
-                for coord, color in zip(self.coords, self.pixels):
-                    self.draw_light(coord, color)
-                
-                pygame.display.flip()
-                self.clock.tick(60)
-
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-
-            def __getitem__(self, index):
-                return self.pixels[index]
-
-            def __setitem__(self, index, item):
-                self.pixels[index] = item
-
-            def __len__(self):
-                return self.num
         return SimTree()
 
 
