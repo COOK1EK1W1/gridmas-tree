@@ -1,9 +1,6 @@
 import csv
 from colors import tcolors
 from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -67,6 +64,9 @@ def create_pixels(num):
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
         import numpy as np
+        import OpenGL.GL
+        import OpenGL.GLU
+        import OpenGL.GLUT
 
         class SimTree:
             def __init__(self):
