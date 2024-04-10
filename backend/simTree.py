@@ -29,7 +29,7 @@ class SimTree:
         self.clock = pygame.time.Clock()
 
     def draw_light(self, position, color):
-        GL.glColor3fv((max(40/255, color[1]/255), max(40/255, color[2]/255), max(40/255, color[0]/255)))
+        GL.glColor3fv((max(40/255, color[1]/255), max(40/255, color[0]/255), max(40/255, color[2]/255)))
         GL.glPushMatrix()
         GL.glTranslate(position[0], position[1], position[2])
         GLUT.glutSolidSphere(0.02, 10, 10)
