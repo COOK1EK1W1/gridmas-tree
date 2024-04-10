@@ -1,6 +1,7 @@
 import os
 from colors import tcolors
 
+
 def print_tabulated(item1, item2, item3, max_length):
     # Cap the length of each item
     item1 = item1[:max_length].ljust(max_length)
@@ -9,7 +10,6 @@ def print_tabulated(item1, item2, item3, max_length):
 
     # Print the tabulated items
     print(f"{tcolors.OKGREEN}{item1}{item2}{item3}{tcolors.ENDC}")
-
 
 
 def load_patterns(pattern_dir):
@@ -30,7 +30,7 @@ def load_patterns(pattern_dir):
             patterns.append(pattern_module)
 
         except Exception as e:
-            print(f"{tcolors.FAIL}skipping {file} | wrong configuration{tcolors.ENDC}")
+            print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
     print(f"{tcolors.OKBLUE}######## patterns ########{tcolors.ENDC}\n")
 
     return patterns

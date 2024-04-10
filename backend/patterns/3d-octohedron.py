@@ -22,95 +22,101 @@ colourF = [0, 0, 38]  # blue
 colourG = [0, 13, 38]  # indigo
 colourH = [0, 25, 38]  # violet
 
-run = 1
 coordmat = np.asmatrix(np.array(tree.coords) + np.array([0., 0., 220]),
                        dtype=np.float64).transpose()  # Put LED coordinates into appropriate numpy matrix form to prepare for rotations.
+
 cnt = 0
-while run == 1:
 
-    time.sleep(slow)
+name = "3dOctohedron"
+display_name = "3D Octohedron"
 
-    LED = 0
-    while LED < len(tree.coords):
-        # Check which octant LED lives in to generate colored octahedron
-        if coordmat[0, LED]**2 + coordmat[1, LED]**2 + coordmat[2, LED]**2 < ballradius**2:
-            if coordmat[0, LED] < 0:
-                if coordmat[1, LED] < 0:
-                    if coordmat[2, LED] < 0:
-                        tree.pixels[LED] = colourA
+
+def run():
+    while True:
+
+        time.sleep(slow)
+
+        LED = 0
+        while LED < len(tree.coords):
+            # Check which octant LED lives in to generate colored octahedron
+            if coordmat[0, LED]**2 + coordmat[1, LED]**2 + coordmat[2, LED]**2 < ballradius**2:
+                if coordmat[0, LED] < 0:
+                    if coordmat[1, LED] < 0:
+                        if coordmat[2, LED] < 0:
+                            tree.pixels[LED] = colourA
+                        else:
+                            tree.pixels[LED] = colourB
                     else:
-                        tree.pixels[LED] = colourB
+                        if coordmat[2, LED] < 0:
+
+                            tree.pixels[LED] = colourC
+                        else:
+                            tree.pixels[LED] = colourD
                 else:
-                    if coordmat[2, LED] < 0:
-
-                        tree.pixels[LED] = colourC
+                    if coordmat[1, LED] < 0:
+                        if coordmat[2,LED] < 0:
+                            tree.pixels[LED] = colourE
+                        else:
+                            tree.pixels[LED] = colourF
                     else:
-                        tree.pixels[LED] = colourD
-            else:
-                if coordmat[1, LED] < 0:
-                    if coordmat[2,LED] < 0:
-                        tree.pixels[LED] = colourE
-                    else:
-                        tree.pixels[LED] = colourF
-                else:
-                    if coordmat[2, LED] < 0:
-                        tree.pixels[LED] = colourG
-                    else:
-                        tree.pixels[LED] = colourH
-        LED += 1
-    # use the show() option as rarely as possible as it takes ages
-    # do not use show() each time you change a LED but rather wait until you have changed them all
-    tree.update()
-    
-    # now we get ready for the next cycle
-    # We do this similarly to how Matt did his translating plane effect: use a static spatial coloring function,
-    # but rotate all of the LEDs!
+                        if coordmat[2, LED] < 0:
+                            tree.pixels[LED] = colourG
+                        else:
+                            tree.pixels[LED] = colourH
+            LED += 1
+        # use the show() option as rarely as possible as it takes ages
+        # do not use show() each time you change a LED but rather wait until you have changed them all
+        tree.update()
+        
+        # now we get ready for the next cycle
+        # We do this similarly to how Matt did his translating plane effect: use a static spatial coloring function,
+        # but rotate all of the LEDs!
 
-    #Do rotate-y stuff here
-    #Rotation Matrix
+        #Do rotate-y stuff here
+        #Rotation Matrix
 
-    # Small scalar amount (in radians) to rotate for one timestep of animation (plays role of "inc" variable in Matt's original code)
-    theta = 0.2
-    # UNIT vector axis about which to rotate for one timestep of animation
-    if cnt%100 == 0: #Switch up the rotation axis every so often to keep things interesting
-        ux = random.uniform(-1.0, 1.0)
-        uy = random.uniform(-1.0, 1.0)
-        uz = random.uniform(-1.0, 1.0)
+        # Small scalar amount (in radians) to rotate for one timestep of animation (plays role of "inc" variable in Matt's original code)
+        theta = 0.2
+        # UNIT vector axis about which to rotate for one timestep of animation
+        if cnt%100 == 0: #Switch up the rotation axis every so often to keep things interesting
+            ux = random.uniform(-1.0, 1.0)
+            uy = random.uniform(-1.0, 1.0)
+            uz = random.uniform(-1.0, 1.0)
 
-        length = math.sqrt(ux**2+uy**2+uz**2)
+            length = math.sqrt(ux**2+uy**2+uz**2)
 
-        ux = ux / length
-        uy = uy / length
-        uz = uz / length
+            ux = ux / length
+            uy = uy / length
+            uz = uz / length
 
-        u = np.matrix(
+            u = np.matrix(
+                [
+                    [ux],
+                    [uy],
+                    [uz]
+                ]
+            )
+
+        UX = np.matrix( #Cross Product Matrix
             [
-                [ux],
-                [uy],
-                [uz]
+                [0., -uz, uy],
+                [uz, 0., -ux],
+                [-uy, ux, 0.]
             ]
         )
 
-    UX = np.matrix( #Cross Product Matrix
-        [
-            [0., -uz, uy],
-            [uz, 0., -ux],
-            [-uy, ux, 0.]
-        ]
-    )
+        UXU = np.matmul(u,u.transpose()) #Generate Outer Product
 
-    UXU = np.matmul(u,u.transpose()) #Generate Outer Product
+        I = np.matrix( #Identity Matrix
+            [
+                [1., 0., 0.],
+                [0., 1., 0.],
+                [0., 0., 1.]
+            ]
+        )
 
-    I = np.matrix( #Identity Matrix
-        [
-            [1., 0., 0.],
-            [0., 1., 0.],
-            [0., 0., 1.]
-        ]
-    )
+        # Setup rotation matrix using R = \cos(\theta) I + \sin(\theta) UX + (1 - \cos(\theta)) UXU (Rodrigues' Rotation Formula)
+        RotMat = np.cos(theta) * I + np.sin(theta) * UX + (1 - np.cos(theta)) * UXU
 
-    # Setup rotation matrix using R = \cos(\theta) I + \sin(\theta) UX + (1 - \cos(\theta)) UXU (Rodrigues' Rotation Formula)
-    RotMat = np.cos(theta) * I + np.sin(theta) * UX + (1 - np.cos(theta)) * UXU
-
-    coordmat = np.matmul(RotMat,coordmat) #Rotate all LEDs on tree according to RotMat
-    cnt += 1
+        coordmat = np.matmul(RotMat,coordmat) #Rotate all LEDs on tree according to RotMat
+        cnt += 1
