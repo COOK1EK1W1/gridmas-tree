@@ -5,10 +5,6 @@ import math
 
 # You are welcome to add any of these:
 import random
-# import numpy
-# import scipy
-# import sys
-
 
 # Play with these values to change how coarse the 3D Fire effect is.
 # Smaller value == faster
@@ -92,6 +88,7 @@ class matrix():
 name = "threeDFire"
 display_name = "3D Fire"
 
+# TODO speed this up
 
 def run():
     # Color are G R B
