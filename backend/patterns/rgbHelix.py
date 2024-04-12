@@ -11,9 +11,9 @@ author = "Ciaran"
 
 def run():
     twist_dx = 0.01
-    twist_amount = -4
+    twist_amount = -random.randrange(-8, 8)
     speed = 2
-    offset = 0
+    offset = random.random() * math.pi * 2
     color_offset = random.random()
     while True:
         for i, coord in enumerate(tree.coords):
@@ -34,8 +34,8 @@ def run():
         color_offset = (0.00027 + color_offset) % 1
 
         twist_amount += twist_dx
-        if twist_amount > 4:
+        if twist_amount > 10:
             twist_dx = -0.01
-        elif twist_amount < -4:
+        elif twist_amount < -10:
             twist_dx = 0.01
         # print(twist_dx, twist_amount, speed, offset, color_offset)
