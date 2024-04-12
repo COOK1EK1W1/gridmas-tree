@@ -6,6 +6,7 @@ from util import tree
 
 name = "SphereFill"
 display_name = "Sphere Fill"
+author = "Ciaran"
 
 
 def run():
@@ -44,6 +45,7 @@ def run():
 
         # Clear the tree after the sphere has expanded completely
         tree.update()
+
 
 if __name__ == "__main__":
     run()

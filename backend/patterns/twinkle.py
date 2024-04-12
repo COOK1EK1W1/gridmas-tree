@@ -4,6 +4,7 @@ import random
 
 name = "twinkle"
 display_name = "Twinkle"
+author = "Ciaran"
 
 
 def run():

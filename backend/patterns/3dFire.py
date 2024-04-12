@@ -1,16 +1,18 @@
 from util import tree
 import time
-
 import math
-
-# You are welcome to add any of these:
 import random
+
+name = "threeDFire"
+display_name = "3D Fire"
+author = "Godzil"
+# derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/3dfire.py
 
 # Play with these values to change how coarse the 3D Fire effect is.
 # Smaller value == faster
-MATWX = 20
-MATWY = 20
-MATWZ = 60
+MATWX = 10
+MATWY = 10
+MATWZ = 30
 
 # Change that value to change colour brightness.
 # May need to tweak the palette if changing that value
@@ -85,8 +87,6 @@ class matrix():
         return self.get(localX, localY, localZ)
 
 
-name = "threeDFire"
-display_name = "3D Fire"
 
 # TODO speed this up
 

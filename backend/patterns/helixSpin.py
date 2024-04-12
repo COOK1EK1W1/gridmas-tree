@@ -1,7 +1,10 @@
 import time
 import math
-
 from util import tree
+
+name = "HelixSpin"
+display_name = "Helix Spin"
+author = "chatGPT"
 
 # Constants for the HelixSpin pattern
 HELIX_STRANDS = 1  # Number of strands in the helix
@@ -10,9 +13,6 @@ ASCENT_SPEED = 0.01  # Speed of movement upwards
 COLOR_CYCLE_SPEED = 0.05  # Speed of color change
 twist = 6
 
-name = "HelixSpin"
-display_name = "Helix Spin"
-author = "chatGPT"
 
 def run():
     angle_offset = 0  # Current angle offset for spinning

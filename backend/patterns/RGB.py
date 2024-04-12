@@ -3,6 +3,7 @@ import time
 
 name = "RGB"
 display_name = "RGB"
+author = "Ciaran"
 
 
 def run():

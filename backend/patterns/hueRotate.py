@@ -4,6 +4,7 @@ import util
 
 name = "HueRotate"
 display_name = "Hue Rotate"
+author = "Ciaran"
 
 def run():
     hue = 0

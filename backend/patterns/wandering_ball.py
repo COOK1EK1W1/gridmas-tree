@@ -6,6 +6,7 @@ from util import tree
 
 name = "wandering_ball"
 display_name = "Wandering Ball"
+author = "Ciaran"
 
 
 def run():

@@ -3,6 +3,7 @@ import time
 
 name = "strip"
 display_name = "strip"
+author = "Ciaran"
 
 
 def run():

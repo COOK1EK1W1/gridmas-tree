@@ -2,14 +2,20 @@ from util import tree
 import time
 import math
 
+name = "threeDPlasma"
+display_name = "3D Plasma"
+author = "Godzil"
+# derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/3dplasma.py
+
 # Play with these values to change how coarse the plasma effect is.
 # Smaller value == faster
-MATWX = 20
-MATWY = 20
-MATWZ = 60
+MATWX = 10
+MATWY = 10
+MATWZ = 30
 
 # Set this value to lower the RGB (1 = full range, 0.5 = Half range, etc...)
 dimLight = 0.8
+
 
 class boundingBox():
     def __init__(self):
@@ -81,10 +87,6 @@ class matrix():
 
 def dist(x, y, z, wx, wy, wz):
     return math.sqrt((x - wx) * (x - wx) + (y - wy) * (y - wy) + (z - wz) * (z - wz))
-
-
-name = "threeDPlasma"
-display_name = "3D Plasma"
 
 
 def run():

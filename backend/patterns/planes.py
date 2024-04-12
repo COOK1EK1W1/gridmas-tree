@@ -5,6 +5,8 @@ from util import tree
 
 name = "Planes"
 display_name = "Planes"
+author = "Ciaran"
+# based on Matt Parkers Xmas tree
 
 
 def run():
@@ -26,4 +28,3 @@ def run():
                 if rng <= coord[2]*200 < rng+10:
                     tree.set_light(i, color)
             tree.update()
-

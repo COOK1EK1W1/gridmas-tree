@@ -5,6 +5,8 @@ from util import tree
 
 name = "spin"
 display_name = "spin"
+author = "Ciaran"
+# based on Matt Parkers xmas tree
 
 
 def run():

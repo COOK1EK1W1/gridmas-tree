@@ -3,14 +3,15 @@ import math
 
 from util import tree
 
+name = "WaveFlow"
+display_name = "Wave Flow"
+author = "chatGPT"
+
 # Constants that will help define the pattern's characteristics
 WAVE_SPEED = 0.03  # How fast the wave moves up
 WAVE_PERIOD = 0.5  # The period of the cosine function, controls the wave density
 COLOR_CHANGE_RATE = 0.2  # How quickly the colors cycle through
 
-name = "WaveFlow"
-display_name = "Wave Flow"
-author = "chatGPT"
 
 def run():
     wave_offset = 0  # This will move the wave up along the z-axis (height)

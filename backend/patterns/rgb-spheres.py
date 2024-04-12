@@ -2,6 +2,11 @@ import math
 from util import tree
 import random
 
+name = "rgb_spheres"
+display_name = "RGB spheres"
+author = "NeunEinser"
+# Derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/rgb-spheres.py
+
 
 def vdist(v1: list, v2: list):
     if len(v1) != len(v2):
@@ -28,10 +33,6 @@ def find_furthest(points: list, coords):
             max_dist = dist
             cur_pnt = coord
     return cur_pnt
-
-
-name = "rgb_spheres"
-display_name = "RGB spheres"
 
 
 def run():
