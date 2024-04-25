@@ -6,7 +6,6 @@ import OpenGL.GLU as GLU
 import csv
 import time
 
-print("load")
 def read_csv():
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
