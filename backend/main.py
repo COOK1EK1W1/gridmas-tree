@@ -7,6 +7,8 @@ import util
 from pattern import load_patterns
 import time
 import killableThread
+from attribute import store
+import json
 
 app = Flask(__name__)
 
@@ -55,6 +57,20 @@ def setLight():
     util.savelights(data)
     return "bruh"
 
+@app.route('/attribute/<nam>', methods=['GET'])
+def attributeG(nam: str):
+    a = store.get(nam)
+    print(a)
+    return str(a.get())
+
+@app.route('/attribute/<name>', methods=['POST'])
+def attributeS(name: str):
+    print(request.data)
+    print(request.get_json()['speed'])
+    store.set(name, request.get_json()['speed'])
+    return "something"
+
+
 
 @app.route('/pattern/<pattern>')
 def pattern(pattern: str):
@@ -65,6 +81,7 @@ def pattern(pattern: str):
             running_task.terminate()
         running_task = killableThread.Thread(target=apattern[0].run)
         running_task.start()
+        print([x for x in store])
         return "running"
     else:
         return "not running"
@@ -99,12 +116,32 @@ def home():
     <label for="colorPicker">Choose a color:</label>
     <input onChange="sendColor()" type="color" id="colorPicker" name="colorPicker" value="#ff0000">
 
-    <button onChange="sendColor()">Set Light Color</button>
+    <button onClick="test(0.2)">Set Light Color</button>
+    <button onClick="test(1)">Set Light Color</button>
+    <button onClick="test(3)">Set Light Color</button>
 
     <div class="flex flex-wrap w-full m-2 justify-center">
     """ + "\n".join(map(lambda x: button(x.name, x.display_name), patterns)) + """
     </div>
     <script>
+        function test(a){
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "attribute/sleep%20time", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            var data = JSON.stringify({ speed: a });
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log("Color set successfully");
+                } else if (xhr.readyState == 4) {
+                    console.error("Error setting color");
+                }
+            };
+
+            xhr.send(data);
+        }
 
         function sendColor() {
             var selectedColor = document.getElementById("colorPicker").value;

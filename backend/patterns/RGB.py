@@ -1,3 +1,4 @@
+from attribute import NumAttribute
 from util import tree
 import time
 
@@ -5,6 +6,7 @@ name = "RGB"
 display_name = "RGB"
 author = "Ciaran"
 
+sleep_time = NumAttribute("sleep time", 1, 0.01, 3)
 
 def run():
     offset = 0
@@ -18,4 +20,5 @@ def run():
             color = (r, g, b)
             tree.set_light(i, color)
         tree.update()
-        time.sleep(1)
+        print(sleep_time.get())
+        time.sleep(sleep_time.get())
