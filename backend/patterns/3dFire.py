@@ -134,6 +134,7 @@ def run():
             tree.set_light(LED, palette[v])
 
         tree.update()
+        time.sleep(1/45)
 
         oldMat.copy(workMat)
 

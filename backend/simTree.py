@@ -1,10 +1,12 @@
 import pygame.locals as PLocals
+import threading
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
-import OpenGL.GLUT as GLUT
 import csv
+import time
 
+print("load")
 def read_csv():
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
@@ -16,38 +18,52 @@ class SimTree:
         self.coords = read_csv()
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
-        self.setup_visualisation()
+        self.buffer = [(0, 0, 0) for _ in range(self.num)]
+        threading.Thread(target=self.setup_visualisation).start()
 
     def setup_visualisation(self):
         pygame.init()
         display = (800, 600)
         pygame.display.set_mode(display, PLocals.DOUBLEBUF | PLocals.OPENGL)
         GLU.gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
-        GL.glRotate(-80, 0, 0, 0)
-        GL.glTranslatef(0, 8, -3)
-
-        self.clock = pygame.time.Clock()
+        GL.glTranslatef(0, -1, -5)
+        GL.glRotatef(-60, 1, 0, 0)
+        while True:
+            time.sleep(1/30)
+            self._show()
 
     def draw_light(self, position, color):
-        GL.glColor3fv((max(40/255, color[1]/255), max(40/255, color[0]/255), max(40/255, color[2]/255)))
-        GL.glPushMatrix()
-        GL.glTranslate(position[0], position[1], position[2])
-        GLUT.glutSolidSphere(0.02, 10, 10)
-        GL.glPopMatrix()
+        GL.glPointSize(5)
+        GL.glBegin(GL.GL_POINTS)
+        GL.glColor3f(color[0]/255, color[1]/255, color[2]/255)  # Set the color for the point
 
-    def show(self):
+        # Draw the point at the specified position
+        GL.glVertex3f(position[0], position[1], position[2])
+
+        GL.glEnd()
+        error = GL.glGetError()
+
+        if error != GL.GL_NO_ERROR:
+            print(GL.glGetError())
+
+
+    def _show(self):
+        GL.glRotatef(-1, 0, 0, 1)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-        for coord, color in zip(self.coords, self.pixels):
+        for coord, color in zip(self.coords, self.buffer):
             self.draw_light(coord, color)
 
         pygame.display.flip()
-        self.clock.tick(60)
+        pygame.time.wait(10)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+    def show(self):
+        self.buffer = [x for x in self.pixels]
 
     def __getitem__(self, index):
         return self.pixels[index]

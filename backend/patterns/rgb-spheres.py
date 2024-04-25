@@ -1,4 +1,5 @@
 import math
+import time
 from util import tree
 import random
 
@@ -80,6 +81,7 @@ def run():
 
                 tree.pixels[i] = color
         tree.update()
+        time.sleep(1/45)
 
         # calculate radii for next iteration.
         for s in range(3):

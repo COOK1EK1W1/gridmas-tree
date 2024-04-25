@@ -6,11 +6,11 @@ from util import tree
 import util
 from pattern import load_patterns
 import time
-import multiprocessing
+import killableThread
 
 app = Flask(__name__)
 
-running_task = None
+running_task: None|killableThread.Thread = None
 
 
 pattern_dir = "patterns"
@@ -63,7 +63,7 @@ def pattern(pattern: str):
     if len(apattern) > 0:
         if running_task:
             running_task.terminate()
-        running_task = multiprocessing.Process(target=apattern[0].run)
+        running_task = killableThread.Thread(target=apattern[0].run)
         running_task.start()
         return "running"
     else:
@@ -74,7 +74,7 @@ def button(fn, name):
     return f'<button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" onclick="{fn}()">{name}</button>'
 
 
-def fn(fn, name):
+def fn(fn):
     return """
         function """ + fn + """() {
             sendRequest("/pattern/""" + fn + """");
@@ -125,7 +125,7 @@ def home():
 
             xhr.send(data);
         }
-        """ + " ".join(map(lambda x: fn(x.name, x.name), patterns)) + """
+        """ + " ".join(map(lambda x: fn(x.name), patterns)) + """
 
 
         function sendRequest(url) {
@@ -152,7 +152,6 @@ def home():
 @app.route('/setlights', methods=['POST'])
 def setLights():
     print("setting lights")
-    time.sleep(pause_time)
     print(request.data)
     data = json.loads(request.data)
     print(data)
@@ -179,14 +178,4 @@ def wipe_on():
 
 if __name__ == '__main__':
     wipe_on()
-    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
-
-
-def a():
-    i = 0
-    while True:
-        pattern_thread = multiprocessing.Process(target=patterns[i].run)
-        pattern_thread.start()
-        time.sleep(10)
-        pattern_thread.terminate()
-        i = (i + 1) % len(patterns)
+    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=3000)

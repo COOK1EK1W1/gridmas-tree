@@ -1,4 +1,5 @@
 import math
+import time
 
 import util
 from util import tree
@@ -28,6 +29,7 @@ def run():
             tree.set_light(i, (r, g, b))
 
         tree.update()
+        time.sleep(1/45)
 
         offset = (offset + 0.01) % (math.pi * 2)
 
