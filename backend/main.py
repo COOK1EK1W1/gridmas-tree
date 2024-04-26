@@ -123,4 +123,4 @@ def wipe_on():
 
 if __name__ == '__main__':
     wipe_on()
-    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=3000)
+    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
