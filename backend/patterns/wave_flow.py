@@ -38,4 +38,4 @@ def run():
         wave_offset = (wave_offset + WAVE_SPEED.get()) % (2 * math.pi)
 
         # Pause briefly to control the speed of the effect and reduce CPU usage
-        time.sleep(1 / 30)  # Let's aim for about 30 frames per second
+        time.sleep(1 / 60)  # Let's aim for about 30 frames per second

@@ -1,4 +1,5 @@
 from util import tree
+from colors import Color
 import time
 import math
 
@@ -108,7 +109,7 @@ def run():
         time.sleep(slow)
 
         for LED in range(0, tree.num_pixels):
-            tree.set_light(LED, workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2]))
+            tree.set_light(LED, Color(*workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])))
 
         tree.update()
 

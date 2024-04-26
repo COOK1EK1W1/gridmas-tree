@@ -13,7 +13,7 @@ author = "Ciaran"
 
 def run():
     print("adding colors")
-    speed = RangeAttr("speed", 0.5, 0.02, 0.5, 0.01)
+    speed = RangeAttr("speed", 0.3, 0.02, 0.5, 0.01)
     color1 = ColorAttr("color 1", Color(0, 50, 50))
     color2 = ColorAttr("color 2", Color(50, 50, 0))
 

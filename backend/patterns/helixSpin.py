@@ -18,8 +18,8 @@ def run():
     vertical_offset = 0  # Current vertical offset for moving upwards
 
     HELIX_STRANDS = RangeAttr("helix strands", 1, 0, 4, 1)  # Number of strands in the helix
-    SPIN_SPEED = RangeAttr("spin speed", 0.08, 0.01, 0.12, 0.01)  # Speed of spinning around the tree
-    twist = RangeAttr("Twist", 6, 1, 10, 0.5)
+    SPIN_SPEED = RangeAttr("spin speed", 0.08, 0.06, 0.24, 0.01)  # Speed of spinning around the tree
+    twist = RangeAttr("Twist", 6, 1, 20, 0.5)
 
     while True:
         # Each frame, calculate the color based on a simple cycling pattern

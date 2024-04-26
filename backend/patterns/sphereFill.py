@@ -19,7 +19,7 @@ def run():
         min_radius = 0.1
         # pythagoras, distance from the centre to the edge
         max_radius = ((tree.height / 2) ** 2 + 1) ** 0.5
-        expansion_speed = RangeAttr("speed", 0.05, 0.01, 0.2, 0.01)
+        expansion_speed = RangeAttr("speed", 0.05, 0.01, 0.4, 0.01)
 
         radius = min_radius
 

@@ -44,10 +44,11 @@ class Tree():
         self.height = max([x[2] for x in self.coords])
 
     def set_light(self, n: int, color: Color):
-        self.pixels[n] = color.toTuple()
+        (r, g, b) = color.toTuple()
+        self.pixels[n] = (g, r, b)
 
     def get_light(self, n: int) -> tuple[int, int, int]:
-        (g, r, b) = self.pixels[n]
+        (r, g, b) = self.pixels[n]
         return (r, g, b)
 
     def update(self):

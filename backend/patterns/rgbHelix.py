@@ -13,7 +13,7 @@ author = "Ciaran"
 
 def run():
     twist_dx = RangeAttr("twist speed", 0.01, 0.001, 0.2, 0.001)
-    rotate_amount = RangeAttr("Rotate speed", 0.01, 0.001, 0.05, 0.001)
+    rotate_amount = RangeAttr("Rotate speed", 0.01, 0.001, 0.1, 0.001)
     twist_dir = 1
     twist_amount = -random.randrange(-8, 8)
     speed = 2
