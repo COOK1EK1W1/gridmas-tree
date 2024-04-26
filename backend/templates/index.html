@@ -9,19 +9,13 @@
 </head>
 <body>
 
-    <h2>Color Picker</h2>
+    <h2 class="p-2 text-2xl">Color Picker</h2>
 
-    <label for="colorPicker">Choose a color:</label>
-    <input onChange="sendColor()" type="color" id="colorPicker" name="colorPicker" value="#ff0000">
-
-    <button onClick="test(0.2)">speed 0.2</button>
-    <button onClick="test(1)">speed 1</button>
-    <button onClick="test(3)">speed 3</button>
-    <div id="pattern-attr">
+    <div id="pattern-attr" class="m-2 rounded-xl bg-orange-300 p-2">
 
     </div>
 
-    <div class="flex flex-wrap w-full m-2 justify-center">
+    <div class="flex flex-wrap w-full justify-center">
       {% for pattern in patterns %}
         <button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" hx-get="/pattern/{{pattern.name}}" hx-target="#pattern-attr">{{pattern.display_name}}</button>
       {% endfor %}
