@@ -7,7 +7,7 @@ import util
 from pattern import load_patterns
 import time
 import killableThread
-from attribute import store
+from attribute import ColorAttr, store, RangeAttr
 from colors import Color
 import json
 
@@ -68,9 +68,11 @@ def attributeG(nam: str):
 
 @app.route('/attribute/<name>', methods=['POST'])
 def attributeS(name: str):
-    print(request.form)
-    print(request.form['value'])
-    store.set(name, float(request.form['value']))
+    attribute = store.get(name)
+    if isinstance(attribute, RangeAttr):
+        store.set(name, float(request.form['value']))
+    elif isinstance(attribute, ColorAttr):
+        store.set(name, Color.fromHex(request.form['value']))
     return "something"
 
 
@@ -101,7 +103,6 @@ def setLights():
     print("setting lights")
     print(request.data)
     data = json.loads(request.data)
-    print(data)
 
     value = data["color"]
     color = Color.fromHex(value)

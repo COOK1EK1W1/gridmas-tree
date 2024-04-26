@@ -21,7 +21,7 @@ class SimTree:
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
         self.setup_visualisation()
-        threading.Thread(target=self.b).start()
+        #threading.Thread(target=self.b).start()
 
     def setup_visualisation(self):
         pygame.init()

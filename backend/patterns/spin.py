@@ -1,5 +1,6 @@
 import time
 import math
+from colors import Color
 from attribute import RangeAttr, ColorAttr
 
 from util import tree
@@ -13,8 +14,8 @@ author = "Ciaran"
 def run():
     print("adding colors")
     speed = RangeAttr("speed", 0.5, 0.02, 0.5, 0.01)
-    color1 = ColorAttr("color 1", (0, 50, 50))
-    color2 = ColorAttr("color 2", (0, 50, 50))
+    color1 = ColorAttr("color 1", Color(0, 50, 50))
+    color2 = ColorAttr("color 2", Color(50, 50, 0))
 
     heights: list[float] = []
     for i in tree.coords:
