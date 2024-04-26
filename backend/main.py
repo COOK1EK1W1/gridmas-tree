@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from flask import Flask, request, json
+from flask import Flask, request, json, render_template
 
 from util import tree
 
@@ -57,19 +57,20 @@ def setLight():
     util.savelights(data)
     return "bruh"
 
+
 @app.route('/attribute/<nam>', methods=['GET'])
 def attributeG(nam: str):
     a = store.get(nam)
     print(a)
     return str(a.get())
 
+
 @app.route('/attribute/<name>', methods=['POST'])
 def attributeS(name: str):
-    print(request.data)
-    print(request.get_json()['speed'])
-    store.set(name, request.get_json()['speed'])
+    print(request.form)
+    print(request.form['value'])
+    store.set(name, float(request.form['value']))
     return "something"
-
 
 
 @app.route('/pattern/<pattern>')
@@ -79,111 +80,19 @@ def pattern(pattern: str):
     if len(apattern) > 0:
         if running_task:
             running_task.terminate()
+        store.reset()
         running_task = killableThread.Thread(target=apattern[0].run)
         running_task.start()
-        print([x for x in store])
-        return "running"
+        time.sleep(0.1)
+        print(store.store)
+        return render_template('pattern_config.html', pattern=apattern[0], attributes=store.store)
     else:
         return "not running"
 
 
-def button(fn, name):
-    return f'<button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" onclick="{fn}()">{name}</button>'
-
-
-def fn(fn):
-    return """
-        function """ + fn + """() {
-            sendRequest("/pattern/""" + fn + """");
-        }"""
-
-
 @app.route('/', methods=['GET'])
 def home():
-    return """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Picker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-
-    <h2>Color Picker</h2>
-
-    <label for="colorPicker">Choose a color:</label>
-    <input onChange="sendColor()" type="color" id="colorPicker" name="colorPicker" value="#ff0000">
-
-    <button onClick="test(0.2)">Set Light Color</button>
-    <button onClick="test(1)">Set Light Color</button>
-    <button onClick="test(3)">Set Light Color</button>
-
-    <div class="flex flex-wrap w-full m-2 justify-center">
-    """ + "\n".join(map(lambda x: button(x.name, x.display_name), patterns)) + """
-    </div>
-    <script>
-        function test(a){
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "attribute/sleep%20time", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-
-            var data = JSON.stringify({ speed: a });
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Color set successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error setting color");
-                }
-            };
-
-            xhr.send(data);
-        }
-
-        function sendColor() {
-            var selectedColor = document.getElementById("colorPicker").value;
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://192.168.1.50/setlights", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-
-            var data = JSON.stringify({ color: selectedColor });
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Color set successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error setting color");
-                }
-            };
-
-            xhr.send(data);
-        }
-        """ + " ".join(map(lambda x: fn(x.name), patterns)) + """
-
-
-        function sendRequest(url) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Request sent successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error sending request");
-                }
-            };
-
-            xhr.send();
-        }
-    </script>
-
-</body>
-</html>
-"""
+    return render_template('index.html', patterns=patterns)
 
 
 @app.route('/setlights', methods=['POST'])

@@ -1,0 +1,6 @@
+<div>
+  <form hx-post="/attribute/{{attribute.name}}" hx-trigger="change" hx-swap="none">
+    <label>{{attribute.name}}</label>
+    <input type="range" name="value" value="{{attribute.get()}}" min="{{attribute.min}}" max="{{attribute.max}}" step="0.01"/>
+  </form>
+</div>

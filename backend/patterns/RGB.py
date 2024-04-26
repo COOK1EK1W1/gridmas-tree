@@ -6,9 +6,10 @@ name = "RGB"
 display_name = "RGB"
 author = "Ciaran"
 
-sleep_time = NumAttribute("sleep time", 1, 0.01, 3)
 
 def run():
+    sleep_time = NumAttribute("sleep time", 1, 0.01, 3)
+
     offset = 0
     while True:
         offset = (offset + 1) % 3

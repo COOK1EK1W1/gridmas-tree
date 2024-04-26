@@ -1,5 +1,6 @@
 import time
 import math
+from attribute import NumAttribute
 
 from util import tree
 
@@ -10,14 +11,13 @@ author = "Ciaran"
 
 
 def run():
+    speed = NumAttribute("speed", 1, 0.02, 0.3)
+
     heights: list[float] = []
     for i in tree.coords:
         heights.append(i[2])
 
     angle = 0
-
-    # how much the angle changes per cycle
-    inc = 0.1
 
     # the two colours in GRB order
     # if you are turning a lot of them on at once, keep their brightness down please
@@ -46,7 +46,7 @@ def run():
 
         # now we get ready for the next cycle
 
-        angle += inc
+        angle += speed.get()
         if angle > 2*math.pi:
             angle -= 2*math.pi
             swap01 = 0
@@ -63,5 +63,4 @@ def run():
             if swap02 == 0:
                 colourA, colourB = colourB, colourA
                 swap02 = 1
-
 
