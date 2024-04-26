@@ -1,5 +1,5 @@
 import csv
-from colors import tcolors
+from colors import tcolors, Color
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -15,39 +15,7 @@ def read_csv():
     return list_of_lists
 
 
-def hsl_to_rgb(hue, sat, lit):
-    """
-    Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue).
-    All input values should be in the range [0, 1].
-    """
-    if sat == 0:
-        # Achromatic (gray)
-        return int(lit * 255), int(lit * 255), int(lit * 255)
-    else:
-        def hue_to_rgb(p, q, t):
-            if t < 0:
-                t += 1
-            if t > 1:
-                t -= 1
-            if t < 1/6:
-                return p + (q - p) * 6 * t
-            if t < 1/2:
-                return q
-            if t < 2/3:
-                return p + (q - p) * (2/3 - t) * 6
-            return p
-
-        q = lit * (1 + sat) if lit < 0.5 else lit + sat - lit * sat
-        p = 2 * lit - q
-        r = hue_to_rgb(p, q, hue + 1/3)
-        g = hue_to_rgb(p, q, hue)
-        b = hue_to_rgb(p, q, hue - 1/3)
-
-        return int(r * 255), int(g * 255), int(b * 255)
-
-
 def create_pixels(num):
-
     try:
         import neopixel
         import board
@@ -75,9 +43,8 @@ class Tree():
 
         self.height = max([x[2] for x in self.coords])
 
-    def set_light(self, n: int, colour: tuple[int, int, int] = (255, 255, 255)):
-        (r, g, b) = colour
-        self.pixels[n] = (g, r, b)
+    def set_light(self, n: int, color: Color):
+        self.pixels[n] = color.toTuple()
 
     def get_light(self, n: int) -> tuple[int, int, int]:
         (g, r, b) = self.pixels[n]

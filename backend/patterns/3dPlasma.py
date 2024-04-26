@@ -60,7 +60,7 @@ class boundingBox():
 class matrix():
     def __init__(self, lx, ly, lz, bb):
         self._list = []
-        for _ in range(lx * ly * lz):
+        for i in range(lx * ly * lz):
             self._list.append([0, 0, 0])
 
         self._strideX = 1
@@ -111,7 +111,6 @@ def run():
             tree.pixels[LED] = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
 
         tree.update()
-        time.sleep(1/45)
 
         # Update the matrix
         for x in range(0, MATWX):

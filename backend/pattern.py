@@ -18,11 +18,11 @@ def load_patterns(pattern_dir):
     patterns = []
     for file in pattern_files:
         print("loading pattern from " + "file" + "        ", end="\r")
-        module_name = os.path.splitext(file)[0]
-        module = __import__("patterns."+module_name)
-        pattern_module = getattr(module, module_name)
-
         try:
+            module_name = os.path.splitext(file)[0]
+            module = __import__("patterns." + module_name)
+            pattern_module = getattr(module, module_name)
+
             name = pattern_module.name
             display_name = pattern_module.display_name
             func = pattern_module.run

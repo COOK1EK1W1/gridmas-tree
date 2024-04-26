@@ -6,11 +6,13 @@ import OpenGL.GLU as GLU
 import csv
 import time
 
+
 def read_csv():
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists
+
 
 class SimTree:
     def __init__(self):
@@ -18,23 +20,29 @@ class SimTree:
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
-        threading.Thread(target=self.setup_visualisation).start()
+        self.setup_visualisation()
+        threading.Thread(target=self.b).start()
 
     def setup_visualisation(self):
         pygame.init()
         display = (800, 600)
         pygame.display.set_mode(display, PLocals.DOUBLEBUF | PLocals.OPENGL)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        display = (800, 600)
         GLU.gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
         GL.glTranslatef(0, -1, -5)
         GL.glRotatef(-60, 1, 0, 0)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+
+    def b(self):
         while True:
-            time.sleep(1/30)
+            time.sleep(1 / 30)
             self._show()
 
     def draw_light(self, position, color):
         GL.glPointSize(5)
         GL.glBegin(GL.GL_POINTS)
-        GL.glColor3f(color[0]/255, color[1]/255, color[2]/255)  # Set the color for the point
+        GL.glColor3f(color[0] / 255, color[1] / 255, color[2] / 255)  # Set the color for the point
 
         # Draw the point at the specified position
         GL.glVertex3f(position[0], position[1], position[2])
@@ -44,7 +52,6 @@ class SimTree:
 
         if error != GL.GL_NO_ERROR:
             print(GL.glGetError())
-
 
     def _show(self):
         GL.glRotatef(-1, 0, 0, 1)

@@ -1,4 +1,4 @@
-from attribute import NumAttribute
+from attribute import RangeAttr
 from util import tree
 import time
 
@@ -8,7 +8,7 @@ author = "Ciaran"
 
 
 def run():
-    sleep_time = NumAttribute("sleep time", 1, 0.01, 3)
+    sleep_time = RangeAttr("sleep time", 1, 0.1, 3, 0.1)
 
     offset = 0
     while True:

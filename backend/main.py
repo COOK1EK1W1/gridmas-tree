@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from flask import Flask, request, json, render_template
+from flask import Flask, request, render_template
 
 from util import tree
 
@@ -8,11 +8,12 @@ from pattern import load_patterns
 import time
 import killableThread
 from attribute import store
+from colors import Color
 import json
 
 app = Flask(__name__)
 
-running_task: None|killableThread.Thread = None
+running_task: None | killableThread.Thread = None
 
 
 pattern_dir = "patterns"
@@ -22,14 +23,14 @@ patterns = load_patterns(pattern_dir)
 @app.route('/lighton')
 def lighton():
     for i in range(tree.num_pixels):
-        tree.set_light(i)
+        tree.set_light(i, Color.white())
     tree.update()
     return "All On"
 
 
 @app.route('/lighton/<int:number>')
 def lightonN(number: int):
-    tree.set_light(number)
+    tree.set_light(number, Color.white())
     tree.update()
     return "on"
 
@@ -37,14 +38,14 @@ def lightonN(number: int):
 @app.route('/lightoff')
 def lightoff():
     for i in range(tree.num_pixels):
-        tree.set_light(i, (0, 0, 0))
+        tree.set_light(i, Color.black())
     tree.update()
     return "all off"
 
 
 @app.route('/lightoff/<int:number>')
 def lightoffN(number: int):
-    tree.set_light(number, (0, 0, 0))
+    tree.set_light(number, Color.black())
     tree.update()
     return "off"
 
@@ -103,23 +104,20 @@ def setLights():
     print(data)
 
     value = data["color"]
-    value = value.lstrip('#')
-    lv = len(value)
-    rgb = tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-    print(rgb)
+    color = Color.fromHex(value)
     for i in range(tree.num_pixels):
-        tree.set_light(i, rgb)
+        tree.set_light(i, color)
     tree.update()
     return "bruh"
 
 
 def wipe_on():
-    for rng in range(0, int(tree.height*200), 10):
+    for rng in range(0, int(tree.height * 200), 10):
         for i in range(len(tree.pixels)):
-            if rng <= tree.coords[i][2]*200 < rng + 10:
-                tree.set_light(i, (200, 55, 2))
+            if rng <= tree.coords[i][2] * 200 < rng + 10:
+                tree.set_light(i, Color(200, 55, 2))
         tree.update()
-        time.sleep(1/45)
+        time.sleep(1 / 45)
 
 
 if __name__ == '__main__':

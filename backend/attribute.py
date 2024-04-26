@@ -1,5 +1,11 @@
 from abc import ABC, abstractmethod
+from colors import Color
 from typing import TypeVar, Generic
+
+
+def clamp(val, minv, maxv):
+    return min(max(val, minv), maxv)
+
 
 T = TypeVar("T")
 
@@ -21,24 +27,28 @@ class Attribute(Generic[T], ABC):
         ...
 
 
-class NumAttribute(Attribute):
+class RangeAttr(Attribute):
     def __init__(self, name: str,
                  value: float,
-                 min: float | None = None,
-                 max: float | None = None):
+                 min: float,
+                 max: float,
+                 step: float):
         super().__init__(name, value)
         self.min = min
         self.max = max
+        self.step = step
+        clamp(self.value, self.min, self.max)
 
     def pattern_string(self):
-        return 'numAttribute.html'
+        return 'RangeAttr.html'
 
 
-class ColorAttribute(Attribute):
-    def __init__(self, name: str, value: tuple[int, int, int]):
-        self.name = name
-        self.value = value
-        store.add(self)
+class ColorAttr(Attribute):
+    def __init__(self, name: str, value: Color):
+        super().__init__(name, value)
+
+    def pattern_string(self):
+        return "ColorAttr.html"
 
 
 class Store:
@@ -65,5 +75,6 @@ class Store:
 
     def get_all(self):
         return self.store
+
 
 store = Store()
