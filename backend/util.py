@@ -49,7 +49,7 @@ class Tree():
 
     def get_light(self, n: int) -> tuple[int, int, int]:
         (r, g, b) = self.pixels[n]
-        return (r, g, b)
+        return (g, r, b)
 
     def update(self):
         self.pixels.show()
