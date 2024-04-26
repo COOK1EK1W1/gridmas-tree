@@ -1,6 +1,7 @@
 import time
 import random
 from util import tree
+from colors import Color
 
 name = "TwinklingStars"
 display_name = "Twinkling Stars"
@@ -8,8 +9,8 @@ author = "chatGPT"
 
 
 def run():
-    star_color = (255, 255, 255)  # Star color - white
-    sky_color = (15, 15, 40)  # Dark "sky" color - deep blue
+    star_color = Color(255, 255, 255)  # Star color - white
+    sky_color = Color(15, 15, 40)  # Dark "sky" color - deep blue
     twinkling_frequency = 0.1  # Chance of a light twinkling each second
 
     # First, color the entire tree in dark sky color
@@ -33,4 +34,4 @@ def run():
         tree.update()
 
         # Pause for a short time to give a twinkling effect
-        time.sleep(1/30)  # Update the frame every 1/30 of a second
+        time.sleep(1 / 30)  # Update the frame every 1/30 of a second

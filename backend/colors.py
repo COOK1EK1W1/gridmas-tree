@@ -1,3 +1,5 @@
+import random
+
 
 class tcolors:
     HEADER = '\033[95m'
@@ -28,6 +30,11 @@ class Color:
         return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))
 
     @staticmethod
+    def fromHSL(hue, sat, lig) -> 'Color':
+        r, g, b = hsl2rgb(hue, sat, lig)
+        return Color(r, g, b)
+
+    @staticmethod
     def white() -> 'Color':
         return Color(255, 255, 255)
 
@@ -47,6 +54,10 @@ class Color:
     def blue() -> 'Color':
         return Color(0, 0, 255)
 
+    @staticmethod
+    def random() -> 'Color':
+        return Color(random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
+
 
 def tuple2hex(c: tuple[int, int, int]) -> str:
     return '#%02x%02x%02x' % c
@@ -56,7 +67,7 @@ def hex2tuple(h: str) -> tuple[int, int, int]:
     return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
 
 
-def hsl_to_rgb(hue, sat, lit):
+def hsl2rgb(hue, sat, lit):
     """
     Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue).
     All input values should be in the range [0, 1].

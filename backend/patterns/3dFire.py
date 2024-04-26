@@ -2,6 +2,7 @@ from util import tree
 import time
 import math
 import random
+from colors import Color
 
 name = "threeDFire"
 display_name = "3D Fire"
@@ -87,17 +88,14 @@ class matrix():
         return self.get(localX, localY, localZ)
 
 
-
-# TODO speed this up
-
 def run():
     # Color are G R B
     palette = []
 
     # Transition points
     palBST = 70
-    palB2R = 86 # Black to Red
-    palR2Y = 99 # Red to Yellow
+    palB2R = 86  # Black to Red
+    palR2Y = 99  # Red to Yellow
 
     # Black only
     for i in range(0, palBST):
@@ -131,23 +129,23 @@ def run():
 
         for LED in range(0, tree.num_pixels):
             v = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
-            tree.set_light(LED, palette[v])
+            tree.set_light(LED, Color(*palette[v]))
 
         tree.update()
-        time.sleep(1/45)
+        time.sleep(1 / 45)
 
         oldMat.copy(workMat)
 
         # Update the matrix
-        for x in range(1, MATWX-1):
-            for y in range(1, MATWY-1):
+        for x in range(1, MATWX - 1):
+            for y in range(1, MATWY - 1):
                 for z in range(2, MATWZ):
-                    v = oldMat.get(x, y, z-2)
-                    v = v + oldMat.get(x-1, y, z-1)
-                    v = v + oldMat.get(x, y-1, z - 1)
+                    v = oldMat.get(x, y, z - 2)
+                    v = v + oldMat.get(x - 1, y, z - 1)
+                    v = v + oldMat.get(x, y - 1, z - 1)
                     v = v + oldMat.get(x, y, z - 1)
-                    v = v + oldMat.get(x, y+1, z - 1)
-                    v = v + oldMat.get(x+1, y, z - 1)
+                    v = v + oldMat.get(x, y + 1, z - 1)
+                    v = v + oldMat.get(x + 1, y, z - 1)
                     v = max(min(int(v / 6), 255), 0)
 
                     workMat.set(x, y, z, v)

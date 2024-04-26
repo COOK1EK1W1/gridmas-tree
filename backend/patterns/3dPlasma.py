@@ -60,7 +60,7 @@ class boundingBox():
 class matrix():
     def __init__(self, lx, ly, lz, bb):
         self._list = []
-        for i in range(lx * ly * lz):
+        for _ in range(lx * ly * lz):
             self._list.append([0, 0, 0])
 
         self._strideX = 1
@@ -108,7 +108,7 @@ def run():
         time.sleep(slow)
 
         for LED in range(0, tree.num_pixels):
-            tree.pixels[LED] = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
+            tree.set_light(LED, workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2]))
 
         tree.update()
 
@@ -117,9 +117,9 @@ def run():
             for y in range(0, MATWY):
                 for z in range(0, MATWZ):
                     d1 = dist(x + t, y, z, MATWX, MATWY, MATWZ)
-                    d2 = dist(x, y, z,  MATWX/2, MATWY/2, MATWZ)
-                    d3 = dist(x, y + t / 7, z, MATWX * 0.75, MATWY/2, MATWZ)
-                    d4 = dist(x, y, z, MATWX*0.75, MATWY, MATWZ)
+                    d2 = dist(x, y, z, MATWX / 2, MATWY / 2, MATWZ)
+                    d3 = dist(x, y + t / 7, z, MATWX * 0.75, MATWY / 2, MATWZ)
+                    d4 = dist(x, y, z, MATWX * 0.75, MATWY, MATWZ)
 
                     value = math.sin(d1 / 8) + math.sin(d2 / 8.0) + math.sin(d3 / 7.0) + math.sin(d4 / 8.0)
 
@@ -130,4 +130,3 @@ def run():
 
                     workMat.set(x, y, z, (g, r, b))
         t = t + 1
-

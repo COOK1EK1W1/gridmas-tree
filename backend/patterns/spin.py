@@ -31,12 +31,12 @@ def run():
     swap_colors = False
 
     # the starting point on the vertical axis
-    c = -tree.height/2
+    c = -tree.height / 2
     while True:
         time.sleep(0.05)
 
         for led in range(tree.num_pixels):
-            if (math.tan(angle)*tree.coords[led][0] <= tree.coords[led][2]+c) ^ swap_colors:
+            if (math.tan(angle) * tree.coords[led][0] <= tree.coords[led][2] + c) ^ swap_colors:
                 tree.set_light(led, color1.get())
             else:
                 tree.set_light(led, color2.get())
@@ -48,20 +48,19 @@ def run():
         # now we get ready for the next cycle
 
         angle += speed.get()
-        if angle > 2*math.pi:
-            angle -= 2*math.pi
+        if angle > 2 * math.pi:
+            angle -= 2 * math.pi
             swap01 = 0
             swap02 = 0
 
         # this is all to keep track of which colour is 'on top'
 
-        if angle >= 0.5*math.pi:
+        if angle >= 0.5 * math.pi:
             if swap01 == 0:
                 swap_colors = not swap_colors
                 swap01 = 1
 
-        if angle >= 1.5*math.pi:
+        if angle >= 1.5 * math.pi:
             if swap02 == 0:
                 swap_colors = not swap_colors
                 swap02 = 1
-

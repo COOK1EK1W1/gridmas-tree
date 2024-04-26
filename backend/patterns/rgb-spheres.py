@@ -1,6 +1,7 @@
 import math
 import time
 from util import tree
+from colors import Color
 import random
 
 name = "rgb_spheres"
@@ -78,10 +79,10 @@ def run():
             for s in range(3):
                 dist = abs(vdist(sphere_origins[s], tree.coords[i]) - radii[s])
                 color[s] = int(255 * (1 - dist / max_dists[s]) ** 3)
+            tree.set_light(i, Color(*color))
 
-                tree.pixels[i] = color
         tree.update()
-        time.sleep(1/45)
+        time.sleep(1 / 45)
 
         # calculate radii for next iteration.
         for s in range(3):
