@@ -1,4 +1,5 @@
 import csv
+import sys
 from colors import tcolors, Color
 
 
@@ -31,6 +32,24 @@ def create_pixels(num):
 
         return SimTree()
 
+def pythagorasDistance(a: list[float], b: list[float]) -> float:
+    if len(a) != len(b):
+        raise Exception("mismatch input size")
+    total = 0
+    for pair in zip(a, b):
+        total += (pair[0] - pair[1]) ** 2
+    return total ** 1/len(a)
+
+
+def generateDistances(coords) -> list[list[float]]:
+    ret = []
+    for fr in coords:
+        inter = []
+        for to in coords:
+            inter.append(pythagorasDistance(fr, to))
+        ret.append(inter)
+    return ret
+
 
 class Tree():
     def __init__(self):
@@ -43,13 +62,22 @@ class Tree():
 
         self.height = max([x[2] for x in self.coords])
 
+        self.distances = generateDistances(self.coords)
+
+        total_size = sys.getsizeof(self.distances)
+        for row in self.distances:
+            for element in row:
+                total_size += sys.getsizeof(element)
+        print("Size of the distance array in bytes:", total_size)
+
+
     def set_light(self, n: int, color: Color):
         (r, g, b) = color.toTuple()
         self.pixels[n] = (g, r, b)
 
     def get_light(self, n: int) -> tuple[int, int, int]:
-        (r, g, b) = self.pixels[n]
-        return (g, r, b)
+        (g, r, b) = self.pixels[n]
+        return (r, g, b)
 
     def update(self):
         self.pixels.show()
