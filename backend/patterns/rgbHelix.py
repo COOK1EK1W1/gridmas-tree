@@ -1,5 +1,4 @@
 import math
-import time
 from attribute import RangeAttr
 
 from util import tree
@@ -31,7 +30,6 @@ def run():
             tree.set_light(i, Color.fromHSL((hue + color_offset) % 1, 1, 0.5))
 
         tree.update()
-        time.sleep(1 / 45)
 
         offset = (offset + rotate_amount.get()) % (math.pi * 2)
 

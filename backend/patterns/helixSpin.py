@@ -49,6 +49,3 @@ def run():
         # Move the helix
         angle_offset = (angle_offset + SPIN_SPEED.get()) % (2 * math.pi)
         vertical_offset = (vertical_offset + ASCENT_SPEED) % 1
-
-        # Control the update speed to make the animation smooth
-        time.sleep(1 / 30)  # Aiming for around 30 frames per second

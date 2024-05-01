@@ -1,4 +1,5 @@
 import pygame.locals as PLocals
+import threading
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
@@ -19,8 +20,7 @@ class SimTree:
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
-        self.setup_visualisation()
-        # threading.Thread(target=self.b).start()
+        threading.Thread(target=self.b).start()
 
     def setup_visualisation(self):
         pygame.init()
@@ -34,8 +34,9 @@ class SimTree:
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
     def b(self):
+        self.setup_visualisation()
         while True:
-            time.sleep(1 / 30)
+            time.sleep(1 / 90)
             self._show()
 
     def draw_light(self, position, color):

@@ -118,9 +118,8 @@ def wipe_on():
             if rng <= tree.coords[i][2] * 200 < rng + 10:
                 tree.set_light(i, Color(200, 55, 2))
         tree.update()
-        time.sleep(1 / 45)
 
 
 if __name__ == '__main__':
     wipe_on()
-    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=80)
+    app.run(debug=True, host="0.0.0.0", use_reloader=False, port=3000)

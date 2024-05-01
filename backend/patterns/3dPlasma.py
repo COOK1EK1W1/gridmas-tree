@@ -1,6 +1,4 @@
 from util import tree
-from colors import Color
-import time
 import math
 
 name = "threeDPlasma"
@@ -100,16 +98,12 @@ def run():
 
     workMat = matrix(MATWX, MATWY, MATWZ, treeBB)
 
-    slow = 0
-
     t = 0
 
     while True:
 
-        time.sleep(slow)
-
-        for LED in range(0, tree.num_pixels):
-            tree.set_light(LED, Color(*workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])))
+        for LED, pixel in enumerate(tree.pixels):
+            pixel.set_RGB(*workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2]))
 
         tree.update()
 

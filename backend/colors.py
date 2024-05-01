@@ -19,6 +19,19 @@ class Color:
         self.g = g
         self.b = b
 
+    def set_RGB(self, r: int, g: int, b: int):
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def set_color(self, color: 'Color'):
+        self.set_RGB(*color.toTuple())
+
+    def fade(self, n = 1.1):
+        self.r /= n
+        self.g /= n
+        self.b /= n
+
     def toHex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
 

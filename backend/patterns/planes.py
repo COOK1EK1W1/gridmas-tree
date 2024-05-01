@@ -1,5 +1,4 @@
 import random
-import time
 import math
 from colors import Color
 
@@ -29,4 +28,3 @@ def run():
                 if rng <= coord[2] * 200 < rng + 10:
                     tree.set_light(i, color)
             tree.update()
-            time.sleep(1 / 45)

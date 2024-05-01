@@ -1,4 +1,3 @@
-import time
 import math
 from colors import Color
 from attribute import RangeAttr, ColorAttr
@@ -33,7 +32,6 @@ def run():
     # the starting point on the vertical axis
     c = -tree.height / 2
     while True:
-        time.sleep(0.05)
 
         for led in range(tree.num_pixels):
             if (math.tan(angle) * tree.coords[led][0] <= tree.coords[led][2] + c) ^ swap_colors:

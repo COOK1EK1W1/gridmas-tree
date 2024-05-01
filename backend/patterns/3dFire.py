@@ -1,8 +1,6 @@
 from util import tree
-import time
 import math
 import random
-from colors import Color
 
 name = "threeDFire"
 display_name = "3D Fire"
@@ -90,7 +88,7 @@ class matrix():
 
 def run():
     # Color are G R B
-    palette = []
+    palette: list[tuple[int, int, int]] = []
 
     # Transition points
     palBST = 70
@@ -121,18 +119,13 @@ def run():
     workMat = matrix(MATWX, MATWY, MATWZ, treeBB)
     oldMat = matrix(MATWX, MATWY, MATWZ, treeBB)
 
-    slow = 0
-
     while True:
 
-        time.sleep(slow)
-
-        for LED in range(0, tree.num_pixels):
+        for LED, pixel in enumerate(tree.pixels):
             v = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
-            tree.set_light(LED, Color(*palette[v]))
+            pixel.set_RGB(*palette[v])
 
         tree.update()
-        time.sleep(1 / 45)
 
         oldMat.copy(workMat)
 

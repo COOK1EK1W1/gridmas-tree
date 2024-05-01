@@ -1,4 +1,3 @@
-import time
 import random
 import math
 
@@ -31,10 +30,8 @@ def run():
             if distance_to_center <= radius.get():
                 tree.set_light(i, color.get())
             else:
-                r, g, b = tree.get_light(i)
+                r, g, b = tree.get_light(i).toTuple()
                 tree.set_light(i, Color(max(0, r - trailLength.get()), max(0, g - trailLength.get()), max(0, b - trailLength.get())))
-
-        time.sleep(1 / 45)
 
         angle = (angle + 0.1) % 6.28
         angle2 = (angle2 + 0.034) % 6.28

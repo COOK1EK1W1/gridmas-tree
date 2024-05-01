@@ -1,6 +1,5 @@
 from attribute import RangeAttr
 from util import tree
-from colors import Color
 import time
 
 name = "RGB"
@@ -15,11 +14,11 @@ def run():
     while True:
         offset = (offset + 1) % 3
 
-        for i in range(len(tree.pixels)):
+        for i, pixel in enumerate(tree.pixels):
             r = 255 if (i + offset) % 3 == 0 else 0
             g = 255 if (i + offset) % 3 == 1 else 0
             b = 255 if (i + offset) % 3 == 2 else 0
-            tree.set_light(i, Color(r, g, b))
+            pixel.set_RGB(r, g, b)
         tree.update()
         print(sleep_time.get())
         time.sleep(sleep_time.get())

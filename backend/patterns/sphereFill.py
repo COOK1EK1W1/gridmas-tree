@@ -1,4 +1,3 @@
-import time
 import math
 from attribute import RangeAttr
 
@@ -34,8 +33,6 @@ def run():
             # Update the tree display
             tree.update()
 
-            # Pause for a short time to control the expansion speed
-            time.sleep(1 / 45)
             # Increase the radius for the next iteration
             radius += expansion_speed.get()
 

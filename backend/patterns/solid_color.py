@@ -12,7 +12,7 @@ author = "Ciaran"
 def run():
     col = ColorAttr("Color", Color(200, 20, 0))
     while True:
-        for i in tree.pixels:
-            tree.set_light(i, col.get())
+        for pixel in tree.pixels:
+            pixel.set_color(col.get())
         tree.update()
         time.sleep(1)

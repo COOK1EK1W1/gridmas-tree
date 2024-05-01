@@ -15,8 +15,9 @@ def run():
     while True:
         for i in range(tree.num_pixels):
             tree.set_light(i, color.get())
-            for ia in range(tree.num_pixels):
-                r, g, b = tree.get_light(ia)
-                tree.set_light(ia, Color(int(r / fade.get()), int(g / fade.get()), int(b / fade.get())))
+
+            for pixel in tree.pixels:
+                pixel.fade(n=fade.get())
+
             tree.update()
             time.sleep(speed.get())
