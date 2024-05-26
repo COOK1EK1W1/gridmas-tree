@@ -1,4 +1,4 @@
-from util import tree
+from tree import tree
 import math
 
 name = "3D Plasma"

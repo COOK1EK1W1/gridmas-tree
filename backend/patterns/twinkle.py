@@ -1,4 +1,4 @@
-from util import tree
+from tree import tree
 import random
 from colors import Color
 from attribute import ColorAttr

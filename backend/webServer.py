@@ -3,11 +3,13 @@ import json
 from patternManager import manager
 from colors import Color
 from attribute import ColorAttr, store, RangeAttr
-from util import tree
+from tree import tree
 from flask import Flask, request, render_template
 
 
 app = Flask(__name__)
+
+
 @app.route('/lighton')
 def lighton():
     for i in range(tree.num_pixels):

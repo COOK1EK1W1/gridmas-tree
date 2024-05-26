@@ -1,4 +1,5 @@
 import random
+import colorsys
 
 
 class tcolors:
@@ -44,8 +45,8 @@ class Color:
 
     @staticmethod
     def fromHSL(hue, sat, lig) -> 'Color':
-        r, g, b = hsl2rgb(hue, sat, lig)
-        return Color(r, g, b)
+        r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
+        return Color(int(r), int(g), int(b))
 
     @staticmethod
     def white() -> 'Color':
@@ -71,6 +72,13 @@ class Color:
     def random() -> 'Color':
         return Color(random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
 
+    @staticmethod
+    def differentfrom(r, g, b):
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        newh = ((h * 30 + random.randint(0, 180) + 40) % 360) / 360
+        print(newh)
+        nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
+        return Color(int(nr), int(ng), int(nb))
 
 def tuple2hex(c: tuple[int, int, int]) -> str:
     return '#%02x%02x%02x' % c
@@ -80,35 +88,7 @@ def hex2tuple(h: str) -> tuple[int, int, int]:
     return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
 
 
-def hsl2rgb(hue, sat, lit):
-    """
-    Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue).
-    All input values should be in the range [0, 1].
-    """
-    if sat == 0:
-        # Achromatic (gray)
-        return int(lit * 255), int(lit * 255), int(lit * 255)
-    else:
-        def hue_to_rgb(p, q, t):
-            if t < 0:
-                t += 1
-            if t > 1:
-                t -= 1
-            if t < 1 / 6:
-                return p + (q - p) * 6 * t
-            if t < 1 / 2:
-                return q
-            if t < 2 / 3:
-                return p + (q - p) * (2 / 3 - t) * 6
-            return p
 
-        q = lit * (1 + sat) if lit < 0.5 else lit + sat - lit * sat
-        p = 2 * lit - q
-        r = hue_to_rgb(p, q, hue + 1 / 3)
-        g = hue_to_rgb(p, q, hue)
-        b = hue_to_rgb(p, q, hue - 1 / 3)
-
-        return int(r * 255), int(g * 255), int(b * 255)
 
 
 if __name__ == "__main__":
@@ -123,4 +103,9 @@ if __name__ == "__main__":
         ans = tuple2hex(hex2tuple(test))
         if ans != test:
             raise Exception("error in")
-    print(list(tests2))
+
+    for test in tests:
+        ans = colorsys.hsv_to_rgb(*colorsys.rgb_to_hsv(*test))
+        if ans != test:
+            print(test, ans)
+            raise Exception("error in")

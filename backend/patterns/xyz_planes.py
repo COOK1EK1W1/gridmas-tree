@@ -1,5 +1,5 @@
 from colors import Color
-from util import tree
+from tree import tree
 
 name = "XYZ Planes"
 author = "Ciaran"

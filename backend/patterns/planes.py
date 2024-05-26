@@ -2,7 +2,7 @@ import random
 import math
 from colors import Color
 
-from util import tree
+from tree import tree
 
 name = "Planes"
 author = "Ciaran"
@@ -10,6 +10,7 @@ author = "Ciaran"
 
 
 def run():
+    color = Color(255, 255, 0)
     while True:
         coords2 = [[x, y, z] for [x, y, z] in tree.coords]
         theta = random.uniform(0, 6.28)
@@ -20,7 +21,9 @@ def run():
         minZ = min([x[2] for x in coords2])
         maxZ = max([x[2] for x in coords2])
 
-        color = Color.random()
+        print(color.toTuple())
+        color = Color.differentfrom(*color.toTuple())
+        print(color.toTuple())
 
         for rng in range(int(minZ * 200), int(maxZ * 200), 10):
             for i, coord in enumerate(coords2):

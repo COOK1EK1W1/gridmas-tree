@@ -1,4 +1,4 @@
-from util import tree
+from tree import tree
 import time
 from colors import Color
 

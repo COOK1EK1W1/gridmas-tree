@@ -48,7 +48,7 @@ class PatternManager:
 
     def run(self, name: str) -> bool:
         pattern = self.get(name)
-        if pattern == None:
+        if pattern is None:
             return False
 
         if self.running_task:
@@ -58,11 +58,12 @@ class PatternManager:
         self.running_task = killableThread.Thread(target=pattern.run)
         self.running_task.start()
         return True
-    
+
     def get(self, name):
         patterns = list(filter(lambda x: x.name == name, self.patterns))
         if len(patterns) == 0:
             return None
         return patterns[0]
+
 
 manager = PatternManager("patterns")

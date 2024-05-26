@@ -2,7 +2,7 @@ import time
 
 from attribute import ColorAttr
 from colors import Color
-from util import tree
+from tree import tree
 
 name = "Solid Color"
 author = "Ciaran"

@@ -2,7 +2,7 @@ import math
 from colors import Color
 from attribute import RangeAttr, ColorAttr
 
-from util import tree
+from tree import tree
 
 name = "Spin"
 author = "Ciaran"

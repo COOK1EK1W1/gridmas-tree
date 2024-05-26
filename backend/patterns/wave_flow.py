@@ -2,7 +2,7 @@ import time
 import math
 
 from attribute import RangeAttr
-from util import tree
+from tree import tree
 from colors import Color
 
 name = "Wave Flow"

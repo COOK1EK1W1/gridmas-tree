@@ -1,6 +1,6 @@
 
 
-from util import tree
+from tree import tree
 from colors import Color
 
 def run(dir, color):

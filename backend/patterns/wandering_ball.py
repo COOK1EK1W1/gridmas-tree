@@ -1,7 +1,7 @@
 import random
 import math
 
-from util import tree
+from tree import tree
 from colors import Color
 from attribute import ColorAttr, RangeAttr
 

@@ -1,5 +1,5 @@
 from attribute import RangeAttr
-from util import tree
+from tree import tree
 import time
 
 name = "RGB"

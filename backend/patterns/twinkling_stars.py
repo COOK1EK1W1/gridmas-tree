@@ -1,5 +1,5 @@
 import random
-from util import tree
+from tree import tree
 from colors import Color
 
 name = "Twinkling Stars"

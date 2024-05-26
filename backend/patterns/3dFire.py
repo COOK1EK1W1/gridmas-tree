@@ -1,4 +1,4 @@
-from util import tree
+from tree import tree
 import math
 import random
 
