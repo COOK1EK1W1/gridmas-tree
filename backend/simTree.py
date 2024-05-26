@@ -1,5 +1,4 @@
 import pygame.locals as PLocals
-import threading
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
@@ -13,15 +12,13 @@ def read_csv():
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists
 
-
 class SimTree:
     def __init__(self):
         self.coords = read_csv()
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
-        threading.Thread(target=self.b).start()
-
+    
     def setup_visualisation(self):
         pygame.init()
         display = (800, 600)
@@ -33,10 +30,10 @@ class SimTree:
         GL.glRotatef(-60, 1, 0, 0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
-    def b(self):
+    def run(self):
         self.setup_visualisation()
         while True:
-            time.sleep(1 / 90)
+            time.sleep(1 / 30)
             self._show()
 
     def draw_light(self, position, color):
@@ -61,7 +58,6 @@ class SimTree:
             self.draw_light(coord, color)
 
         pygame.display.flip()
-        pygame.time.wait(10)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

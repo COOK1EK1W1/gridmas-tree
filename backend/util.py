@@ -94,6 +94,14 @@ class Tree():
 
     def turnOffLight(self, n: int):
         self.pixels[n].set_color(Color.black())
+    
+    def run(self):
+        if str(type(self.tree_pixels)) == "<class 'simTree.SimTree'>":
+            while True:
+                self.tree_pixels.run()
+        else:
+            pass
+
 
 
 tree = Tree()
