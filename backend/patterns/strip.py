@@ -12,8 +12,8 @@ def run():
     fade = RangeAttr("fade", 1.1, 1.01, 2, 0.01)
     color = ColorAttr("Color", Color.white())
     while True:
-        for i in range(tree.num_pixels):
-            tree.set_light(i, color.get())
+        for pixel in tree.pixels:
+            pixel.set_color(color.get())
 
             for pixel in tree.pixels:
                 pixel.fade(n=fade.get())

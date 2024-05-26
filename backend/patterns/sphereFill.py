@@ -22,12 +22,12 @@ def run():
         radius = min_radius
 
         while radius <= max_radius:
-            for i, coord in enumerate(tree.coords):
-                distance_to_center = math.sqrt((coord[0] - center[0]) ** 2 + (coord[1] - center[1]) ** 2 + (coord[2] - center[2]) ** 2)
+            for pixel in tree.pixels:
+                distance_to_center = math.sqrt((pixel.x - center[0]) ** 2 + (pixel.y - center[1]) ** 2 + (pixel.z - center[2]) ** 2)
 
                 # Check if the current LED is within the expanding sphere
                 if distance_to_center <= radius:
-                    tree.set_light(i, color)
+                    pixel.set_color(color)
 
             # Update the tree display
             tree.update()

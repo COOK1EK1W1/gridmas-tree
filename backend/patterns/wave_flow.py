@@ -22,14 +22,14 @@ def run():
         b = int((math.sin(COLOR_CHANGE_RATE.get() * time.time() + 4 * math.pi / 3) + 1) / 2 * 255)
         wave_color = (r, g, b)
 
-        for i, coord in enumerate(tree.coords):
+        for pixel in tree.pixels:
             # A basic 3D wave function based on the z-coordinate and a changing 'wave_offset'
-            intensity = 0.5 * (math.cos(2 * math.pi * (coord[2] / tree.height + wave_offset) / WAVE_PERIOD.get()) + 1)
+            intensity = 0.5 * (math.cos(2 * math.pi * (pixel.z / tree.height + wave_offset) / WAVE_PERIOD.get()) + 1)
             # Using intensity to modify the brightness of the color
             wave_intensity_color = Color(int(wave_color[0] * intensity), int(wave_color[1] * intensity), int(wave_color[2] * intensity))
 
             # Set the light to the calculated color
-            tree.set_light(i, wave_intensity_color)
+            pixel.set_color(wave_intensity_color)
 
         # Update the display to reflect changes
         tree.update()

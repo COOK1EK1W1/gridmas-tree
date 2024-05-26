@@ -32,11 +32,12 @@ def run():
     c = -tree.height / 2
     while True:
 
-        for led in range(tree.num_pixels):
-            if (math.tan(angle) * tree.coords[led][0] <= tree.coords[led][2] + c) ^ swap_colors:
-                tree.set_light(led, color1.get())
+
+        for pixel in tree.pixels:
+            if (math.tan(angle) * pixel.z <= pixel.z + c) ^ swap_colors:
+                pixel.set_color(color1.get())
             else:
-                tree.set_light(led, color2.get())
+                pixel.set_color(color2.get())
 
         # use the show() option as rarely as possible as it takes ages
         # do not use show() each time you change a LED but rather wait until you have changed them all

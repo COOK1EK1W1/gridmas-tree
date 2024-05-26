@@ -1,4 +1,5 @@
 import csv
+from pixel import Pixel
 import time
 import sys
 from colors import tcolors, Color
@@ -64,7 +65,10 @@ class Tree():
 
         self.distances = generateDistances(self.coords)
 
-        self.pixels = [Color.black() for _ in range(self.num_pixels)]
+        self.pixels: list[Pixel] = []
+        for x in self.coords:
+            self.pixels.append(Pixel((x[0], x[1], x[2])))
+        print(len(self.pixels))
 
         total_size = sys.getsizeof(self.distances)
         for row in self.distances:
@@ -78,7 +82,7 @@ class Tree():
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)
 
-    def get_light(self, n: int) -> Color:
+    def get_light(self, n: int) -> Pixel:
         return self.pixels[n]
 
     def update(self):

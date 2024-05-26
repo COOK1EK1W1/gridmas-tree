@@ -18,15 +18,15 @@ def run():
     offset = random.random() * math.pi * 2
     color_offset = random.random()
     while True:
-        for i, coord in enumerate(tree.coords):
-            angle = math.atan2(coord[1], coord[0])
+        for pixel in tree.pixels:
+            angle = math.atan2(pixel.y, pixel.x)
 
-            modified_angle = (angle + coord[2] * twist_amount + offset * speed) % (math.pi * 2)
+            modified_angle = (angle + pixel.z * twist_amount + offset * speed) % (math.pi * 2)
 
             a = round((modified_angle) / math.pi)
 
             hue = a / 2
-            tree.set_light(i, Color.fromHSL((hue + color_offset) % 1, 1, 0.5))
+            pixel.set_color(Color.fromHSL((hue + color_offset) % 1, 1, 0.5))
 
         tree.update()
 

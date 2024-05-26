@@ -19,5 +19,4 @@ def run():
             b = 255 if (i + offset) % 3 == 2 else 0
             pixel.set_RGB(r, g, b)
         tree.update()
-        print(sleep_time.get())
         time.sleep(sleep_time.get())
