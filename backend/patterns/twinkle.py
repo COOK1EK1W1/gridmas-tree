@@ -3,8 +3,7 @@ import random
 from colors import Color
 from attribute import ColorAttr
 
-name = "twinkle"
-display_name = "Twinkle"
+name = "Twinkle"
 author = "Ciaran"
 
 

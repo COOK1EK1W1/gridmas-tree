@@ -5,8 +5,7 @@ from attribute import RangeAttr
 from util import tree
 from colors import Color
 
-name = "WaveFlow"
-display_name = "Wave Flow"
+name = "Wave Flow"
 author = "chatGPT"
 
 

@@ -17,7 +17,7 @@
 
     <div class="flex flex-wrap w-full justify-center">
       {% for pattern in patterns %}
-        <button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" hx-get="/pattern/{{pattern.name}}" hx-target="#pattern-attr">{{pattern.display_name}}</button>
+        <button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" hx-get="/pattern/{{pattern.name}}" hx-target="#pattern-attr">{{pattern.name}}</button>
       {% endfor %}
     </div>
     <script>

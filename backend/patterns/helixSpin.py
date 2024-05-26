@@ -4,8 +4,7 @@ from attribute import RangeAttr
 from util import tree
 from colors import Color
 
-name = "HelixSpin"
-display_name = "Helix Spin"
+name = "Helix Spin"
 author = "chatGPT"
 
 # Constants for the HelixSpin pattern

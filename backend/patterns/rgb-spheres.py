@@ -3,8 +3,7 @@ from util import tree
 from colors import Color
 import random
 
-name = "rgb_spheres"
-display_name = "RGB spheres"
+name = "RGB spheres"
 author = "NeunEinser"
 # Derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/rgb-spheres.py
 

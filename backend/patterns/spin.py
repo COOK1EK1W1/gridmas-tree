@@ -4,8 +4,7 @@ from attribute import RangeAttr, ColorAttr
 
 from util import tree
 
-name = "spin"
-display_name = "spin"
+name = "Spin"
 author = "Ciaran"
 # based on Matt Parkers xmas tree
 

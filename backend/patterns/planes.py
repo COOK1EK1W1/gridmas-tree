@@ -5,7 +5,6 @@ from colors import Color
 from util import tree
 
 name = "Planes"
-display_name = "Planes"
 author = "Ciaran"
 # based on Matt Parkers Xmas tree
 

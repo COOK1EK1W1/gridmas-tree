@@ -2,8 +2,7 @@ import random
 from util import tree
 from colors import Color
 
-name = "TwinklingStars"
-display_name = "Twinkling Stars"
+name = "Twinkling Stars"
 author = "chatGPT"
 
 

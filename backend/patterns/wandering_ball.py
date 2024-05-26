@@ -5,8 +5,7 @@ from util import tree
 from colors import Color
 from attribute import ColorAttr, RangeAttr
 
-name = "wandering_ball"
-display_name = "Wandering Ball"
+name = "Wandering Ball"
 author = "Ciaran"
 
 

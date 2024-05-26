@@ -2,8 +2,7 @@ from util import tree
 import math
 import random
 
-name = "threeDFire"
-display_name = "3D Fire"
+name = "3D Fire"
 author = "Godzil"
 # derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/3dfire.py
 

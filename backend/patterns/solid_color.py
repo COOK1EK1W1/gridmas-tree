@@ -4,8 +4,7 @@ from attribute import ColorAttr
 from colors import Color
 from util import tree
 
-name = "solidColor"
-display_name = "solid Color"
+name = "Solid Color"
 author = "Ciaran"
 
 

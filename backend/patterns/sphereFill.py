@@ -4,8 +4,7 @@ from attribute import RangeAttr
 from util import tree
 from colors import Color
 
-name = "SphereFill"
-display_name = "Sphere Fill"
+name = "Sphere Fill"
 author = "Ciaran"
 
 

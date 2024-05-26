@@ -3,7 +3,6 @@ from util import tree
 import time
 
 name = "RGB"
-display_name = "RGB"
 author = "Ciaran"
 
 

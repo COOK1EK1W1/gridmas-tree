@@ -1,8 +1,8 @@
 from colors import Color
 from util import tree
 
-name = "xyz_planes"
-display_name = "xyz Planes"
+name = "XYZ Planes"
+author = "Ciaran"
 
 
 def run():

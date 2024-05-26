@@ -2,8 +2,7 @@ from util import tree
 import time
 from colors import Color
 
-name = "checkers"
-display_name = "Checkers"
+name = "Checkers"
 author = "Ciaran"
 
 

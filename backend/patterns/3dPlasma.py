@@ -1,8 +1,7 @@
 from util import tree
 import math
 
-name = "threeDPlasma"
-display_name = "3D Plasma"
+name = "3D Plasma"
 author = "Godzil"
 # derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/3dplasma.py
 

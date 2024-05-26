@@ -5,8 +5,7 @@ from util import tree
 from colors import Color
 import random
 
-name = "rgb_helix"
-display_name = "RGB Helix"
+name = "RGB Helix"
 author = "Ciaran"
 
 

@@ -3,8 +3,7 @@ from colors import Color
 from attribute import RangeAttr, ColorAttr
 import time
 
-name = "strip"
-display_name = "strip"
+name = "Strip"
 author = "Ciaran"
 
 

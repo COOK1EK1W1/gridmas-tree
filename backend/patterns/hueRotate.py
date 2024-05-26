@@ -2,8 +2,7 @@ from util import tree
 from colors import Color
 from attribute import RangeAttr
 
-name = "HueRotate"
-display_name = "Hue Rotate"
+name = "Hue Rotate"
 author = "Ciaran"
 
 
