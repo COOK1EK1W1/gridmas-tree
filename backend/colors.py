@@ -46,7 +46,7 @@ class Color:
     @staticmethod
     def fromHSL(hue, sat, lig) -> 'Color':
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
-        return Color(int(r), int(g), int(b))
+        return Color(int(r*255), int(g*255), int(b*255))
 
     @staticmethod
     def white() -> 'Color':
@@ -73,10 +73,9 @@ class Color:
         return Color(random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
 
     @staticmethod
-    def differentfrom(r, g, b):
-        h, s, v = colorsys.rgb_to_hsv(r, g, b)
-        newh = ((h * 30 + random.randint(0, 180) + 40) % 360) / 360
-        print(newh)
+    def differentfrom(color: 'Color') -> 'Color':
+        h, s, v = colorsys.rgb_to_hsv(*color.toTuple())
+        newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
         nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
         return Color(int(nr), int(ng), int(nb))
 

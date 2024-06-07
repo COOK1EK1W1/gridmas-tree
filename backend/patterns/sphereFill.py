@@ -9,8 +9,8 @@ author = "Ciaran"
 
 
 def run():
+    color = Color.random()
     while True:
-        color = Color.random()
         center = [0, 0, tree.height / 2]  # Center of the tree
 
         # Radius expansion parameters
@@ -37,6 +37,7 @@ def run():
 
         # Clear the tree after the sphere has expanded completely
         tree.update()
+        color = Color.differentfrom(color)
 
 
 if __name__ == "__main__":
