@@ -29,9 +29,9 @@ class Color:
         self.set_RGB(*color.toTuple())
 
     def fade(self, n=1.1):
-        self.r = max(min(int(self.r / n), 256), 0)
-        self.g = max(min(int(self.g / n), 256), 0)
-        self.b = max(min(int(self.b / n), 256), 0)
+        self.r = max(min(int(self.r / n), 255), 0)
+        self.g = max(min(int(self.g / n), 255), 0)
+        self.b = max(min(int(self.b / n), 255), 0)
 
     def toHex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
