@@ -30,7 +30,6 @@ def run():
             interval = random.randrange(40, 100)
         i = (i + 1) % interval
 
-        print(explosions)
         for exp in explosions:
             exp.tick += 1
 
