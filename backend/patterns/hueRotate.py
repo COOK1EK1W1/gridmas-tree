@@ -8,7 +8,7 @@ author = "Ciaran"
 
 def run():
     hue = 0
-    speed = RangeAttr("speed", 0.02, 0.01, 0.1, 0.01)
+    speed = RangeAttr("speed", 0.02, 0.001, 0.03, 0.0005)
     while True:
         hue = (hue + speed.get()) % 1
         for pixel in tree.pixels:

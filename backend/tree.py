@@ -11,7 +11,7 @@ def create_pixels(num):
         import board
 
         pixel_pin = board.D18
-        return neopixel.NeoPixel(pixel_pin, num, auto_write=False)
+        return neopixel.NeoPixel(pixel_pin, num, auto_write=False, pixel_order="RGB")
 
     except Exception:
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")

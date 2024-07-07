@@ -9,7 +9,7 @@ author = "Ciaran"
 def run():
     while True:
         color1 = Color.random()
-        color2 = Color.random()
+        color2 = Color.differentfrom(color1)
         for pixel in tree.pixels:
             x = 0
             if pixel.x % 2 > 1:
