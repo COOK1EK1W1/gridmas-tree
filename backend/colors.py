@@ -28,10 +28,10 @@ class Color:
     def set_color(self, color: 'Color'):
         self.set_RGB(*color.toTuple())
 
-    def fade(self, n = 1.1):
-        self.r /= n
-        self.g /= n
-        self.b /= n
+    def fade(self, n=1.1):
+        self.r = int(self.r / n)
+        self.g = int(self.g / n)
+        self.b = int(self.b / n)
 
     def toHex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
@@ -46,7 +46,7 @@ class Color:
     @staticmethod
     def fromHSL(hue, sat, lig) -> 'Color':
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
-        return Color(int(r*255), int(g*255), int(b*255))
+        return Color(int(r * 255), int(g * 255), int(b * 255))
 
     @staticmethod
     def white() -> 'Color':
