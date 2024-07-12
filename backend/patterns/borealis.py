@@ -5,7 +5,7 @@ from tree import tree
 from colors import Color
 
 name = "Aurora Borealis"
-author = "Claude 3.5"
+author = "Assistant"
 
 
 def interpolate_color(color1, color2, factor):
@@ -20,7 +20,8 @@ def run():
     flow_speed = RangeAttr("Flow Speed", 0.02, 0.01, 0.1, 0.01)
     color_shift_speed = RangeAttr("Color Shift Speed", 0.01, 0.001, 0.05, 0.001)
     wave_frequency = RangeAttr("Wave Frequency", 1.5, 0.5, 3.0, 0.1)
-
+    sparkle_chance = RangeAttr("Sparkle Chance", 0.0005, 0.0001, 0.01, 0.0001)
+    
     color1 = ColorAttr("Color 1", Color(0, 255, 100))  # Green
     color2 = ColorAttr("Color 2", Color(100, 200, 255))  # Light blue
     color3 = ColorAttr("Color 3", Color(255, 100, 200))  # Pink
@@ -47,11 +48,11 @@ def run():
             else:
                 factor = (wave - 0.67) * 3
                 color = interpolate_color(color3.get(), color1.get(), factor)
-            
-            # Add some sparkle
-            if random.random() < 0.01:
+
+            # Add occasional sparkle
+            if random.random() < sparkle_chance.get():
                 color = Color(255, 255, 255)  # White sparkle
-            
+
             tree.set_light(i, color)
 
         tree.update()
