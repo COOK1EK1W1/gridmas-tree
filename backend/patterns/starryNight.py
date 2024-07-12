@@ -62,7 +62,7 @@ def run():
                 int(star_color.get().g * shooting_star.life),
                 int(star_color.get().b * shooting_star.life)
             )
-            tree.set_light(int(shooting_star.current_index), color)
+            tree.set_light(int(shooting_star.current_index % tree.num_pixels), color)
 
             # Move the shooting star
             shooting_star.current_index += shooting_star.speed * shooting_star.direction
