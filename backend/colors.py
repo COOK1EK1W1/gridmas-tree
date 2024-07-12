@@ -14,24 +14,28 @@ class tcolors:
     UNDERLINE = '\033[4m'
 
 
+def clamp(val, minv, maxv):
+    return min(max(val, minv), maxv)
+
+
 class Color:
     def __init__(self, r: int, g: int, b: int):
-        self.r = r
-        self.g = g
-        self.b = b
+        self.r = int(clamp(r, 0, 255))
+        self.g = int(clamp(g, 0, 255))
+        self.b = int(clamp(b, 0, 255))
 
     def set_RGB(self, r: int, g: int, b: int):
-        self.r = r
-        self.g = g
-        self.b = b
+        self.r = int(clamp(r, 0, 255))
+        self.g = int(clamp(g, 0, 255))
+        self.b = int(clamp(b, 0, 255))
 
     def set_color(self, color: 'Color'):
         self.set_RGB(*color.toTuple())
 
     def fade(self, n=1.1):
-        self.r = max(min(int(self.r / n), 255), 0)
-        self.g = max(min(int(self.g / n), 255), 0)
-        self.b = max(min(int(self.b / n), 255), 0)
+        self.r = int(clamp(self.r / n, 0, 255))
+        self.g = int(clamp(self.g / n, 0, 255))
+        self.b = int(clamp(self.b / n, 0, 255))
 
     def toHex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
