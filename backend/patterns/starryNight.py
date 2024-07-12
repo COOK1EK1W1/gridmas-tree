@@ -5,7 +5,7 @@ from tree import tree
 from colors import Color
 
 name = "Starry Night"
-author = "Claude"
+author = "Claude 3.5"
 
 
 class Star:
