@@ -28,7 +28,7 @@ def run():
     star_density = RangeAttr("Star Density", 0.1, 0.05, 0.3, 0.01)
     shooting_star_chance = RangeAttr("Shooting Star Chance", 0.01, 0.001, 0.05, 0.001)
 
-    background_color = Color(0, 0, 40)  # Dark blue night sky
+    background_color = Color(0, 0, 0)  # Dark blue night sky
     star_color = ColorAttr("Star Color", Color(255, 255, 200))  # Warm white
 
     stars = []
