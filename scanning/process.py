@@ -10,7 +10,7 @@ pix_coords: list[list[int]] = []
 num_pixels = os.getenv("PIXELS")
 # num_pixels = 100
 
-if num_pixels == None:
+if num_pixels is None:
     raise Exception("No PIXELS env variable")
 
 dirs = [0, 90, 180, 270]
@@ -55,7 +55,7 @@ maxY = max([abs(x[1]) for x in pix_coords])
 maxZ = max([abs(x[2]) for x in pix_coords])
 max_width = max(maxX, maxY)
 
-final = [[a/max_width, b/max_width, (maxZ-c)/max_width]
+final = [[a / max_width, b / max_width, (maxZ - c) / max_width]
          for (a, b, c) in pix_coords]
 print(final)
 

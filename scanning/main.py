@@ -51,7 +51,7 @@ for d in range(4):
             imshow("test", image)
             waitKey(0)
             destroyAllWindows()
-            
+
 
             imwrite(f"scanning/results/results-{i}-{d*90}.png", image)
 
