@@ -73,6 +73,7 @@ def pattern(pattern: str):
     else:
         return "not running"
 
+
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html', patterns=manager.patterns)

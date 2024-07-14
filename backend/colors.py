@@ -32,7 +32,7 @@ class Color:
     def set_color(self, color: 'Color'):
         self.set_RGB(*color.toTuple())
 
-    def fade(self, n=1.1):
+    def fade(self, n: float = 1.1):
         self.r = int(clamp(self.r / n, 0, 255))
         self.g = int(clamp(self.g / n, 0, 255))
         self.b = int(clamp(self.b / n, 0, 255))
@@ -48,7 +48,7 @@ class Color:
         return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))
 
     @staticmethod
-    def fromHSL(hue, sat, lig) -> 'Color':
+    def fromHSL(hue: float, sat: float, lig: float) -> 'Color':
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
         return Color(int(r * 255), int(g * 255), int(b * 255))
 
@@ -73,8 +73,8 @@ class Color:
         return Color(0, 0, 255)
 
     @staticmethod
-    def random() -> 'Color':
-        return Color(random.randint(0, 200), random.randint(0, 200), random.randint(0, 200))
+    def random(saturation: float = 1, lightness: float = 0.7) -> 'Color':
+        return Color.fromHSL(random.randint(0, 200), saturation, lightness)
 
     @staticmethod
     def differentfrom(color: 'Color') -> 'Color':
@@ -83,15 +83,13 @@ class Color:
         nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
         return Color(int(nr), int(ng), int(nb))
 
+
 def tuple2hex(c: tuple[int, int, int]) -> str:
     return '#%02x%02x%02x' % c
 
 
 def hex2tuple(h: str) -> tuple[int, int, int]:
     return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
-
-
-
 
 
 if __name__ == "__main__":

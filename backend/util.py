@@ -7,7 +7,7 @@ def savelights(lightLocs: list[list[int]]) -> None:
         writer.writerows(lightLocs)
 
 
-def read_tree_csv():
+def read_tree_csv() -> list[list[float]]:
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists = [[float(item) for item in row] for row in reader]

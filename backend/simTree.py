@@ -12,13 +12,14 @@ def read_csv():
         list_of_lists = [[float(item) for item in row] for row in reader]
     return list_of_lists
 
+
 class SimTree:
     def __init__(self):
         self.coords = read_csv()
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
-    
+
     def setup_visualisation(self):
         pygame.init()
         display = (800, 600)

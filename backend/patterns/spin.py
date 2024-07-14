@@ -40,4 +40,4 @@ def run():
 
         # now we get ready for the next cycle
 
-        angle += speed.get() % 2*math.pi
+        angle += speed.get() % 2 * math.pi

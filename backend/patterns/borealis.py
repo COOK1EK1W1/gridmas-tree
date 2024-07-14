@@ -21,7 +21,7 @@ def run():
     color_shift_speed = RangeAttr("Color Shift Speed", 0.01, 0.001, 0.05, 0.001)
     wave_frequency = RangeAttr("Wave Frequency", 1.5, 0.5, 3.0, 0.1)
     sparkle_chance = RangeAttr("Sparkle Chance", 0.0005, 0.0001, 0.01, 0.0001)
-    
+
     color1 = ColorAttr("Color 1", Color(0, 255, 100))  # Green
     color2 = ColorAttr("Color 2", Color(100, 200, 255))  # Light blue
     color3 = ColorAttr("Color 3", Color(255, 100, 200))  # Pink
