@@ -24,6 +24,8 @@ class Sphere:
 
 def run():
     spheres: list[Sphere] = [Sphere(100, Color.random(), 0, 0, tree.height / 2)]
+
+    tree.black()
     while True:
         if (len(spheres) > 4):
             spheres.pop(0)

@@ -39,7 +39,7 @@ def run():
                 pixel.set_color(Color(r, g, b))
             else:
                 # Dim other lights
-                pixel.set_color(Color.black())
+                pixel.fade(1.1)
 
         # Update the tree display
         tree.update()

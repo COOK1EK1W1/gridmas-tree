@@ -85,5 +85,9 @@ class Tree():
         for pixel in self.pixels:
             pixel.fade(n)
 
+    def black(self):
+        for pixel in self.pixels:
+            pixel.set_RGB(0, 0, 0)
+
 
 tree = Tree()

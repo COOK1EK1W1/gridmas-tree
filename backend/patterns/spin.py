@@ -11,7 +11,7 @@ author = "Ciaran"
 
 def run():
     print("adding colors")
-    speed = RangeAttr("speed", 0.1, -0.3, 0.3, 0.01)
+    speed = RangeAttr("speed", 0.02, -0.1, 0.1, 0.001)
     color1 = ColorAttr("color 1", Color(0, 50, 50))
     color2 = ColorAttr("color 2", Color(50, 50, 0))
 
@@ -40,4 +40,4 @@ def run():
 
         # now we get ready for the next cycle
 
-        angle += speed.get() % 2 * math.pi
+        angle = (angle + speed.get()) % (2 * math.pi)
