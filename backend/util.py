@@ -1,4 +1,5 @@
 import csv
+import math
 
 
 def savelights(lightLocs: list[list[int]]) -> None:
@@ -20,7 +21,7 @@ def pythagorasDistance(a: list[float], b: list[float]) -> float:
     total = 0
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2
-    return total ** 1 / len(a)
+    return math.sqrt(total)
 
 
 def generateDistances(coords) -> list[list[float]]:

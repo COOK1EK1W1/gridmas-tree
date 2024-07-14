@@ -7,17 +7,18 @@ from colors import Color
 name = "Snowing"
 author = "Ciaran"
 
-fallSpeed = 0.1
-
 
 class SnowFlake(SphereParticle):
     def __init__(self, x, y):
-        super().__init__(x, y, tree.height + 1, 0.02, 100, Color(200, 200, 240))
+        super().__init__(x, y, tree.height + 0.2, 0.2, 100, Color(200, 200, 240))
         self.yVel = 0.05
 
     def advance(self):
         self.z -= self.yVel
         self.yVel += 0.002
+
+        if (self.z < -0.2):
+            self.is_dead = True
 
 
 def run():
