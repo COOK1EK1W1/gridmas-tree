@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import time
 from colors import Color
 from util import pythagorasDistance
 from tree import Tree
@@ -33,9 +34,22 @@ class SphereParticle(Particle):
         self.color = color
 
     def draw(self, tree: Tree):
+        inner_radius = 0.866  # sqrt(3) / 2, side length of box inscribed by sphere
         for pixel in tree.pixels:
-            if pythagorasDistance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
-                pixel.set_color(self.color)
+            # Check if the pixel is within the outer bounding box
+            if self.z - self.radius < pixel.z < self.z + self.radius and \
+               self.x - self.radius < pixel.x < self.x + self.radius and \
+               self.y - self.radius < pixel.y < self.y + self.radius:
+
+                # Check if the pixel is within the inner bounding box
+                if self.z - inner_radius < pixel.z < self.z + inner_radius and \
+                   self.x - inner_radius < pixel.x < self.x + inner_radius and \
+                   self.y - inner_radius < pixel.y < self.y + inner_radius:
+                    pixel.set_color(self.color)
+                else:
+                    # Perform the distance check if not within the inner bounding box
+                    if pythagorasDistance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                        pixel.set_color(self.color)
 
     @abstractmethod
     def advance(self):

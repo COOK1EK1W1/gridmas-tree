@@ -48,6 +48,8 @@ class Tree():
 
         self.last_update = time.time()
 
+        self.frame_times = []
+
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)
 
@@ -62,6 +64,10 @@ class Tree():
         if sleep_time == 0:
             # print("frame took too long :(")
             pass
+        self.frame_times.append(time.time() - self.last_update)
+        if len(self.frame_times) > 100:
+            self.frame_times.pop(0)
+        print("fps: ", round(sum(self.frame_times) / len(self.frame_times), 5), end="\r")
         time.sleep(sleep_time)
         self.last_update = time.time()
 
