@@ -75,5 +75,9 @@ class Tree():
         else:
             pass
 
+    def fade(self, n: float = 1.1):
+        for pixel in self.pixels:
+            pixel.fade(n)
+
 
 tree = Tree()
