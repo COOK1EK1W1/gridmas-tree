@@ -74,7 +74,7 @@ class Color:
 
     @staticmethod
     def random(saturation: float = 1, lightness: float = 0.7) -> 'Color':
-        return Color.fromHSL(random.randint(0, 200), saturation, lightness)
+        return Color.fromHSL(random.random(), saturation, lightness)
 
     @staticmethod
     def differentfrom(color: 'Color') -> 'Color':

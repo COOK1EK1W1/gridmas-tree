@@ -44,7 +44,7 @@ def run():
                 pixel.fade(0.5)
 
             for exp in explosions:
-                if exp.tick / 2 < pythagorasDistance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) * 100 < exp.tick / 1.3:
+                if exp.tick / 2 < pythagorasDistance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) * 50 < exp.tick / 1.3:
                     pixel.set_color(exp.color)
 
         tree.update()
