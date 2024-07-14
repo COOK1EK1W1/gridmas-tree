@@ -9,9 +9,18 @@ def savelights(lightLocs: list[list[int]]) -> None:
 
 
 def read_tree_csv() -> list[list[float]]:
+    # TODO fix this in the processing stage
+    x_off = 0.1
+    y_off = 0.17
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
-        list_of_lists = [[float(item) for item in row] for row in reader]
+        list_of_lists = []
+        for row in reader:
+            a = [float(item) for item in row]
+
+            a[0] += x_off
+            a[1] += y_off
+            list_of_lists.append(a)
     return list_of_lists
 
 
