@@ -2,20 +2,13 @@ import pygame.locals as PLocals
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
-import csv
 import time
-
-
-def read_csv():
-    with open("tree.csv") as csvfile:
-        reader = csv.reader(csvfile)
-        list_of_lists = [[float(item) for item in row] for row in reader]
-    return list_of_lists
+from util import read_tree_csv
 
 
 class SimTree:
     def __init__(self):
-        self.coords = read_csv()
+        self.coords = read_tree_csv()
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
@@ -37,7 +30,7 @@ class SimTree:
             time.sleep(1 / 30)
             self._show()
 
-    def draw_light(self, position, color):
+    def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):
         GL.glPointSize(5)
         GL.glBegin(GL.GL_POINTS)
         GL.glColor3f(color[0] / 255, color[1] / 255, color[2] / 255)  # Set the color for the point
@@ -68,10 +61,10 @@ class SimTree:
     def show(self):
         self.buffer = [x for x in self.pixels]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         return self.pixels[index]
 
-    def __setitem__(self, index, item):
+    def __setitem__(self, index: int, item: tuple[int, int, int]):
         self.pixels[index] = item
 
     def __len__(self):

@@ -1,9 +1,10 @@
+from collections.abc import Callable
 import threading
 import ctypes
 
 
 class Thread(threading.Thread):
-    def __init__(self, target):
+    def __init__(self, target: Callable[[], None]):
         threading.Thread.__init__(self, daemon=True)
         self.fn = target
 

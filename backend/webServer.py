@@ -2,7 +2,7 @@ import util
 import json
 from patternManager import manager
 from colors import Color
-from attribute import ColorAttr, store, RangeAttr
+from attribute import store, RangeAttr
 from tree import tree
 from flask import Flask, request, render_template
 
@@ -45,7 +45,7 @@ def setLight():
     print(request.data)
     data = json.loads(request.data)
     print(data)
-    util.savelights(data)
+    util.save_lights(data)
     return "bruh"
 
 
@@ -60,9 +60,9 @@ def attributeG(nam: str):
 def attributeS(name: str):
     attribute = store.get(name)
     if isinstance(attribute, RangeAttr):
-        store.set(name, float(request.form['value']))
-    elif isinstance(attribute, ColorAttr):
-        store.set(name, Color.fromHex(request.form['value']))
+        attribute.set(float(request.form['value']))
+    else:
+        attribute.set(Color.fromHex(request.form['value']))
     return "something"
 
 

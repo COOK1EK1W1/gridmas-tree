@@ -14,7 +14,7 @@ class tcolors:
     UNDERLINE = '\033[4m'
 
 
-def clamp(val, minv, maxv):
+def clamp(val: float | int, minv: float | int, maxv: float | int):
     return min(max(val, minv), maxv)
 
 

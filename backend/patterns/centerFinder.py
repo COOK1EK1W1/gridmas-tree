@@ -16,4 +16,3 @@ def run():
             else:
                 pixel.set_RGB(0, 0, 200)
         tree.update()
-

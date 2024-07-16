@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-import time
 from colors import Color
-from util import pythagorasDistance
+from util import euclidean_distance
 from tree import Tree
 
 
@@ -18,7 +17,7 @@ class Particle(ABC):
     def draw(self, tree: Tree) -> None:
         ...
 
-    def _advance(self):
+    def s_advance(self):
         self.age += 1
         self.advance()
 
@@ -48,7 +47,7 @@ class SphereParticle(Particle):
                     pixel.set_color(self.color)
                 else:
                     # Perform the distance check if not within the inner bounding box
-                    if pythagorasDistance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                    if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
                         pixel.set_color(self.color)
 
     @abstractmethod
@@ -66,7 +65,7 @@ class ParticleSystem:
 
     def advance(self):
         for particle in self._particles:
-            particle._advance()
+            particle.s_advance()
 
         self._particles = list(filter(lambda x: x.age < x.max_age or not x.is_dead, self._particles))
 

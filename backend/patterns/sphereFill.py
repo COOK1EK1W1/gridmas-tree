@@ -1,4 +1,4 @@
-from util import pythagorasDistance
+from util import euclidean_distance
 
 from tree import tree
 from colors import Color
@@ -32,7 +32,7 @@ def run():
         for _ in range(50):
             for sphere in spheres:
                 for pixel in tree.pixels:
-                    distance_to_center = pythagorasDistance([pixel.x, pixel.y, pixel.z], [sphere.x, sphere.y, sphere.z])
+                    distance_to_center = euclidean_distance([pixel.x, pixel.y, pixel.z], [sphere.x, sphere.y, sphere.z])
                     if distance_to_center < sphere.radius:
                         pixel.set_color(sphere.color)
 

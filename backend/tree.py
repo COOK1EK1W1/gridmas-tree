@@ -1,11 +1,11 @@
-from util import generateDistances, read_tree_csv
+from util import generate_distance_map, read_tree_csv
 from pixel import Pixel
 import time
 import sys
 from colors import tcolors, Color
 
 
-def create_pixels(num):
+def create_pixels(num: int):
     try:
         import neopixel
         import board
@@ -33,7 +33,7 @@ class Tree():
 
         self.height = max([x[2] for x in self.coords])
 
-        self.distances = generateDistances(self.coords)
+        self.distances = generate_distance_map([[y for y in x] for x in self.coords])
 
         self.pixels: list[Pixel] = []
         for x in self.coords:
@@ -48,7 +48,7 @@ class Tree():
 
         self.last_update = time.time()
 
-        self.frame_times = []
+        self.frame_times: list[float] = []
 
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)

@@ -1,3 +1,4 @@
+from types import ModuleType
 import killableThread
 import os
 from colors import tcolors
@@ -5,7 +6,7 @@ from attribute import store
 import time
 
 
-def print_tabulated(item1, item2, item3, max_length):
+def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
     # Cap the length of each item
     item1 = item1[:max_length].ljust(max_length)
     item2 = item2[:max_length].ljust(max_length)
@@ -15,10 +16,10 @@ def print_tabulated(item1, item2, item3, max_length):
     print(f"{tcolors.OKGREEN}{item1}{item2}{item3}{tcolors.ENDC}")
 
 
-def load_patterns(pattern_dir):
+def load_patterns(pattern_dir: str):
     print(f"{tcolors.OKBLUE}######## patterns ########{tcolors.ENDC}")
     pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
-    patterns = []
+    patterns: list[ModuleType] = []
     for file in pattern_files:
         print("loading pattern from " + "file" + "        ", end="\r")
         try:
@@ -59,8 +60,8 @@ class PatternManager:
         self.running_task.start()
         return True
 
-    def get(self, name):
-        patterns = list(filter(lambda x: x.name == name, self.patterns))
+    def get(self, name: str) -> ModuleType | None:
+        patterns: list[ModuleType] = list(filter(lambda x: x.name == name, self.patterns))
         if len(patterns) == 0:
             return None
         return patterns[0]

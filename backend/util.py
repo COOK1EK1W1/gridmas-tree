@@ -2,29 +2,26 @@ import csv
 import math
 
 
-def savelights(lightLocs: list[list[int]]) -> None:
+def save_lights(light_locs: list[list[int]]) -> None:
     with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerows(lightLocs)
+        writer.writerows(light_locs)
 
 
-def read_tree_csv() -> list[list[float]]:
+def read_tree_csv() -> list[tuple[float, float, float]]:
     # TODO fix this in the processing stage
     x_off = 0.1
     y_off = 0.17
     with open("tree.csv") as csvfile:
         reader = csv.reader(csvfile)
-        list_of_lists = []
+        list_of_lists: list[tuple[float, float, float]] = []
         for row in reader:
-            a = [float(item) for item in row]
-
-            a[0] += x_off
-            a[1] += y_off
+            a = (float(row[0]) + x_off, float(row[1]) + y_off, float(row[2]))
             list_of_lists.append(a)
     return list_of_lists
 
 
-def pythagorasDistance(a: list[float], b: list[float]) -> float:
+def euclidean_distance(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
         raise Exception("mismatch input size")
     total = 0
@@ -33,11 +30,11 @@ def pythagorasDistance(a: list[float], b: list[float]) -> float:
     return math.sqrt(total)
 
 
-def generateDistances(coords) -> list[list[float]]:
-    ret = []
+def generate_distance_map(coords: list[list[float]]) -> list[list[float]]:
+    ret: list[list[float]] = []
     for fr in coords:
-        inter = []
+        inter: list[float] = []
         for to in coords:
-            inter.append(pythagorasDistance(fr, to))
+            inter.append(euclidean_distance(fr, to))
         ret.append(inter)
     return ret

@@ -1,6 +1,6 @@
 import random
 from colors import Color
-from util import pythagorasDistance
+from util import euclidean_distance
 from tree import tree
 
 name = "Fire Works"
@@ -44,7 +44,7 @@ def run():
                 pixel.fade(0.5)
 
             for exp in explosions:
-                if exp.tick / 2 < pythagorasDistance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) * 50 < exp.tick / 1.3:
+                if exp.tick / 2 < euclidean_distance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) * 50 < exp.tick / 1.3:
                     pixel.set_color(exp.color)
 
         tree.update()
