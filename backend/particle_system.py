@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pixel import Pixel
 from colors import Color
 from util import euclidean_distance
 from tree import Tree
@@ -23,6 +24,10 @@ class Particle(ABC):
 
     @abstractmethod
     def advance(self):
+        ...
+
+    @abstractmethod
+    def fast_draw(self, pixel: Pixel) -> Color | None:
         ...
 
 
@@ -54,6 +59,22 @@ class SphereParticle(Particle):
     def advance(self):
         ...
 
+    def fast_draw(self, pixel: Pixel) -> Color | None:
+        inner_radius = 0.866  # sqrt(3) / 2, side length of box inscribed by sphere
+        if self.z - self.radius < pixel.z < self.z + self.radius and \
+           self.x - self.radius < pixel.x < self.x + self.radius and \
+           self.y - self.radius < pixel.y < self.y + self.radius:
+
+            # Check if the pixel is within the inner bounding box
+            if self.z - inner_radius < pixel.z < self.z + inner_radius and \
+               self.x - inner_radius < pixel.x < self.x + inner_radius and \
+               self.y - inner_radius < pixel.y < self.y + inner_radius:
+                return self.color
+            else:
+                # Perform the distance check if not within the inner bounding box
+                if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                    return self.color
+
 
 class ParticleSystem:
     def __init__(self, tree: Tree):
@@ -73,4 +94,17 @@ class ParticleSystem:
         for particle in self._particles:
             particle.draw(self.tree)
 
+        self.tree.update()
+
+    def fast_draw(self):
+        skip_amount = 0
+        for pixel in self.tree.pixels:
+            for i, particle in enumerate(self._particles):
+                a = particle.fast_draw(pixel)
+                if a is not None:
+                    pixel.set_color(a)
+                    skip_amount += len(self._particles) - i
+                    break
+        if len(self._particles) != 0:
+            print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
         self.tree.update()
