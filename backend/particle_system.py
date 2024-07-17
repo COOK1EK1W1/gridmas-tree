@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from numba import jit
 from pixel import Pixel
 from colors import Color
 from util import euclidean_distance
@@ -98,7 +97,6 @@ class ParticleSystem:
 
         self.tree.update()
 
-    @jit(nopython=True)
     def fast_draw(self):
         skip_amount = 0
         for pixel in self.tree.pixels:
