@@ -7,9 +7,9 @@ from colors import tcolors, Color
 
 def create_pixels(num: int):
     try:
-        from rpi_ws291x import PixelStrip, Color
+        from rpi_ws281x import PixelStrip, Color
 
-        LED_COUNT = num
+        LED_COUNT = 500
         LED_PIN = 18
         LED_FREQ_HZ = 800_000
         LED_DMA = 10
@@ -20,7 +20,7 @@ def create_pixels(num: int):
         strip.begin()
         return strip
 
-    except Exception:
+    except ImportError:
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
         print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
 
@@ -69,12 +69,13 @@ class Tree():
     def update(self):
         rt = time.perf_counter()
         for i, pixel in enumerate(self.pixels):
-            self.tree_pixels.setPixelColor(i, pixel.toTuple())
+            g, r, b = pixel.toTuple()
+            self.tree_pixels.setPixelColorRGB(i,r, g, b)
         self.tree_pixels.show()
         dt = time.perf_counter()
 
-        draw_time = rt - self.last_update
-        render_time = dt - rt
+        render_time = rt - self.last_update
+        draw_time = dt - rt
         frame_time = dt - self.last_update
         sleep_time = (1 / 45) - frame_time
 
@@ -95,11 +96,11 @@ class Tree():
             avgdraw = sum(self.draw_times) / len(self.draw_times)
             avgrender = sum(self.render_times) / len(self.render_times)
 
-            avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times))
+            avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times)) / len(self.sleep_times)
 
             fps = 1 / (avgframe + avg_min_sleep)
             if avgframe != 0 and avgsleep != 0:
-                print(f"dt: {round(avgdraw, 5)} rt: {round(avgrender, 5)} ft: {round(avgframe, 4)} st: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
+                print(f"render: {round(avgrender, 5)} draw: {round(avgdraw, 5)} total: {round(avgframe, 4)} sleep: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         time.sleep(max(sleep_time, 0))
         self.last_update = time.perf_counter()
 
