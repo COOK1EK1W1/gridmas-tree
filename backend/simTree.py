@@ -65,7 +65,7 @@ class SimTree:
     def __getitem__(self, index: int):
         return self.pixels[index]
 
-    def __setitem__(self, index: int, item: tuple[int, int, int]):
+    def setPixelColor(self, index: int, item: tuple[int, int, int]):
         self.pixels[index] = item
 
     def __len__(self):

@@ -7,11 +7,18 @@ from colors import tcolors, Color
 
 def create_pixels(num: int):
     try:
-        import neopixel
-        import board
+        from rpi_ws291x import PixelStrip, Color
 
-        pixel_pin = board.D18
-        return neopixel.NeoPixel(pixel_pin, num, auto_write=False, pixel_order="RGB")
+        LED_COUNT = num
+        LED_PIN = 18
+        LED_FREQ_HZ = 800_000
+        LED_DMA = 10
+        LED_BRIGHTNESS = 255
+        LED_INVERT = False
+        LED_CHANNEL = 0
+        strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+        strip.begin()
+        return strip
 
     except Exception:
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
@@ -62,7 +69,7 @@ class Tree():
     def update(self):
         rt = time.perf_counter()
         for i, pixel in enumerate(self.pixels):
-            self.tree_pixels[i] = pixel.toTuple()
+            self.tree_pixels.setPixelColor(i, pixel.toTuple())
         self.tree_pixels.show()
         dt = time.perf_counter()
 
