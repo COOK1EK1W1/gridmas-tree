@@ -63,7 +63,7 @@ class Tree():
         self.tree_pixels.show()
 
         frame_time = time.perf_counter() - self.last_update
-        sleep_time = max((1 / 45) - frame_time, 0)
+        sleep_time = (1 / 45) - frame_time
         if sleep_time == 0:
             # print("frame took too long :(")
             pass
@@ -75,10 +75,11 @@ class Tree():
         if len(self.frame_times) != 0 and len(self.sleep_times) != 0:
             avgframe = sum(self.frame_times) / len(self.frame_times)
             avgsleep = sum(self.sleep_times) / len(self.sleep_times)
-            fps = 1 / (avgframe + avgsleep)
+            avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times))
+            fps = 1 / (avgframe + avg_min_sleep)
             if avgframe != 0 and avgsleep != 0:
                 print(f"ft: {round(avgframe, 4)} st: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
-        time.sleep(sleep_time)
+        time.sleep(max(sleep_time, 0))
         self.last_update = time.perf_counter()
 
     def turnOffLight(self, n: int):
