@@ -49,6 +49,8 @@ class Tree():
         self.last_update = time.perf_counter()
 
         self.frame_times: list[float] = []
+        self.draw_times: list[float] = []
+        self.render_times: list[float] = []
         self.sleep_times: list[float] = []
 
     def set_light(self, n: int, color: Color):
@@ -58,27 +60,39 @@ class Tree():
         return self.pixels[n]
 
     def update(self):
+        rt = time.perf_counter()
         for i, pixel in enumerate(self.pixels):
             self.tree_pixels[i] = pixel.toTuple()
         self.tree_pixels.show()
+        dt = time.perf_counter()
 
-        frame_time = time.perf_counter() - self.last_update
+        draw_time = rt - self.last_update
+        render_time = dt - rt
+        frame_time = dt - self.last_update
         sleep_time = (1 / 45) - frame_time
-        if sleep_time == 0:
-            # print("frame took too long :(")
-            pass
+
         self.frame_times.append(frame_time)
         self.sleep_times.append(sleep_time)
+        self.render_times.append(render_time)
+        self.draw_times.append(draw_time)
+
         if len(self.frame_times) > 100:
             self.frame_times.pop(0)
             self.sleep_times.pop(0)
-        if len(self.frame_times) != 0 and len(self.sleep_times) != 0:
+            self.draw_times.pop(0)
+            self.render_times.pop(0)
+
+        if len(self.frame_times) != 0 and len(self.sleep_times) != 0 and len(self.draw_times) != 0 and len(self.render_times) != 0:
             avgframe = sum(self.frame_times) / len(self.frame_times)
             avgsleep = sum(self.sleep_times) / len(self.sleep_times)
+            avgdraw = sum(self.draw_times) / len(self.draw_times)
+            avgrender = sum(self.render_times) / len(self.render_times)
+
             avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times))
+
             fps = 1 / (avgframe + avg_min_sleep)
             if avgframe != 0 and avgsleep != 0:
-                print(f"ft: {round(avgframe, 4)} st: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
+                print(f"dt: {round(avgdraw, 5)} rt: {round(avgrender, 5)} ft: {round(avgframe, 4)} st: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         time.sleep(max(sleep_time, 0))
         self.last_update = time.perf_counter()
 
