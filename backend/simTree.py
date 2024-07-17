@@ -28,7 +28,8 @@ class SimTree:
         self.setup_visualisation()
         while True:
             time.sleep(1 / 30)
-            self._show()
+            if self._show():
+                break
 
     def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):
         GL.glPointSize(5)
@@ -56,7 +57,7 @@ class SimTree:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                return True
 
     def show(self):
         self.buffer = [x for x in self.pixels]

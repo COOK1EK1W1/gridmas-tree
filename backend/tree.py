@@ -46,9 +46,10 @@ class Tree():
                 total_size += sys.getsizeof(element)
         print("Size of the distance array in bytes:", total_size)
 
-        self.last_update = time.time()
+        self.last_update = time.perf_counter()
 
         self.frame_times: list[float] = []
+        self.sleep_times: list[float] = []
 
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)
@@ -60,24 +61,33 @@ class Tree():
         for i, pixel in enumerate(self.pixels):
             self.tree_pixels[i] = pixel.toTuple()
         self.tree_pixels.show()
-        sleep_time = max((1 / 45) - (time.time() - self.last_update), 0)
+
+        frame_time = time.perf_counter() - self.last_update
+        sleep_time = max((1 / 45) - frame_time, 0)
         if sleep_time == 0:
             # print("frame took too long :(")
             pass
-        self.frame_times.append(time.time() - self.last_update)
+        self.frame_times.append(frame_time)
+        self.sleep_times.append(sleep_time)
         if len(self.frame_times) > 100:
             self.frame_times.pop(0)
-        print("fps: ", round(sum(self.frame_times) / len(self.frame_times), 5), end="\r")
+            self.sleep_times.pop(0)
+        if len(self.frame_times) != 0 and len(self.sleep_times) != 0:
+            avgframe = sum(self.frame_times) / len(self.frame_times)
+            avgsleep = sum(self.sleep_times) / len(self.sleep_times)
+            fps = 1 / (avgframe + avgsleep)
+            if avgframe != 0 and avgsleep != 0:
+                print(f"ft: {round(avgframe, 4)} st: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         time.sleep(sleep_time)
-        self.last_update = time.time()
+        self.last_update = time.perf_counter()
 
     def turnOffLight(self, n: int):
         self.pixels[n].set_color(Color.black())
 
     def run(self):
         if str(type(self.tree_pixels)) == "<class 'simTree.SimTree'>":
-            while True:
-                self.tree_pixels.run()
+            self.tree_pixels.run()
+            return True
         else:
             pass
 

@@ -32,9 +32,9 @@ class RangeAttr(Attribute[float]):
                  min: float,
                  max: float,
                  step: float):
-        super().__init__(name, float(clamp(value, self.min, self.max)))
         self.min = min
         self.max = max
+        super().__init__(name, float(clamp(value, self.min, self.max)))
         self.step = step
         store.add(self)
 

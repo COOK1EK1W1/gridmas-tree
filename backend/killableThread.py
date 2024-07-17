@@ -4,8 +4,8 @@ import ctypes
 
 
 class Thread(threading.Thread):
-    def __init__(self, target: Callable[[], None]):
-        threading.Thread.__init__(self, daemon=True)
+    def __init__(self, target: Callable[[], None], kwargs=None):
+        threading.Thread.__init__(self, kwargs=kwargs, daemon=True)
         self.fn = target
 
     def run(self):

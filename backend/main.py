@@ -14,6 +14,5 @@ if __name__ == '__main__':
     if port is None:
         print("no PORT environment variable, trying 3000")
         port = 3000
-    else:
-        threading.Thread(target=app.run, kwargs={'debug': True, 'host': "0.0.0.0", "use_reloader": False, "port": port}).start()
+    threading.Thread(target=app.run, kwargs={'debug': True, 'host': "0.0.0.0", "use_reloader": False, "port": port}).start()
     tree.run()

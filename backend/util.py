@@ -18,6 +18,15 @@ def read_tree_csv() -> list[tuple[float, float, float]]:
         for row in reader:
             a = (float(row[0]) + x_off, float(row[1]) + y_off, float(row[2]))
             list_of_lists.append(a)
+            """
+    ret = []
+    for coord in list_of_lists:
+        newX = coord[0] * math.cos(math.pi) - coord[1] * math.sin(math.pi)
+        newY = coord[1] * math.cos(math.pi) + coord[0] * math.sin(math.pi)
+        ret.append(coord)
+        ret.append([newX, newY, coord[2]])
+            """
+
     return list_of_lists
 
 
