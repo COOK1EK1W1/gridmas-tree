@@ -65,6 +65,3 @@ class PatternManager:
         if len(patterns) == 0:
             return None
         return patterns[0]
-
-
-manager = PatternManager("patterns")

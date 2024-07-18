@@ -1,17 +1,20 @@
+from multiprocessing import Queue
 import pygame.locals as PLocals
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
 import time
-from util import read_tree_csv
+from pixel import Pixel
+from pixel_driver.pixel_driver import PixelDriver
 
 
-class SimTree:
-    def __init__(self):
-        self.coords = read_tree_csv()
+class SimTree(PixelDriver):
+    def __init__(self, queue: "Queue[list[Pixel] | None]", coords: list[tuple[float, float, float]]):
+        super().__init__(queue, coords)
         self.num = len(self.coords)
         self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
+        self.queue = queue
 
     def setup_visualisation(self):
         pygame.init()
@@ -27,9 +30,17 @@ class SimTree:
     def run(self):
         self.setup_visualisation()
         while True:
-            time.sleep(1 / 30)
+            time.sleep(1 / 60)
             if self._show():
                 break
+            if not self.queue.empty():
+                args = self.queue.get()
+                if args is None:
+                    break
+                for i, pixel in enumerate(args):
+                    self.pixels[i] = pixel.toTuple()
+                self.buffer = [x for x in self.pixels]
+
 
     def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):
         GL.glPointSize(5)
@@ -58,15 +69,3 @@ class SimTree:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return True
-
-    def show(self):
-        self.buffer = [x for x in self.pixels]
-
-    def __getitem__(self, index: int):
-        return self.pixels[index]
-
-    def setPixelColor(self, index: int, item: tuple[int, int, int]):
-        self.pixels[index] = item
-
-    def __len__(self):
-        return self.num

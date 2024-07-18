@@ -1,32 +1,24 @@
+from pixel_driver.pixel_driver import PixelDriver
 from util import generate_distance_map, read_tree_csv
+import multiprocessing
 from pixel import Pixel
 import time
 import sys
 from colors import tcolors, Color
 
 
-def create_pixels(num: int):
+def pick_driver() -> type[PixelDriver]:
     try:
-        from rpi_ws281x import PixelStrip, Color
+        from pixel_driver import ws2812_tree
 
-        LED_COUNT = 500
-        LED_PIN = 18
-        LED_FREQ_HZ = 800_000
-        LED_DMA = 10
-        LED_BRIGHTNESS = 255
-        LED_INVERT = False
-        LED_CHANNEL = 0
-        strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-        strip.begin()
-        return strip
+        return ws2812_tree.ws2812_tree
 
     except ImportError:
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
         print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
 
-        from simTree import SimTree
-
-        return SimTree()
+        from pixel_driver import sim_tree
+        return sim_tree.SimTree
 
 
 class Tree():
@@ -36,22 +28,21 @@ class Tree():
 
         self.num_pixels = int(len(self.coords))
 
-        self.tree_pixels = create_pixels(self.num_pixels)
+        self.frame_queue: multiprocessing.Queue[list[Pixel] | None] = multiprocessing.Queue()
+        driver = pick_driver()
+        self.pixel_driver = driver(self.frame_queue, self.coords)
 
         self.height = max([x[2] for x in self.coords])
 
         self.distances = generate_distance_map([[y for y in x] for x in self.coords])
-
-        self.pixels: list[Pixel] = []
-        for x in self.coords:
-            self.pixels.append(Pixel((x[0], x[1], x[2])))
-        print(len(self.pixels))
 
         total_size = sys.getsizeof(self.distances)
         for row in self.distances:
             for element in row:
                 total_size += sys.getsizeof(element)
         print("Size of the distance array in bytes:", total_size)
+
+        self.pixels: list[Pixel] = [Pixel((x[0], x[1], x[2])) for x in self.coords]
 
         self.last_update = time.perf_counter()
 
@@ -68,10 +59,8 @@ class Tree():
 
     def update(self):
         rt = time.perf_counter()
-        for i, pixel in enumerate(self.pixels):
-            g, r, b = pixel.toTuple()
-            self.tree_pixels.setPixelColorRGB(i,r, g, b)
-        self.tree_pixels.show()
+        if self.frame_queue.empty():
+            self.frame_queue.put(self.pixels)
         dt = time.perf_counter()
 
         render_time = rt - self.last_update
@@ -108,11 +97,8 @@ class Tree():
         self.pixels[n].set_color(Color.black())
 
     def run(self):
-        if str(type(self.tree_pixels)) == "<class 'simTree.SimTree'>":
-            self.tree_pixels.run()
-            return True
-        else:
-            pass
+        process = multiprocessing.Process(target=self.pixel_driver.run, args=())
+        process.start()
 
     def fade(self, n: float = 1.1):
         for pixel in self.pixels:
