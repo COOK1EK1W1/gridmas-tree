@@ -37,6 +37,7 @@ def load_patterns(pattern_dir: str):
             print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
     print(f"{tcolors.OKBLUE}######## patterns ########{tcolors.ENDC}\n")
 
+    patterns.sort(key=lambda x: x.name.upper())
     return patterns
 
 
@@ -44,7 +45,6 @@ class PatternManager:
     def __init__(self, pattern_dir: str):
         self.running_task: None | killableThread.Thread = None
         self.patterns = load_patterns(pattern_dir)
-        time.sleep(0.5)
         self.run("on")
 
     def run(self, name: str) -> bool:

@@ -10,7 +10,6 @@ author = "Ciaran"
 
 
 def run():
-    print("adding colors")
     speed = RangeAttr("speed", 0.02, -0.1, 0.1, 0.001)
     color1 = ColorAttr("color 1", Color(0, 50, 50))
     color2 = ColorAttr("color 2", Color(50, 50, 0))
@@ -24,8 +23,6 @@ def run():
     # the starting point on the vertical axis
     c = -tree.height / 2
     while True:
-
-        print(angle)
 
         for pixel in tree.pixels:
             # figure out if the pixel is above or below the plane

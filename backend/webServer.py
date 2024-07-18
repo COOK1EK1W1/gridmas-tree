@@ -8,9 +8,10 @@ from flask import Flask, request, render_template
 
 
 def run():
+    manager = patternManager.PatternManager("patterns")
+
     app = Flask(__name__)
 
-    manager = patternManager.PatternManager("patterns")
 
 
     @app.route('/lighton')

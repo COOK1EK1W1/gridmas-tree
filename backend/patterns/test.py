@@ -6,4 +6,5 @@ author = "Ciaran"
 
 def run():
     while True:
+        tree.fade()
         tree.update()
