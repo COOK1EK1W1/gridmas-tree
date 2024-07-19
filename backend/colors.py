@@ -65,11 +65,11 @@ class Color:
             self._L_target = target
             self._L_total = time
         else:
-            percent = self._L_step / self._L_total
+            percent = clamp(self._L_step / self._L_total, 0, 1)
             self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
             self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
             self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
-            self._L_step += 1
+            self._L_step = min(self._L_step + 1, self._L_total)
 
     @staticmethod
     def fromHex(s: str) -> 'Color':
