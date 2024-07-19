@@ -1,4 +1,6 @@
+from os import times_result
 import random
+import time
 import colorsys
 
 
@@ -20,14 +22,22 @@ def clamp(val: float | int, minv: float | int, maxv: float | int):
 
 class Color:
     def __init__(self, r: int, g: int, b: int):
-        self.r = int(clamp(r, 0, 255))
-        self.g = int(clamp(g, 0, 255))
-        self.b = int(clamp(b, 0, 255))
+        self.r: int = r & 0xff
+        self.g: int = g & 0xff
+        self.b: int = b & 0xff
+
+        self._L_previous = (0, 0, 0)
+        self._L_target = (0, 0, 0)
+
+        self._L_step = 0
+        self._L_total = 1
 
     def set_RGB(self, r: int, g: int, b: int):
-        self.r = int(clamp(r, 0, 255))
-        self.g = int(clamp(g, 0, 255))
-        self.b = int(clamp(b, 0, 255))
+        self.r = r & 0xff
+        self.g = g & 0xff
+        self.b = b & 0xff
+
+        self.lerp_reset()
 
     def set_color(self, color: 'Color'):
         self.set_RGB(*color.toTuple())
@@ -37,11 +47,29 @@ class Color:
         self.g = int(clamp(self.g / n, 0, 255))
         self.b = int(clamp(self.b / n, 0, 255))
 
+        self.lerp_reset()
+
     def toHex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
 
     def toTuple(self) -> tuple[int, int, int]:
         return (self.r, self.g, self.b)
+
+    def lerp_reset(self):
+        self._L_previous = (self.r, self.g, self.b)
+        self._L_step = 0
+
+    def lerp(self, target: tuple[int, int, int], time: int):
+        if target != self._L_target or self._L_total != time:
+            self.lerp_reset()
+            self._L_target = target
+            self._L_total = time
+        else:
+            percent = self._L_step / self._L_total
+            self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
+            self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
+            self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
+            self._L_step += 1
 
     @staticmethod
     def fromHex(s: str) -> 'Color':
@@ -110,3 +138,11 @@ if __name__ == "__main__":
         if ans != test:
             print(test, ans)
             raise Exception("error in")
+
+if __name__ == "__main__":
+    a = time.perf_counter()
+    for i in range(10_000_000):
+        newColor = Color(1, 2, 3)
+        newColor.set_RGB(3, 2, 1)
+        newColor.fade()
+    print(time.perf_counter() - a)

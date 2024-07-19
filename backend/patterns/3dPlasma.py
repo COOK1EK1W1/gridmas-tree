@@ -102,7 +102,7 @@ def run():
     while True:
 
         for LED, pixel in enumerate(tree.pixels):
-            pixel.set_RGB(*workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2]))
+            pixel.set_RGB(*map(lambda x: int(x), workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])))
 
         tree.update()
 
