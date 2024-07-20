@@ -28,7 +28,7 @@ class Tree():
 
         self.num_pixels = int(len(self.coords))
 
-        self.frame_queue: multiprocessing.Queue[list[Pixel] | None] = multiprocessing.Queue()
+        self.frame_queue: multiprocessing.Queue[list[tuple[int, int, int]] | None] = multiprocessing.Queue()
         driver = pick_driver()
         self.pixel_driver = driver(self.frame_queue, self.coords)
 
@@ -62,17 +62,20 @@ class Tree():
         render_time = rt - self.last_update
         sleep_time = (1 / 45) - render_time
 
-        buffer_size = self.frame_queue.qsize()
+        try:
+            buffer_size = self.frame_queue.qsize()
 
-        if buffer_size > 4:
+            if buffer_size > 4:
+                time.sleep(max(sleep_time, 0))
+            if buffer_size > 10:
+                time.sleep((1 / 45))
+        except NotImplementedError:
             time.sleep(max(sleep_time, 0))
-        if buffer_size > 10:
-            time.sleep((1/45))
 
         self.sleep_times.append(sleep_time)
         self.render_times.append(render_time)
 
-        if len(self.render_times) > 1:
+        if len(self.render_times) > 100:
             self.sleep_times.pop(0)
             self.render_times.pop(0)
 
@@ -84,7 +87,7 @@ class Tree():
 
             fps = 1 / (avgrender + avg_min_sleep)
             if avgrender != 0 and avgsleep != 0:
-                print(f"         render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
+                print(f"render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         self.last_update = time.perf_counter()
 
     def turnOffLight(self, n: int):
@@ -92,6 +95,7 @@ class Tree():
 
     def run(self):
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
+        print("running the processs")
         process.start()
 
     def fade(self, n: float = 1.1):

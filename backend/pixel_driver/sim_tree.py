@@ -4,15 +4,13 @@ import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
 import time
-from pixel import Pixel
 from pixel_driver.pixel_driver import PixelDriver
 
 
 class SimTree(PixelDriver):
-    def __init__(self, queue: "Queue[list[Pixel] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[list[tuple[int, int, int]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
         self.num = len(self.coords)
-        self.pixels = [(0, 0, 0) for _ in range(self.num)]
         self.buffer = [(0, 0, 0) for _ in range(self.num)]
         self.queue = queue
 
@@ -34,12 +32,10 @@ class SimTree(PixelDriver):
             if self._show():
                 break
             if not self.queue.empty():
-                args = self.queue.get()
+                args = self.queue.get(False)
                 if args is None:
                     break
-                for i, pixel in enumerate(args):
-                    self.pixels[i] = pixel.toTuple()
-                self.buffer = [x for x in self.pixels]
+                self.buffer = args
 
 
     def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):

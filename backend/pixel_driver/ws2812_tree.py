@@ -14,7 +14,7 @@ class ws2812_tree(PixelDriver):
         self.coords = coords
 
         LED_COUNT = len(self.coords)
-        #LED_COUNT = 1000
+        # LED_COUNT = 1000
         LED_PIN = 18
         LED_FREQ_HZ = 800_000
         LED_DMA = 10
@@ -26,25 +26,15 @@ class ws2812_tree(PixelDriver):
         strip.begin()
         self.strip = strip
 
-
     def run(self):
         a = 0
         while True:
             if self.queue.qsize() > 3:
                 framea = self.queue.get(False)
-                frameb = self.queue.get(False)
-                if framea is None or frameb is None:
+                if framea is None:
                     break
 
                 for i, rgb in enumerate(framea):
-                    self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
-
-                time.sleep(max((1/45) - (time.perf_counter() - a), 0))
-                a = time.perf_counter()
-
-                self.strip.show()
-
-                for i, rgb in enumerate(frameb):
                     self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
 
                 time.sleep(max((1/45) - (time.perf_counter() - a), 0))
