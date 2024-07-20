@@ -1,24 +1,25 @@
 from tree import tree
 import cv2
 
-name = "Rick"
+name = "Bad Apple"
 author = "Ciaran"
 
 
 def run():
-    cap = cv2.VideoCapture("patterns/rick.mp4")
+    cap = cv2.VideoCapture("patterns/badapple.mp4")
     while True:
 
         ret, frame = cap.read()
         if not ret:
             break
 
-        print(tree.height)
-
         for pixel in tree.pixels:
-            videox = max(min(int((pixel.x + 1) * (1280 / 2)), 1279), 0)
-            videoy = max(min(int(((tree.height - 0.5) - pixel.z) * 360), 719), 0)
-            pixel.set_RGB(*frame[videoy][videox])
+            if 0.5 < pixel.z < 2.5:
+                videox = max(min(int(((pixel.x + 1) / 2) * 480), 479), 0)
+                videoy = max(min(int((1 - pixel.z / 2) * 360), 359), 0)
+                pixel.set_RGB(*frame[videoy][videox])
+            else:
+                pixel.set_RGB(0, 0, 0)
         tree.update()
 
     cap.release()
