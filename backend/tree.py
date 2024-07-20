@@ -46,8 +46,6 @@ class Tree():
 
         self.last_update = time.perf_counter()
 
-        self.frame_times: list[float] = []
-        self.draw_times: list[float] = []
         self.render_times: list[float] = []
         self.sleep_times: list[float] = []
 
@@ -59,38 +57,34 @@ class Tree():
 
     def update(self):
         rt = time.perf_counter()
-        if self.frame_queue.empty():
-            self.frame_queue.put(self.pixels)
-        dt = time.perf_counter()
+        self.frame_queue.put(list(map(lambda x: x.toTuple(), self.pixels)))
 
         render_time = rt - self.last_update
-        draw_time = dt - rt
-        frame_time = dt - self.last_update
-        sleep_time = (1 / 45) - frame_time
+        sleep_time = (1 / 45) - render_time
 
-        self.frame_times.append(frame_time)
+        buffer_size = self.frame_queue.qsize()
+
+        if buffer_size > 4:
+            time.sleep(max(sleep_time, 0))
+        if buffer_size > 10:
+            time.sleep((1/45))
+
         self.sleep_times.append(sleep_time)
         self.render_times.append(render_time)
-        self.draw_times.append(draw_time)
 
-        if len(self.frame_times) > 100:
-            self.frame_times.pop(0)
+        if len(self.render_times) > 1:
             self.sleep_times.pop(0)
-            self.draw_times.pop(0)
             self.render_times.pop(0)
 
-        if len(self.frame_times) != 0 and len(self.sleep_times) != 0 and len(self.draw_times) != 0 and len(self.render_times) != 0:
-            avgframe = sum(self.frame_times) / len(self.frame_times)
+        if len(self.sleep_times) != 0 and len(self.render_times) != 0:
             avgsleep = sum(self.sleep_times) / len(self.sleep_times)
-            avgdraw = sum(self.draw_times) / len(self.draw_times)
             avgrender = sum(self.render_times) / len(self.render_times)
 
             avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times)) / len(self.sleep_times)
 
-            fps = 1 / (avgframe + avg_min_sleep)
-            if avgframe != 0 and avgsleep != 0:
-                print(f"render: {round(avgrender, 5)} draw: {round(avgdraw, 5)} total: {round(avgframe, 4)} sleep: {round(avgsleep, 4)} ps: {round((avgframe / (avgsleep + avgframe))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
-        time.sleep(max(sleep_time, 0))
+            fps = 1 / (avgrender + avg_min_sleep)
+            if avgrender != 0 and avgsleep != 0:
+                print(f"         render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         self.last_update = time.perf_counter()
 
     def turnOffLight(self, n: int):

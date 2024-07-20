@@ -66,6 +66,7 @@ class Color:
             self._L_total = time
         else:
             percent = clamp(self._L_step / self._L_total, 0, 1)
+
             self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
             self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
             self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
