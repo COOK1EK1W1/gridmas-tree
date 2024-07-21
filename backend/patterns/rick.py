@@ -15,7 +15,7 @@ def run():
 
         for pixel in tree.pixels:
             if 0.5 < pixel.z < 2.5:
-                videox = max(min(int(((pixel.x + 1) / 2) * 480), 479), 0)
+                videox = max(min(int(((-pixel.x + 1) / 2) * 480), 479), 0)
                 videoy = max(min(int((1 - pixel.z / 2) * 360), 359), 0)
                 pixel.set_RGB(*frame[videoy][videox])
             else:
