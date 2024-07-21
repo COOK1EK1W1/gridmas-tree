@@ -1,17 +1,14 @@
-from pixel import Pixel
 import time
 from multiprocessing import Queue
 
-from rpi_ws281x import PixelStrip, Color
+from rpi_ws281x import PixelStrip
+import _rpi_ws281x as ws
 from pixel_driver.pixel_driver import PixelDriver
 
 
-print("hello world")
-
 class ws2812_tree(PixelDriver):
-    def __init__(self, queue: "Queue[list[Pixel] | None]", coords: list[tuple[float, float, float]]):
-        self.queue = queue
-        self.coords = coords
+    def __init__(self, queue: "Queue[list[tuple[int, int, int]] | None]", coords: list[tuple[float, float, float]]):
+        super().__init__(queue, coords)
 
         LED_COUNT = len(self.coords)
         # LED_COUNT = 1000
@@ -34,10 +31,11 @@ class ws2812_tree(PixelDriver):
                 if framea is None:
                     break
 
-                for i, rgb in enumerate(framea):
-                    self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
+                for i, (r, g, b) in enumerate(framea):
+                    ws.ws2811_led_set(strip._channel, i, (r << 16) | (g << 8) | b)
+                    # self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
 
-                time.sleep(max((1/45) - (time.perf_counter() - a), 0))
+                time.sleep(max((1 / 45) - (time.perf_counter() - a), 0))
                 a = time.perf_counter()
 
                 self.strip.show()

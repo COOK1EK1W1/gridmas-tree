@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from pixel import Pixel
-from colors import Color
+from colors import Color, Pixel
 from util import euclidean_distance
 from tree import Tree
 

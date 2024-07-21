@@ -9,7 +9,6 @@ class Thread(threading.Thread):
         self.fn = target
 
     def run(self):
-
         # target function of the thread class
         try:
             self.fn()

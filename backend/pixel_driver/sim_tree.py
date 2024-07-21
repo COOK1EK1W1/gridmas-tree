@@ -10,9 +10,20 @@ from pixel_driver.pixel_driver import PixelDriver
 class SimTree(PixelDriver):
     def __init__(self, queue: "Queue[list[tuple[int, int, int]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
-        self.num = len(self.coords)
-        self.buffer = [(0, 0, 0) for _ in range(self.num)]
+        self.buffer = [(0, 0, 0) for _ in range(len(coords))]
         self.queue = queue
+
+    def run(self):
+        self.setup_visualisation()
+        while True:
+            time.sleep(1 / 60)
+            if self.pygame_frame():
+                break
+            if not self.queue.empty():
+                args = self.queue.get(False)
+                if args is None:
+                    break
+                self.buffer = args
 
     def setup_visualisation(self):
         pygame.init()
@@ -25,18 +36,19 @@ class SimTree(PixelDriver):
         GL.glRotatef(-60, 1, 0, 0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
-    def run(self):
-        self.setup_visualisation()
-        while True:
-            time.sleep(1 / 60)
-            if self._show():
-                break
-            if not self.queue.empty():
-                args = self.queue.get(False)
-                if args is None:
-                    break
-                self.buffer = args
+    def pygame_frame(self):
+        GL.glRotatef(-1, 0, 0, 1)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
+        for coord, color in zip(self.coords, self.buffer):
+            self.draw_light(coord, color)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return True
 
     def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):
         GL.glPointSize(5)
@@ -51,17 +63,3 @@ class SimTree(PixelDriver):
 
         if error != GL.GL_NO_ERROR:
             print(GL.glGetError())
-
-    def _show(self):
-        GL.glRotatef(-1, 0, 0, 1)
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-
-        for coord, color in zip(self.coords, self.buffer):
-            self.draw_light(coord, color)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return True

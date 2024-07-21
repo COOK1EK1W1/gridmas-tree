@@ -12,8 +12,6 @@ def run():
 
     app = Flask(__name__)
 
-
-
     @app.route('/lighton')
     def lighton():
         for i in range(tree.num_pixels):
@@ -21,13 +19,11 @@ def run():
         tree.update()
         return "All On"
 
-
     @app.route('/lighton/<int:number>')
     def lightonN(number: int):
         tree.set_light(number, Color.white())
         tree.update()
         return "on"
-
 
     @app.route('/lightoff')
     def lightoff():
@@ -36,13 +32,11 @@ def run():
         tree.update()
         return "all off"
 
-
     @app.route('/lightoff/<int:number>')
     def lightoffN(number: int):
         tree.set_light(number, Color.black())
         tree.update()
         return "off"
-
 
     @app.route('/config/setlights', methods=['POST'])
     def setLight():
@@ -52,13 +46,11 @@ def run():
         util.save_lights(data)
         return "bruh"
 
-
     @app.route('/attribute/<nam>', methods=['GET'])
     def attributeG(nam: str):
         a = store.get(nam)
         print(a)
         return str(a.get())
-
 
     @app.route('/attribute/<name>', methods=['POST'])
     def attributeS(name: str):
@@ -69,7 +61,6 @@ def run():
             attribute.set(Color.fromHex(request.form['value']))
         return "something"
 
-
     @app.route('/pattern/<pattern>')
     def pattern(pattern: str):
         if manager.run(pattern):
@@ -77,11 +68,9 @@ def run():
         else:
             return "not running"
 
-
     @app.route('/', methods=['GET'])
     def home():
         return render_template('index.html', patterns=manager.patterns)
-
 
     @app.route('/setlights', methods=['POST'])
     def setLights():

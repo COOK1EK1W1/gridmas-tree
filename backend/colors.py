@@ -1,4 +1,3 @@
-from os import times_result
 import random
 import time
 import colorsys
@@ -111,6 +110,14 @@ class Color:
         newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
         nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
         return Color(int(nr), int(ng), int(nb))
+
+
+class Pixel(Color):
+    def __init__(self, coord: tuple[float, float, float], color: Color = Color.black()):
+        super().__init__(*color.toTuple())
+        self.x = coord[0]
+        self.y = coord[1]
+        self.z = coord[2]
 
 
 def tuple2hex(c: tuple[int, int, int]) -> str:

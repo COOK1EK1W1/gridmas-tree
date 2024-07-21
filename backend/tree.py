@@ -1,10 +1,9 @@
 from pixel_driver.pixel_driver import PixelDriver
 from util import generate_distance_map, read_tree_csv
 import multiprocessing
-from pixel import Pixel
 import time
 import sys
-from colors import tcolors, Color
+from colors import tcolors, Color, Pixel
 
 
 def pick_driver() -> type[PixelDriver]:
