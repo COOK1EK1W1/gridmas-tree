@@ -2,7 +2,7 @@ import patternManager
 import util
 import json
 from colors import Color
-from attribute import store, RangeAttr
+from attribute import Store, RangeAttr
 from tree import tree
 from flask import Flask, request, render_template
 
@@ -48,13 +48,13 @@ def run():
 
     @app.route('/attribute/<nam>', methods=['GET'])
     def attributeG(nam: str):
-        a = store.get(nam)
+        a = Store.get_store().get(nam)
         print(a)
         return str(a.get())
 
     @app.route('/attribute/<name>', methods=['POST'])
     def attributeS(name: str):
-        attribute = store.get(name)
+        attribute = Store.get_store().get(name)
         if isinstance(attribute, RangeAttr):
             attribute.set(float(request.form['value']))
         else:
@@ -64,7 +64,7 @@ def run():
     @app.route('/pattern/<pattern>')
     def pattern(pattern: str):
         if manager.run(pattern):
-            return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=store.store)
+            return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
         else:
             return "not running"
 

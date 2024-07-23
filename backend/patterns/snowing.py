@@ -29,7 +29,7 @@ def run():
 
             tree.fade()
 
-            particle_system.drawParticles()
+            particle_system.draw()
             particle_system.advance()
 
         particle_system.add_particle(SnowFlake(random.random() - 0.5, random.random() - 0.5))

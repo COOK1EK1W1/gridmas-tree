@@ -1,9 +1,9 @@
 from types import ModuleType
+from typing import Callable
 import killableThread
 import os
 from colors import tcolors
-from attribute import store
-import time
+from attribute import Store
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -41,6 +41,14 @@ def load_patterns(pattern_dir: str):
     return patterns
 
 
+def run_pattern(fn: Callable[[], None]):
+    try:
+        print("running function")
+        fn()
+    except Exception as e:
+        print(e)
+
+
 class PatternManager:
     def __init__(self, pattern_dir: str):
         self.running_task: None | killableThread.Thread = None
@@ -55,8 +63,8 @@ class PatternManager:
         if self.running_task:
             self.running_task.terminate()
             self.running_task.join()
-        store.reset()
-        self.running_task = killableThread.Thread(target=pattern.run)
+        Store.get_store().reset()
+        self.running_task = killableThread.Thread(target=run_pattern, args=(pattern.run,))
         self.running_task.start()
         return True
 

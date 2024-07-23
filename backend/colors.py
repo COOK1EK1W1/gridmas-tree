@@ -1,4 +1,5 @@
 import random
+import math
 import time
 import colorsys
 
@@ -118,6 +119,9 @@ class Pixel(Color):
         self.x = coord[0]
         self.y = coord[1]
         self.z = coord[2]
+
+        self.a = math.atan2(self.y, self.x)
+        self.d = math.sqrt(self.y ** 2 + self.x ** 2)
 
 
 def tuple2hex(c: tuple[int, int, int]) -> str:

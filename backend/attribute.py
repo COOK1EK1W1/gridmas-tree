@@ -36,7 +36,7 @@ class RangeAttr(Attribute[float]):
         self.max = max
         super().__init__(name, float(clamp(value, self.min, self.max)))
         self.step = step
-        store.add(self)
+        Store.get_store().add(self)
 
     def pattern_string(self):
         return 'RangeAttr.html'
@@ -45,13 +45,15 @@ class RangeAttr(Attribute[float]):
 class ColorAttr(Attribute[Color]):
     def __init__(self, name: str, value: Color):
         super().__init__(name, value)
-        store.add(self)
+        Store.get_store().add(self)
 
     def pattern_string(self):
         return "ColorAttr.html"
 
 
 class Store:
+    instance: "None | Store" = None
+
     def __init__(self):
         self.store: list[ColorAttr | RangeAttr] = []
 
@@ -71,5 +73,9 @@ class Store:
     def get_all(self):
         return self.store
 
-
-store = Store()
+    @classmethod
+    def get_store(cls):
+        if cls.instance is None:
+            newstore = Store()
+            cls.instance = newstore
+        return cls.instance

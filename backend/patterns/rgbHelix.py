@@ -19,9 +19,8 @@ def run():
     color_offset = random.random()
     while True:
         for pixel in tree.pixels:
-            angle = math.atan2(pixel.y, pixel.x)
 
-            modified_angle = (angle + pixel.z * twist_amount + offset * speed) % (math.pi * 2)
+            modified_angle = (pixel.a + pixel.z * twist_amount + offset * speed) % (math.pi * 2)
 
             a = round((modified_angle) / math.pi)
 
@@ -39,4 +38,3 @@ def run():
             twist_dir = -1
         elif twist_amount < -10:
             twist_dir = 1
-        # print(twist_dx, twist_amount, speed, offset, color_offset)

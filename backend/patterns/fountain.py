@@ -39,9 +39,10 @@ def run():
 
             tree.fade()
 
-            particle_system.drawParticles()
+            particle_system.draw()
             particle_system.advance()
         particle_system.add_particle(Dropplet())
+
 
 if __name__ == "__main__":
     run()

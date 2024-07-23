@@ -37,7 +37,7 @@ def run():
 
             tree.fade()
 
-            particle_system.drawParticles()
+            particle_system.draw()
             particle_system.advance()
 
         particle_system.add_particle(Snake())

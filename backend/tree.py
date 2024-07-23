@@ -89,9 +89,6 @@ class Tree():
                 print(f"render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         self.last_update = time.perf_counter()
 
-    def turnOffLight(self, n: int):
-        self.pixels[n].set_color(Color.black())
-
     def run(self):
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
         print("running the processs")

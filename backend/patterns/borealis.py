@@ -5,7 +5,7 @@ from tree import tree
 from colors import Color
 
 name = "Aurora Borealis"
-author = "Assistant"
+author = "Claude 3.5"
 
 
 def interpolate_color(color1, color2, factor):

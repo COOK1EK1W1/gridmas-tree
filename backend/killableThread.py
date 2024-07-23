@@ -1,17 +1,19 @@
 from collections.abc import Callable
 import threading
 import ctypes
+from typing import Any, Iterable, Mapping
 
 
 class Thread(threading.Thread):
-    def __init__(self, target: Callable[[], None], kwargs=None):
-        threading.Thread.__init__(self, kwargs=kwargs, daemon=True)
+    def __init__(self, target: Callable[..., None], args: Iterable[Any] = (), kwargs: Mapping[str, Any] | None = None):
+        threading.Thread.__init__(self, args=args, kwargs=kwargs, daemon=True)
         self.fn = target
+        self.args = args
 
     def run(self):
         # target function of the thread class
         try:
-            self.fn()
+            self.fn(*self.args)
         except SystemExit:
             print("intentional exit")
         except Exception as e:

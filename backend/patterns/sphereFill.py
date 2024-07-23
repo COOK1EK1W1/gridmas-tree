@@ -1,5 +1,4 @@
-from util import euclidean_distance
-
+from particle_system import ParticleSystem, SphereParticle
 from tree import tree
 from colors import Color
 
@@ -7,40 +6,25 @@ name = "Sphere Fill"
 author = "Ciaran"
 
 
-class Sphere:
-    def __init__(self, maxAge: int, color: Color, x: float, y: float, z: float):
-        self.maxAge = maxAge
-        self.color = color
-        self.age = 0
-        self.x = x
-        self.y = y
-        self.z = z
-        self.radius = 0
+class Sphere(SphereParticle):
+    def __init__(self):
+        super().__init__(0, 0, tree.height / 2, 0, 300, Color.random())
 
-    def update(self):
+    def advance(self):
         self.radius += 0.01
-        self.age += 1
 
 
 def run():
-    spheres: list[Sphere] = [Sphere(100, Color.random(), 0, 0, tree.height / 2)]
+    particle_system = ParticleSystem(tree)
+    particle_system.add_particle(Sphere())
 
     tree.black()
     while True:
-        if (len(spheres) > 4):
-            spheres.pop(0)
-        for _ in range(50):
-            for sphere in spheres:
-                for pixel in tree.pixels:
-                    distance_to_center = euclidean_distance([pixel.x, pixel.y, pixel.z], [sphere.x, sphere.y, sphere.z])
-                    if distance_to_center < sphere.radius:
-                        pixel.set_color(sphere.color)
+        for _ in range(100):
 
-                sphere.update()
-
-            # Update the tree display
-            tree.update()
-        spheres.append(Sphere(100, Color.differentfrom(spheres[-1].color), 0, 0, tree.height / 2))
+            particle_system.fast_draw()
+            particle_system.advance()
+        particle_system.add_particle(Sphere(), start=True)
 
 
 if __name__ == "__main__":

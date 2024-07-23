@@ -81,8 +81,11 @@ class ParticleSystem:
         self.tree = tree
         self._particles: list[Particle] = []
 
-    def add_particle(self, particle: Particle):
-        self._particles.append(particle)
+    def add_particle(self, particle: Particle, start: bool = False):
+        if start:
+            self._particles.insert(0, particle)
+        else:
+            self._particles.append(particle)
 
     def advance(self):
         for particle in self._particles:
@@ -90,7 +93,7 @@ class ParticleSystem:
 
         self._particles = list(filter(lambda x: x.age < x.max_age or not x.is_dead, self._particles))
 
-    def drawParticles(self) -> None:
+    def draw(self) -> None:
         for particle in self._particles:
             particle.draw(self.tree)
 
@@ -105,6 +108,6 @@ class ParticleSystem:
                     pixel.set_color(a)
                     skip_amount += len(self._particles) - i
                     break
-        if len(self._particles) != 0:
-            print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
+        # if len(self._particles) != 0:
+            # print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
         self.tree.update()
