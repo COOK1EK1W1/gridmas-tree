@@ -60,6 +60,6 @@ def run():
 
         # Slowly shift the colors over time
         hue_shift = color_shift_speed.get()
-        color1.set(Color.fromHSL((time * hue_shift) % 1, 1, 0.5))
-        color2.set(Color.fromHSL(((time * hue_shift) + 0.33) % 1, 1, 0.6))
-        color3.set(Color.fromHSL(((time * hue_shift) + 0.67) % 1, 1, 0.7))
+        color1.set(Color.from_hsl((time * hue_shift) % 1, 1, 0.5))
+        color2.set(Color.from_hsl(((time * hue_shift) + 0.33) % 1, 1, 0.6))
+        color3.set(Color.from_hsl(((time * hue_shift) + 0.67) % 1, 1, 0.7))

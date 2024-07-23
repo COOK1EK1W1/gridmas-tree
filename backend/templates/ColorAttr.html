@@ -1,6 +1,6 @@
 <div>
   <form hx-post="/attribute/{{attribute.name}}" hx-trigger="change" hx-swap="none">
     <label>{{attribute.name}}</label>
-    <input type="color" name="value" value="{{attribute.get().toHex()}}"/>
+    <input type="color" name="value" value="{{attribute.get().to_hex()}}"/>
   </form>
 </div>

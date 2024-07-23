@@ -15,15 +15,15 @@ def run():
         for pixel in tree.pixels:
             if ((pixel.z + y) % tree.height * 2 >= tree.height):
                 # do stars
-                pixel.set_RGB(0, 0, 255)
+                pixel.set_rgb(0, 0, 255)
 
         for star in stars:
-            tree.pixels[star].set_RGB(200, 200, 200)
+            tree.pixels[star].set_rgb(200, 200, 200)
 
         for pixel in tree.pixels:
             if not ((pixel.z + y) % tree.height * 2 >= tree.height):
                 if (pixel.x % 0.6) > 0.3:
-                    pixel.set_RGB(255, 0, 0)
+                    pixel.set_rgb(255, 0, 0)
                 else:
-                    pixel.set_RGB(200, 200, 200)
+                    pixel.set_rgb(200, 200, 200)
         tree.update()

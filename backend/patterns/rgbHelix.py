@@ -25,7 +25,7 @@ def run():
             a = round((modified_angle) / math.pi)
 
             hue = a / 2
-            pixel.set_color(Color.fromHSL((hue + color_offset) % 1, 1, 0.5))
+            pixel.set_color(Color.from_hsl((hue + color_offset) % 1, 1, 0.5))
 
         tree.update()
 

@@ -47,5 +47,5 @@ def run():
 
         # Slowly shift the primary and secondary colors
         hue_shift = color_speed.get()
-        primary_color.set(Color.fromHSL((time * hue_shift) % 1, 1, 0.5))
-        secondary_color.set(Color.fromHSL(((time * hue_shift) + 0.5) % 1, 1, 0.5))
+        primary_color.set(Color.from_hsl((time * hue_shift) % 1, 1, 0.5))
+        secondary_color.set(Color.from_hsl(((time * hue_shift) + 0.5) % 1, 1, 0.5))

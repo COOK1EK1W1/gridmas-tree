@@ -17,6 +17,6 @@ def run():
             r = 255 if (i + offset) % 3 == 0 else 0
             g = 255 if (i + offset) % 3 == 1 else 0
             b = 255 if (i + offset) % 3 == 2 else 0
-            pixel.set_RGB(r, g, b)
+            pixel.set_rgb(r, g, b)
         tree.update()
         time.sleep(sleep_time.get())

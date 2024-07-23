@@ -14,6 +14,9 @@ class Particle(ABC):
         self.max_age = max_age
         self.is_dead = False
 
+    def kill(self):
+        self.is_dead = True
+
     @abstractmethod
     def draw(self, tree: Tree) -> None:
         ...

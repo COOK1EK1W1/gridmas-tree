@@ -1,4 +1,4 @@
-import patternManager
+from pattern_manager import PatternManager
 import util
 import json
 from colors import Color
@@ -7,8 +7,8 @@ from tree import tree
 from flask import Flask, request, render_template
 
 
-def run():
-    manager = patternManager.PatternManager("patterns")
+def init():
+    manager = PatternManager("patterns")
 
     app = Flask(__name__)
 
@@ -58,7 +58,7 @@ def run():
         if isinstance(attribute, RangeAttr):
             attribute.set(float(request.form['value']))
         else:
-            attribute.set(Color.fromHex(request.form['value']))
+            attribute.set(Color.from_hex(request.form['value']))
         return "something"
 
     @app.route('/pattern/<pattern>')
@@ -79,7 +79,7 @@ def run():
         data = json.loads(request.data)
 
         value = data["color"]
-        color = Color.fromHex(value)
+        color = Color.from_hex(value)
         for i in range(tree.num_pixels):
             tree.set_light(i, color)
         tree.update()

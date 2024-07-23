@@ -12,5 +12,5 @@ def run():
     while True:
         hue = (hue + speed.get()) % 1
         for pixel in tree.pixels:
-            pixel.set_color(Color.fromHSL(hue, 1, 0.5))
+            pixel.set_color(Color.from_hsl(hue, 1, 0.5))
         tree.update()

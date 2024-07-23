@@ -12,7 +12,7 @@ def run():
     while True:
         for pixel in tree.pixels:
             if pixel.y > portion.get():
-                pixel.set_RGB(200, 0, 0)
+                pixel.set_rgb(200, 0, 0)
             else:
-                pixel.set_RGB(0, 0, 200)
+                pixel.set_rgb(0, 0, 200)
         tree.update()

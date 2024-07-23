@@ -122,7 +122,7 @@ def run():
 
         for LED, pixel in enumerate(tree.pixels):
             v = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
-            pixel.set_RGB(*palette[v])
+            pixel.set_rgb(*palette[v])
 
         tree.update()
 

@@ -21,9 +21,9 @@ def run():
 
         for i, pixel in enumerate(tree.pixels):
             if 0.5 < pixel.z < 2.5:
-                pixel.set_RGB(*frame[coords[i][1]][coords[i][0]])
+                pixel.set_rgb(*frame[coords[i][1]][coords[i][0]])
             else:
-                pixel.set_RGB(0, 0, 0)
+                pixel.set_rgb(0, 0, 0)
         tree.update()
 
     cap.release()

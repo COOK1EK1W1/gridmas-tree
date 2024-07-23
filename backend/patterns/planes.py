@@ -23,7 +23,7 @@ def run():
         minZ = min([x[2] for x in coords2])
         maxZ = max([x[2] for x in coords2])
 
-        color = Color.differentfrom(color)
+        color = Color.different_from(color)
 
         for rng in range(int(minZ * 200 - 10), int(maxZ * 200 + 10), max(1, int(speed.get()))):
             for i, coord in enumerate(coords2):

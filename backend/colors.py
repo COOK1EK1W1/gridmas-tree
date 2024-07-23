@@ -32,7 +32,7 @@ class Color:
         self._L_step = 0
         self._L_total = 1
 
-    def set_RGB(self, r: int, g: int, b: int):
+    def set_rgb(self, r: int, g: int, b: int):
         self.r = r & 0xff
         self.g = g & 0xff
         self.b = b & 0xff
@@ -40,7 +40,7 @@ class Color:
         self.lerp_reset()
 
     def set_color(self, color: 'Color'):
-        self.set_RGB(*color.toTuple())
+        self.set_rgb(*color.to_tuple())
 
     def fade(self, n: float = 1.1):
         self.r = int(clamp(self.r / n, 0, 255))
@@ -49,10 +49,10 @@ class Color:
 
         self.lerp_reset()
 
-    def toHex(self) -> str:
+    def to_hex(self) -> str:
         return tuple2hex((self.r, self.g, self.b))
 
-    def toTuple(self) -> tuple[int, int, int]:
+    def to_tuple(self) -> tuple[int, int, int]:
         return (self.r, self.g, self.b)
 
     def lerp_reset(self):
@@ -73,11 +73,11 @@ class Color:
             self._L_step = min(self._L_step + 1, self._L_total)
 
     @staticmethod
-    def fromHex(s: str) -> 'Color':
+    def from_hex(s: str) -> 'Color':
         return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))
 
     @staticmethod
-    def fromHSL(hue: float, sat: float, lig: float) -> 'Color':
+    def from_hsl(hue: float, sat: float, lig: float) -> 'Color':
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
         return Color(int(r * 255), int(g * 255), int(b * 255))
 
@@ -103,11 +103,11 @@ class Color:
 
     @staticmethod
     def random(saturation: float = 1, lightness: float = 0.7) -> 'Color':
-        return Color.fromHSL(random.random(), saturation, lightness)
+        return Color.from_hsl(random.random(), saturation, lightness)
 
     @staticmethod
-    def differentfrom(color: 'Color') -> 'Color':
-        h, s, v = colorsys.rgb_to_hsv(*color.toTuple())
+    def different_from(color: 'Color') -> 'Color':
+        h, s, v = colorsys.rgb_to_hsv(*color.to_tuple())
         newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
         nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
         return Color(int(nr), int(ng), int(nb))
@@ -115,7 +115,7 @@ class Color:
 
 class Pixel(Color):
     def __init__(self, coord: tuple[float, float, float], color: Color = Color.black()):
-        super().__init__(*color.toTuple())
+        super().__init__(*color.to_tuple())
         self.x = coord[0]
         self.y = coord[1]
         self.z = coord[2]
@@ -155,6 +155,6 @@ if __name__ == "__main__":
     a = time.perf_counter()
     for i in range(10_000_000):
         newColor = Color(1, 2, 3)
-        newColor.set_RGB(3, 2, 1)
+        newColor.set_rgb(3, 2, 1)
         newColor.fade()
     print(time.perf_counter() - a)

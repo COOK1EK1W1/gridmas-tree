@@ -60,7 +60,7 @@ the Color class can be imported from colors such as `from colors import Color`
 ### constructor: Color(r: int, g: int, b: int) -> Color
 create a color instance with rgb values, values should be between 0 and 255 inclusive
 
-### set_RGB(r: int, g: int, b: int)
+### set_rgb(r: int, g: int, b: int)
 update the color of the instance
 
 ### set_color(color: Color)
@@ -69,10 +69,10 @@ update the color of the instance to another color
 ### fade(n)
 fade the color by n, passing 1 will remain constant, anything greater than 1 will fade, less than 1 will lighten, default 1.1
 
-### toHex() -> str
+### to_hex() -> str
 convert the color to hex string
 
-### toTuple() -> tuple[int, int, int] 
+### to_tuple() -> tuple[int, int, int] 
 convert the color into the rgb components in a tuple
 
 ### lerp(target: tuple[int, int, int], time: int)
@@ -80,15 +80,15 @@ linearly fade to the target color over `time` calls, the time step is advanced e
 
 ## static methods
 
-### fromHex(s: str) -> Color
-### fromHSL(h: float, s: float, l: float) -> Color
+### from_hex(s: str) -> Color
+### from_hsl(h: float, s: float, l: float) -> Color
 ### white() -> Color
 ### black() -> Color
 ### red() -> Color
 ### green() -> Color
 ### blue() -> Color
 ### random() -> Color
-### differentfrom(color: Color) -> Color
+### different_from(color: Color) -> Color
 generate a different color from the passed color
 
 # class Pixel extends Color
@@ -224,7 +224,7 @@ def run():
         minZ = min([x[2] for x in coords2])
         maxZ = max([x[2] for x in coords2])
 
-        color = Color.differentfrom(color)
+        color = Color.different_from(color)
 
         for rng in range(int(minZ * 200 - 10), int(maxZ * 200 + 10), max(1, int(speed.get()))):
             for i, coord in enumerate(coords2):

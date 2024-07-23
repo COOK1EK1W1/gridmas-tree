@@ -56,7 +56,7 @@ class Tree():
 
     def update(self):
         rt = time.perf_counter()
-        self.frame_queue.put(list(map(lambda x: x.toTuple(), self.pixels)))
+        self.frame_queue.put(list(map(lambda x: x.to_tuple(), self.pixels)))
 
         render_time = rt - self.last_update
         sleep_time = (1 / 45) - render_time
@@ -100,7 +100,7 @@ class Tree():
 
     def black(self):
         for pixel in self.pixels:
-            pixel.set_RGB(0, 0, 0)
+            pixel.set_rgb(0, 0, 0)
 
 
 tree = Tree()
