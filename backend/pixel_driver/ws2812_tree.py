@@ -25,7 +25,7 @@ class ws2812_tree(PixelDriver):
     def run(self):
         a = 0
         while True:
-            if self.queue.qsize() > 3:
+            if self.queue.qsize() > 0:
                 data = self.queue.get(False)
                 if data is None:
                     break
