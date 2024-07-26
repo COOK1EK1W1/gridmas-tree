@@ -104,6 +104,7 @@ class Tree():
             pixel.fade(n)
 
     def black(self):
+        """Set all the pixels of the tree to black"""
         for pixel in self.pixels:
             pixel.set_rgb(0, 0, 0)
 

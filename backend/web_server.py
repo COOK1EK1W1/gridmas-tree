@@ -27,10 +27,18 @@ def init():
 
     @app.route('/lightoff')
     def lightoff():
-        for i in range(tree.num_pixels):
-            tree.set_light(i, Color.black())
+        tree.black()
         tree.update()
         return "all off"
+
+    @app.route('/setalllight', methods=['POST'])
+    def setLightColor():
+        data = json.loads(request.data)
+        for color, pixel in zip(data, tree.pixels):
+            print(color)
+            pixel.set_rgb(color[0], color[1], color[2])
+        tree.update()
+        return "done"
 
     @app.route('/lightoff/<int:number>')
     def lightoffN(number: int):
