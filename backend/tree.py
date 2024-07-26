@@ -91,8 +91,8 @@ class Tree():
         self.last_update = time.perf_counter()
 
     def set_fps(self, fps: int):
-        self.update()
         self.fps = fps
+        self.update()
 
     def run(self):
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
