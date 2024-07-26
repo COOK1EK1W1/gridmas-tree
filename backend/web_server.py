@@ -35,7 +35,6 @@ def init():
     def setLightColor():
         data = json.loads(request.data)
         for color, pixel in zip(data, tree.pixels):
-            print(color)
             pixel.set_rgb(color[0], color[1], color[2])
         tree.update()
         return "done"

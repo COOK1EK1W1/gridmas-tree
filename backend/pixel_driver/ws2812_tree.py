@@ -25,17 +25,15 @@ class ws2812_tree(PixelDriver):
     def run(self):
         a = 0
         while True:
-            if self.queue.qsize() > 0:
-                data = self.queue.get(False)
-                if data is None:
-                    break
+            data = self.queue.get()
+            if data is None:
+                break
 
-                fps, framea = data
-                for i, rgb in enumerate(framea):
-                    self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
+            fps, framea = data
+            for i, rgb in enumerate(framea):
+                self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
 
-                time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
-                a = time.perf_counter()
+            time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
+            a = time.perf_counter()
 
-                self.strip.show()
-            time.sleep(0.01)
+            self.strip.show()
