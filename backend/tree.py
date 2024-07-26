@@ -22,12 +22,13 @@ def pick_driver() -> type[PixelDriver]:
 
 class Tree():
     def __init__(self):
+        self.fps = 45
 
         self.coords = read_tree_csv()
 
         self.num_pixels = int(len(self.coords))
 
-        self.frame_queue: multiprocessing.Queue[list[tuple[int, int, int]] | None] = multiprocessing.Queue()
+        self.frame_queue: multiprocessing.Queue[tuple[int, list[tuple[int, int, int]]] | None] = multiprocessing.Queue()
         driver = pick_driver()
         self.pixel_driver = driver(self.frame_queue, self.coords)
 
@@ -56,10 +57,10 @@ class Tree():
 
     def update(self):
         rt = time.perf_counter()
-        self.frame_queue.put(list(map(lambda x: x.to_tuple(), self.pixels)))
+        self.frame_queue.put((self.fps, list(map(lambda x: x.to_tuple(), self.pixels))))
 
         render_time = rt - self.last_update
-        sleep_time = (1 / 45) - render_time
+        sleep_time = (1 / self.fps) - render_time
 
         try:
             buffer_size = self.frame_queue.qsize()
@@ -67,7 +68,7 @@ class Tree():
             if buffer_size > 4:
                 time.sleep(max(sleep_time, 0))
             if buffer_size > 10:
-                time.sleep((1 / 45))
+                time.sleep((1 / self.fps))
         except NotImplementedError:
             time.sleep(max(sleep_time, 0))
 
@@ -88,6 +89,9 @@ class Tree():
             if avgrender != 0 and avgsleep != 0:
                 print(f"render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
         self.last_update = time.perf_counter()
+
+    def set_fps(self, fps: int):
+        self.fps = fps
 
     def run(self):
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())

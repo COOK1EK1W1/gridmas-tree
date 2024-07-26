@@ -4,6 +4,7 @@ import killableThread
 import os
 from colors import tcolors
 from attribute import Store
+from tree import tree
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -64,6 +65,7 @@ class PatternManager:
             self.running_task.terminate()
             self.running_task.join()
         Store.get_store().reset()
+        tree.set_fps(45)
         self.running_task = killableThread.Thread(target=run_pattern, args=(pattern.run,))
         self.running_task.start()
         return True

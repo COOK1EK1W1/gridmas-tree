@@ -6,7 +6,7 @@ from pixel_driver.pixel_driver import PixelDriver
 
 
 class ws2812_tree(PixelDriver):
-    def __init__(self, queue: "Queue[list[tuple[int, int, int]] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[tuple[int, list[tuple[int, int, int]]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
 
         LED_COUNT = len(self.coords)
@@ -26,14 +26,15 @@ class ws2812_tree(PixelDriver):
         a = 0
         while True:
             if self.queue.qsize() > 3:
-                framea = self.queue.get(False)
-                if framea is None:
+                data = self.queue.get(False)
+                if data is None:
                     break
 
+                fps, framea = data
                 for i, rgb in enumerate(framea):
                     self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
 
-                time.sleep(max((1 / 45) - (time.perf_counter() - a), 0))
+                time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
                 a = time.perf_counter()
 
                 self.strip.show()

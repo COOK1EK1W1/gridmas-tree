@@ -8,7 +8,7 @@ from pixel_driver.pixel_driver import PixelDriver
 
 
 class SimTree(PixelDriver):
-    def __init__(self, queue: "Queue[list[tuple[int, int, int]] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[tuple[int, list[tuple[int, int, int]]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
         self.buffer = [(0, 0, 0) for _ in range(len(coords))]
         self.queue = queue
@@ -23,7 +23,8 @@ class SimTree(PixelDriver):
                 args = self.queue.get(False)
                 if args is None:
                     break
-                self.buffer = args
+                _, frame = args
+                self.buffer = frame
 
     def setup_visualisation(self):
         pygame.init()

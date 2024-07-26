@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Picker</title>
+    <title>Gridmas Tree</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
 </head>
@@ -20,61 +20,5 @@
         <button class="m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500" hx-get="/pattern/{{pattern.name}}" hx-target="#pattern-attr">{{pattern.name}}</button>
       {% endfor %}
     </div>
-    <script>
-        function test(a){
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "attribute/sleep%20time", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-
-            var data = JSON.stringify({ speed: a });
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Color set successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error setting color");
-                }
-            };
-
-            xhr.send(data);
-        }
-
-        function sendColor() {
-            var selectedColor = document.getElementById("colorPicker").value;
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://192.168.1.50/setlights", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-
-            var data = JSON.stringify({ color: selectedColor });
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Color set successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error setting color");
-                }
-            };
-
-            xhr.send(data);
-        }
-
-        function sendRequest(url) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log("Request sent successfully");
-                } else if (xhr.readyState == 4) {
-                    console.error("Error sending request");
-                }
-            };
-
-            xhr.send();
-        }
-    </script>
-
 </body>
 </html>
