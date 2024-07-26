@@ -38,3 +38,4 @@ class ws2812_tree(PixelDriver):
                 a = time.perf_counter()
 
                 self.strip.show()
+            time.sleep(1 / 45)
