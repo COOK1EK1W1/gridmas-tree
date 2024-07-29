@@ -1,4 +1,5 @@
 from cv2 import VideoCapture, imwrite, imshow, waitKey, destroyAllWindows
+import math
 
 import cv2
 from cv2.typing import MatLike, Point
@@ -18,13 +19,15 @@ light_amount = 350
 
 cam = VideoCapture(cam_port)
 
+directions: list[tuple[int, list[Point | None]]] = []
+
 
 def get_photo_of(lights: list[list[int]]) -> MatLike:
     requests.post(f"{url}/setalllight", data=str(lights))
 
-    time.sleep(0.1)
+    time.sleep(0.2)
     result, image = cam.read()
-    time.sleep(0.1)
+    time.sleep(0.2)
     return image
 
 
@@ -72,6 +75,17 @@ def find_lights(all_on: MatLike, all_off: MatLike, images: list[MatLike]) -> lis
     return locations
 
 
+def show_points(img: MatLike, points: list[Point | None]):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    fontScale = 0.5
+    for i, point in enumerate(points):
+        if point is not None:
+            cv2.putText(img, str(i), point, font, fontScale, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.circle(img, point, 6, (255, 0, 0), 3)
+    cv2.imshow("test", img)
+    waitKey(20)
+
+
 def find_individual(pixels: list[int], revalidate_clean_plate: int = 5) -> list[Point | None]:
     positions: list[Point | None] = []
     clear_tree()
@@ -112,9 +126,9 @@ def scan(dir: int):
         colors: list[list[int]] = []
         for x in range(light_amount):
             if x & (1 << a) != 0:
-                colors.append([255, 255, 255])
-            else:
                 colors.append([0, 0, 0])
+            else:
+                colors.append([255, 255, 255])
 
         image = get_photo_of(colors)
         images.append(image)
@@ -122,6 +136,8 @@ def scan(dir: int):
         imwrite(f"results/results2-{a}-{dir_degrees}.png", image)
 
     locations = find_lights(all_on, all_off, images)
+
+    show_points(all_on, locations)
 
     count = len(locations) - locations.count(None)
     print(f"locations found for {count} / {len(locations)}")
@@ -135,12 +151,9 @@ def scan(dir: int):
     count = len(locations) - locations.count(None)
     print(f"locations found for {count} / {len(locations)}")
 
-    for location in locations:
-        if location is not None:
-            cv2.circle(all_on, location, 6, (255, 0, 0), 3)
-    print(locations)
-    cv2.imshow("test", all_on)
-    waitKey(20)
+    show_points(all_on, locations)
+
+    directions.append((dir_degrees, locations))
 
 
 def camera_test():
@@ -151,6 +164,13 @@ def camera_test():
         key = waitKey(20)
         if key == 27:
             break
+
+
+def fuse_data():
+    for direction in directions:
+        angle = direction[0]
+        locations = direction[1]
+        math.cos(angle / 180 * math.pi)
 
 
 def run(option: int):
@@ -192,7 +212,8 @@ def run(option: int):
         all_off = get_photo_of([[0, 0, 0] for _ in range(light_amount)])
         imshow("test", cv2.subtract(all_on, all_off))
         waitKey(20)
-
+    elif option == 8:
+        fuse_data()
 
 
 if __name__ == "__main__":
@@ -205,7 +226,8 @@ if __name__ == "__main__":
     4: scan y-
     5: camera test
     6: pixel find test
-    7: difference test""")
+    7: difference test
+    8: fuse data + send""")
         option = input("choose:")
         try:
             if not int(option):

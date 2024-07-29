@@ -1,42 +1,17 @@
 from colors import Color
-from tree import tree
+import math
+from animations.wipe import wipe
 
 name = "XYZ Planes"
 author = "Ciaran"
 
 
 def run():
-    j = 1.1
-    rng = 10
 
-    idk = 0
+    dirs = [(0, 0), (math.pi / 2, 0), (math.pi / 2, math.pi / 2), (math.pi / 2, math.pi), (math.pi / 2, math.pi * 1.5), (math.pi, 0)]
+
+    color = Color.random()
     while True:
-        idk = (idk + 1) % 3
-        color = Color.random()
-        for i in range(-200, 200, rng):
-            for ia, coord in enumerate(tree.coords):
-                if i <= (coord[idk % 3] * 200) < i + rng:
-                    tree.set_light(ia, color)
-                else:
-                    tree.get_light(ia).fade()
-            tree.update()
-
-        idk = (idk + 1) % 3
-        color = Color.random()
-        for i in range(0, int(tree.height * 200), rng):
-            for ia, light in enumerate(tree.coords):
-                if i <= (light[idk % 3] * 200) < i + rng:
-                    tree.set_light(ia, color)
-                else:
-                    tree.get_light(ia).fade(j)
-            tree.update()
-
-        idk = (idk + 1) % 3
-        color = Color.random()
-        for i in range(-200, 200, rng):
-            for ia, coord in enumerate(tree.coords):
-                if i <= (coord[idk % 3] * 200) < i + rng:
-                    tree.set_light(ia, color)
-                else:
-                    tree.get_light(ia).fade(j)
-            tree.update()
+        for dir in dirs:
+            color = Color.different_from(color)
+            wipe(dir[0], dir[1], color, 10, Color.black())
