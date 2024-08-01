@@ -12,6 +12,7 @@ def run(color: Color):
 
 
 def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Color | None = None):
+    # based on Matt Parkers Xmas tree
     coords2 = [[x, y, z] for [x, y, z] in tree.coords]
     for i, coord in enumerate(tree.coords):
         coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) + coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)

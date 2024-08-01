@@ -6,7 +6,6 @@ from animations.wipe import wipe
 
 name = "Chem planes"
 author = "Ciaran"
-# based on Matt Parkers Xmas tree
 
 
 def run():

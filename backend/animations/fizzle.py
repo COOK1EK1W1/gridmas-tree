@@ -9,4 +9,3 @@ def fizzle():
     for i in a:
         tree.pixels[i].set_rgb(0, 0, 0)
         tree.update()
-

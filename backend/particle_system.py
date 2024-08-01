@@ -34,6 +34,36 @@ class Particle(ABC):
         ...
 
 
+class CubeParticle(Particle):
+    def __init__(self, x: float, y: float, z: float, length: float, max_age: int, color: Color):
+        super().__init__(x, y, z, max_age)
+        self.length = length
+        self.color = color
+
+    def draw(self, tree: Tree):
+        for pixel in tree.pixels:
+            # Check if the pixel is within the outer bounding box
+            if self.z - self.length < pixel.z < self.z + self.length and \
+               self.x - self.length < pixel.x < self.x + self.length and \
+               self.y - self.length < pixel.y < self.y + self.length:
+
+                pixel.set_color(self.color)
+
+    @abstractmethod
+    def advance(self):
+        ...
+
+    def fast_Draw(self, pixel: Pixel) -> Color | None:
+        # Check if the pixel is within the outer bounding box
+        if self.z - self.length < pixel.z < self.z + self.length and \
+           self.x - self.length < pixel.x < self.x + self.length and \
+           self.y - self.length < pixel.y < self.y + self.length:
+
+            return self.color
+        else:
+            return None
+
+
 class SphereParticle(Particle):
     def __init__(self, x: float, y: float, z: float, radius: float, max_age: int, color: Color):
         super().__init__(x, y, z, max_age)
