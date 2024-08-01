@@ -9,7 +9,7 @@ author = "Ciaran"
 
 def run():
 
-    dirs = [(0, 0), (math.pi / 2, math.pi / 2, (math.pi / 2, 0))]
+    dirs = [(0, 0), (math.pi / 2, math.pi / 2), (math.pi / 2, 0)]
 
     color = Color.random()
     speed = RangeAttr("speed", 7, 1, 14, 1)
