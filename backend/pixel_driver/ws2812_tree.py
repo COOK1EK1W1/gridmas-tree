@@ -6,7 +6,7 @@ from pixel_driver.pixel_driver import PixelDriver
 
 
 class ws2812_tree(PixelDriver):
-    def __init__(self, queue: "Queue[tuple[int, list[tuple[int, int, int]]] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[tuple[int, list[int]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
 
         LED_COUNT = len(self.coords)

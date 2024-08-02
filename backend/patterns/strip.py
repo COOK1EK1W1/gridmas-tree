@@ -7,7 +7,7 @@ author = "Ciaran"
 
 
 def run():
-    tree.fps = 5
+    tree.fps = 75
     fade = RangeAttr("fade", 1.1, 1.01, 2, 0.01)
     color = ColorAttr("Color", Color.white())
     while True:

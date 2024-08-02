@@ -28,7 +28,7 @@ class Tree():
 
         self.num_pixels = int(len(self.coords))
 
-        self.frame_queue: multiprocessing.Queue[tuple[int, list[tuple[int, int, int]]] | None] = multiprocessing.Queue()
+        self.frame_queue: multiprocessing.Queue[tuple[int, list[int]] | None] = multiprocessing.Queue()
         driver = pick_driver()
         self.pixel_driver = driver(self.frame_queue, self.coords)
 
@@ -57,7 +57,7 @@ class Tree():
 
     def update(self):
         rt = time.perf_counter()
-        self.frame_queue.put((self.fps, list(map(lambda x: x.to_tuple(), self.pixels))))
+        self.frame_queue.put((self.fps, list(map(lambda x: x.to_int(), self.pixels))))
 
         render_time = rt - self.last_update
         sleep_time = (1 / self.fps) - render_time

@@ -1,4 +1,5 @@
 from multiprocessing import Queue
+from colors import int2tuple
 import pygame.locals as PLocals
 import pygame
 import OpenGL.GL as GL
@@ -8,13 +9,14 @@ from pixel_driver.pixel_driver import PixelDriver
 
 
 class SimTree(PixelDriver):
-    def __init__(self, queue: "Queue[tuple[int, list[tuple[int, int, int]]] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[tuple[int, list[int]] | None]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
-        self.buffer = [(0, 0, 0) for _ in range(len(coords))]
+        self.buffer = [0 for _ in range(len(coords))]
         self.queue = queue
 
     def run(self):
         self.setup_visualisation()
+        a = 0
         while True:
             time.sleep(1 / 60)
             if self.pygame_frame():
@@ -23,8 +25,10 @@ class SimTree(PixelDriver):
                 args = self.queue.get(False)
                 if args is None:
                     break
-                _, frame = args
+                fps, frame = args
                 self.buffer = frame
+                time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
+                a = time.perf_counter()
 
     def setup_visualisation(self):
         pygame.init()
@@ -51,10 +55,11 @@ class SimTree(PixelDriver):
                 pygame.quit()
                 return True
 
-    def draw_light(self, position: tuple[float, float, float], color: tuple[int, int, int]):
+    def draw_light(self, position: tuple[float, float, float], color: int):
         GL.glPointSize(5)
         GL.glBegin(GL.GL_POINTS)
-        GL.glColor3f(color[0] / 255, color[1] / 255, color[2] / 255)  # Set the color for the point
+        r, g, b = int2tuple(color)
+        GL.glColor3f(r / 255, g / 255, b / 255)  # Set the color for the point
 
         # Draw the point at the specified position
         GL.glVertex3f(position[0], position[1], position[2])
