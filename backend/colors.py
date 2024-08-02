@@ -56,7 +56,7 @@ class Color:
         return (self.r, self.g, self.b)
 
     def to_int(self) -> int:
-        return (self.r << 16) | (self.g << 8) | self.b
+        return (self.r << 8) | (self.g << 16) | self.b
 
     def lerp_reset(self):
         self._L_previous = (self.r, self.g, self.b)
@@ -128,7 +128,7 @@ class Pixel(Color):
 
 
 def int2tuple(c: int) -> tuple[int, int, int]:
-    return ((c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff)
+    return ((c >> 8) & 0xff, (c >> 16) & 0xff, c & 0xff)
 
 
 def tuple2hex(c: tuple[int, int, int]) -> str:

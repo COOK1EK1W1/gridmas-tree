@@ -1,7 +1,8 @@
 import time
 from multiprocessing import Queue
 
-from rpi_ws281x import PixelStrip, Color
+import _rpi_ws281x as ws
+from rpi_ws281x import PixelStrip
 from pixel_driver.pixel_driver import PixelDriver
 
 
@@ -31,7 +32,7 @@ class ws2812_tree(PixelDriver):
 
             fps, framea = data
             for i, rgb in enumerate(framea):
-                self.strip[i] = Color(rgb[1], rgb[0], rgb[2])
+                ws.ws2811_led_set(self.strip._channel, i, rgb)
 
             time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
             a = time.perf_counter()
