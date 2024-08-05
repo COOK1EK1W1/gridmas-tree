@@ -1,6 +1,5 @@
 from tree import tree
 import random
-print(random.shuffle(list(range(500))))
 
 
 def fizzle():

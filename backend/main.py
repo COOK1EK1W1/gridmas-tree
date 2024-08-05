@@ -2,7 +2,6 @@
 
 from tree import tree
 import web_server
-import threading
 
 from dotenv import load_dotenv
 import os
@@ -16,4 +15,4 @@ if __name__ == '__main__':
         port = 3000
     app = web_server.init()
     tree.run()
-    app.run(debug=False, host="0.0.0.0", use_reloader=False, port = port)
+    app.run(debug=False, host="0.0.0.0", use_reloader=False, port=port)

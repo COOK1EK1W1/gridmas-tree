@@ -5,6 +5,7 @@ import os
 from colors import tcolors
 from attribute import Store
 from tree import tree
+import math
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -17,8 +18,22 @@ def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
     print(f"{tcolors.OKGREEN}{item1}{item2}{item3}{tcolors.ENDC}")
 
 
+def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
+    if len(msg) > min_len:
+        return msg
+    msg = " " + msg + " "
+    if len(msg) > min_len:
+        return msg
+    padding_needed = min_len - len(msg)
+    l_padding = math.floor(padding_needed / 2)
+    r_padding = math.ceil(padding_needed / 2)
+    return padding * l_padding + msg + padding * r_padding
+
+
 def load_patterns(pattern_dir: str):
-    print(f"{tcolors.OKBLUE}######## patterns ########{tcolors.ENDC}")
+
+    print(f"\n{tcolors.OKBLUE}{print_message_centered('loading patterns', 60, '#')}{tcolors.ENDC}")
+
     pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
     patterns: list[ModuleType] = []
     for file in pattern_files:
@@ -36,7 +51,8 @@ def load_patterns(pattern_dir: str):
 
         except Exception as e:
             print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
-    print(f"{tcolors.OKBLUE}######## patterns ########{tcolors.ENDC}\n")
+
+    print(f"{tcolors.OKBLUE}{print_message_centered('loading patterns', 60, '#')}{tcolors.ENDC}")
 
     patterns.sort(key=lambda x: x.name.upper())
     return patterns
