@@ -64,7 +64,7 @@ def run():
 
     tree.fill(Color.black())
     for pixel in tree.pixels:
-        if pixel.z > tree.height / 2:
+        if pixel.z < tree.height / 2:
             pixel.set_color(Color.white())
     tree.sleep(10)
 
