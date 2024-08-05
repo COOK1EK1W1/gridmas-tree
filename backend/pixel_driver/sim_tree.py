@@ -18,17 +18,14 @@ class SimTree(PixelDriver):
         self.setup_visualisation()
         a = 0
         while True:
-            time.sleep(1 / 60)
-            if self.pygame_frame():
+            args = self.queue.get()
+            if args is None:
                 break
-            if not self.queue.empty():
-                args = self.queue.get(False)
-                if args is None:
-                    break
-                fps, frame = args
-                self.buffer = frame
-                time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
-                a = time.perf_counter()
+            fps, frame = args
+            self.buffer = frame
+            time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
+            a = time.perf_counter()
+            self.pygame_frame()
 
     def setup_visualisation(self):
         pygame.init()

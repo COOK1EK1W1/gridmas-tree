@@ -3,7 +3,7 @@ import random
 
 
 def fizzle():
-    a = list(range(500))
+    a = list(range(tree.num_pixels))
     random.shuffle(a)
     for i in a:
         tree.pixels[i].set_rgb(0, 0, 0)
