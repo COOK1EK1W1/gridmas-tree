@@ -1,4 +1,4 @@
-from animations import wipe
+from animations.wipe import wipe_frames
 from colors import Color
 
 name = "on"
@@ -6,4 +6,4 @@ author = "Ciaran"
 
 
 def run():
-    wipe.run(Color(200, 55, 2))
+    wipe_frames(0, 0, Color(200, 55, 2), 70)
