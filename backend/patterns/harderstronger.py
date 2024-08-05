@@ -23,16 +23,53 @@ def run():
     tree.sleep(15)
 
     # 8 beat intro thing
-    tree.sleep(3 * 40)
+    tree.sleep(4 * 40 + 20)
 
-    for _ in range(4):
+    for _ in range(8):
         tree.fill(Color.white())
         tree.sleep(5)
         tree.fill(Color.black())
         tree.sleep(15)
 
-    for _ in range(4):
+    for _ in range(8):
+        tree.fill(Color.red())
+        tree.sleep(10)
+        tree.fill(Color.green())
+        tree.sleep(10)
+
+
+    for _ in range(8):
         tree.fill(Color.white())
         tree.sleep(5)
         tree.fill(Color.black())
         tree.sleep(15)
+
+    for _ in range(6):
+        tree.fill(Color.red())
+        tree.sleep(10)
+        tree.fill(Color.green())
+        tree.sleep(10)
+
+    tree.fill(Color.black())
+    for pixel in tree.pixels:
+        if pixel.x < 0:
+            pixel.set_color(Color.white())
+    tree.sleep(10)
+
+    tree.fill(Color.black())
+    for pixel in tree.pixels:
+        if pixel.x > 0:
+            pixel.set_color(Color.white())
+    tree.sleep(10)
+
+    tree.fill(Color.black())
+    for pixel in tree.pixels:
+        if pixel.z > tree.height / 2:
+            pixel.set_color(Color.white())
+    tree.sleep(10)
+
+    tree.fill(Color.black())
+    for pixel in tree.pixels:
+        if pixel.z > tree.height / 2:
+            pixel.set_color(Color.white())
+    tree.sleep(10)
