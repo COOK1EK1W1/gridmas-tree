@@ -75,6 +75,20 @@ class Color:
             self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
             self._L_step = min(self._L_step + 1, self._L_total)
 
+    def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False):
+        if (target != self._L_target or self._L_total != time) or override:
+            self.lerp_reset()
+            self._L_target = target
+            self._L_total = time
+
+    def cont_lerp(self):
+        percent = clamp(self._L_step / self._L_total, 0, 1)
+
+        self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
+        self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
+        self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
+        self._L_step = min(self._L_step + 1, self._L_total)
+
     @staticmethod
     def from_hex(s: str) -> 'Color':
         return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))

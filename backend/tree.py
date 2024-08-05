@@ -108,5 +108,12 @@ class Tree():
         for pixel in self.pixels:
             pixel.set_rgb(0, 0, 0)
 
+    def sleep(self, frames: int, allow_lerp: bool):
+        for _ in range(frames):
+            if allow_lerp:
+                for pixel in tree.pixels:
+                    pixel.cont_lerp()
+            self.update()
+
 
 tree = Tree()
