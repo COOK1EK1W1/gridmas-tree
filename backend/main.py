@@ -16,4 +16,4 @@ if __name__ == '__main__':
         port = 3000
     app = web_server.init()
     tree.run()
-    threading.Thread(target=app.run, kwargs={'debug': True, 'host': "0.0.0.0", "use_reloader": False, "port": port}).start()
+    app.run(debug=False, host="0.0.0.0", use_reloader=False, port = port)

@@ -36,7 +36,7 @@ def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade
         slice_min = slice * slice_width + minZ
         slice_max = (slice + 1) * slice_width + minZ
         for i, coord in enumerate(coords2):
-            if slice_min <= coord[2] < slice_max:
+            if slice_min <= coord[2] <= slice_max:
                 tree.set_light(i, color)
             else:
                 if fade:
