@@ -34,7 +34,7 @@ class Tree():
 
         self.height = max([x[2] for x in self.coords])
 
-        self.distances = generate_distance_map([[y for y in x] for x in self.coords])
+        self.distances = generate_distance_map(self.coords)
 
         total_size = sys.getsizeof(self.distances)
         for row in self.distances:
@@ -118,10 +118,12 @@ class Tree():
             pixel.set_rgb(0, 0, 0)
 
     def fill(self, color: Color):
-        """Set all the pixels of the tree to black"""
         for pixel in self.pixels:
             pixel.set_color(color)
 
+    def lerp(self, color: Color, frames: int):
+        for pixel in self.pixels:
+            pixel.lerp(color.to_tuple(), frames)
 
     def sleep(self, frames: int, allow_lerp: bool = False):
         for _ in range(frames):

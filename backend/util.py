@@ -39,11 +39,11 @@ def euclidean_distance(a: list[float], b: list[float]) -> float:
     return math.sqrt(total)
 
 
-def generate_distance_map(coords: list[list[float]]) -> list[list[float]]:
+def generate_distance_map(coords: list[tuple[float, float, float]]) -> list[list[float]]:
     ret: list[list[float]] = []
     for fr in coords:
         inter: list[float] = []
         for to in coords:
-            inter.append(euclidean_distance(fr, to))
+            inter.append(euclidean_distance([x for x in fr], [x for x in to]))
         ret.append(inter)
     return ret

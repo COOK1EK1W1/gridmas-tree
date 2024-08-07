@@ -11,3 +11,6 @@ pythom installed
 
 ## run the program
 from the `/backend` directory run `sudo python main.py` which will start the webserver and the tree simulator, you can then access the webserver to change pattersn
+
+# Docs
+still in progress: [docs](https://ciarancook.com/gridmastree-docs) in progress
