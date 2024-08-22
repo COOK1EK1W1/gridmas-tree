@@ -62,18 +62,9 @@ class Color:
         self._L_previous = (self.r, self.g, self.b)
         self._L_step = 0
 
-    def lerp(self, target: tuple[int, int, int], time: int):
-        if target != self._L_target or self._L_total != time:
-            self.lerp_reset()
-            self._L_target = target
-            self._L_total = time
-        else:
-            percent = clamp(self._L_step / self._L_total, 0, 1)
-
-            self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
-            self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
-            self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
-            self._L_step = min(self._L_step + 1, self._L_total)
+    def lerp(self, target: tuple[int, int, int], time: int, override: bool = False):
+        self.set_lerp(target, time, override)
+        self.cont_lerp()
 
     def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False):
         if (target != self._L_target or self._L_total != time) or override:
@@ -82,12 +73,14 @@ class Color:
             self._L_total = time
 
     def cont_lerp(self):
+        if self._L_step == self._L_total:
+            return
+        self._L_step = min(self._L_step + 1, self._L_total)
         percent = clamp(self._L_step / self._L_total, 0, 1)
 
         self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
         self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
         self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
-        self._L_step = min(self._L_step + 1, self._L_total)
 
     @staticmethod
     def from_hex(s: str) -> 'Color':
@@ -119,7 +112,7 @@ class Color:
         return Color(0, 0, 255)
 
     @staticmethod
-    def random(saturation: float = 1, lightness: float = 0.7) -> 'Color':
+    def random(saturation: float = 1, lightness: float = 0.6) -> 'Color':
         return Color.from_hsl(random.random(), saturation, lightness)
 
     @staticmethod
@@ -145,8 +138,8 @@ def int2tuple(c: int) -> tuple[int, int, int]:
     return ((c >> 8) & 0xff, (c >> 16) & 0xff, c & 0xff)
 
 
-def tuple2hex(c: tuple[int, int, int]) -> str:
-    return '#%02x%02x%02x' % c
+def tuple2hex(t: tuple[int, int, int]) -> str:
+    return '#%02x%02x%02x' % t
 
 
 def hex2tuple(h: str) -> tuple[int, int, int]:
@@ -172,10 +165,43 @@ if __name__ == "__main__":
             print(test, ans)
             raise Exception("error in")
 
-if __name__ == "__main__":
+if __name__ == "__main__" and False:
     a = time.perf_counter()
     for i in range(10_000_000):
         newColor = Color(1, 2, 3)
         newColor.set_rgb(3, 2, 1)
         newColor.fade()
     print(time.perf_counter() - a)
+
+if __name__ == "__main__":
+    red = Color.red()
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (204, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (153, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (102, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (50, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (0, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
+
+    red.lerp((0, 0, 0), 5)
+    if red.to_tuple() != (0, 0, 0):
+        print(red.to_tuple())
+        raise Exception("lerp wrong")
