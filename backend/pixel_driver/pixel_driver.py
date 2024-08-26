@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import time
 from multiprocessing import Queue
 
 
@@ -7,6 +8,28 @@ class PixelDriver(ABC):
         self.queue = queue
         self.coords = coords
 
-    @abstractmethod
     def run(self):
+        cur_fps = 45
+        start_time = time.perf_counter()
+
+        while True:
+            data = self.queue.get()
+            if data is None:
+                break
+
+            fps, framea = data
+            if fps != cur_fps:
+                cur_fps = fps
+            self.draw(framea)
+
+            time.sleep((1 / fps) - (time.perf_counter() - start_time) % (1 / fps))
+
+            self.show()
+
+    @abstractmethod
+    def draw(self, frame: list[int]):
+        ...
+
+    @abstractmethod
+    def show(self):
         ...

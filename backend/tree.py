@@ -28,7 +28,10 @@ class Tree():
 
         self.num_pixels = int(len(self.coords))
 
-        self.frame_queue: multiprocessing.Queue[tuple[int, list[int]] | None] = multiprocessing.Queue()
+        # create a 10 frame buffer to the pixel driver
+        self.frame_queue: multiprocessing.Queue[tuple[int, list[int]] | None] = multiprocessing.Queue(10)
+
+        # select the correct pixel driver for the system, either physical or sim
         driver = pick_driver()
         self.pixel_driver = driver(self.frame_queue, self.coords)
 
@@ -45,11 +48,7 @@ class Tree():
         self.pixels: list[Pixel] = [Pixel((x[0], x[1], x[2])) for x in self.coords]
 
         self.last_update = time.perf_counter()
-        self.last_frame = time.perf_counter()
-
         self.render_times: list[float] = []
-        self.sleep_times: list[float] = []
-        self.frame_times: list[float] = []
 
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)
@@ -60,43 +59,19 @@ class Tree():
     def update(self):
         t = time.perf_counter()
         render_time = t - self.last_update
-        frame_time = t - self.last_frame
-        sleep_time = (1 / self.fps) - frame_time
+        self.render_times.append(render_time)
 
-        try:
-            buffer_size = self.frame_queue.qsize()
-
-            if buffer_size > 4:
-                time.sleep(max(sleep_time, 0))
-            if buffer_size > 10:
-                time.sleep((1 / self.fps))
-        except NotImplementedError:
-            # idk why but my machine doesn't run in real time
-            time.sleep(max(sleep_time * 0.8, 0))
-
-        self.last_frame = time.perf_counter()
-
+        # add frame to frame queue, if frame queue is full, then this blocks until space
         self.frame_queue.put((self.fps, list(map(lambda x: x.to_int(), self.pixels))))
 
-        self.sleep_times.append(sleep_time)
-        self.render_times.append(render_time)
-        self.frame_times.append(frame_time)
-
         if len(self.render_times) > 100:
-            self.sleep_times.pop(0)
-            self.frame_times.pop(0)
             self.render_times.pop(0)
 
-        if len(self.sleep_times) != 0 and len(self.render_times) != 0 and len(self.frame_times) != 0:
-            avgsleep = sum(self.sleep_times) / len(self.sleep_times)
+        if len(self.render_times) != 0:
             avgrender = sum(self.render_times) / len(self.render_times)
-            avgframe = sum(self.frame_times) / len(self.frame_times)
 
-            avg_min_sleep = sum(map(lambda x: max(0, x), self.sleep_times)) / len(self.sleep_times)
-
-            fps = 1 / (avgframe + avg_min_sleep)
-            if avgrender != 0 and avgsleep != 0:
-                print(f"render: {round(avgrender, 5)} sleep: {round(avgsleep, 4)} frame: {round(avgframe)} ps: {round((avgrender / (avgsleep + avgrender))*100, 2)}% fps: {round(fps, 1)}         ", end="\r")
+            if avgrender != 0:
+                print(f"render: {str(avgrender*1000)[0:5]}ms ps: {round((avgrender / (1/tree.fps))*100, 2)}%       ", end="\r")
         self.last_update = time.perf_counter()
 
     def set_fps(self, fps: int):

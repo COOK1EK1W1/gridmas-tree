@@ -1,4 +1,3 @@
-import time
 from multiprocessing import Queue
 
 import _rpi_ws281x as ws
@@ -23,18 +22,9 @@ class ws2812_tree(PixelDriver):
         strip.begin()
         self.strip = strip
 
-    def run(self):
-        a = 0
-        while True:
-            data = self.queue.get()
-            if data is None:
-                break
+    def draw(self, frame: list[int]):
+        for i, rgb in enumerate(frame):
+            ws.ws2811_led_set(self.strip._channel, i, rgb)
 
-            fps, framea = data
-            for i, rgb in enumerate(framea):
-                ws.ws2811_led_set(self.strip._channel, i, rgb)
-
-            time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
-            a = time.perf_counter()
-
-            self.strip.show()
+    def show(self):
+        self.strip.show()

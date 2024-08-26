@@ -4,7 +4,6 @@ import pygame.locals as PLocals
 import pygame
 import OpenGL.GL as GL
 import OpenGL.GLU as GLU
-import time
 from pixel_driver.pixel_driver import PixelDriver
 
 
@@ -14,18 +13,13 @@ class SimTree(PixelDriver):
         self.buffer = [0 for _ in range(len(coords))]
         self.queue = queue
 
-    def run(self):
         self.setup_visualisation()
-        a = 0
-        while True:
-            args = self.queue.get()
-            if args is None:
-                break
-            fps, frame = args
-            self.buffer = frame
-            time.sleep(max((1 / fps) - (time.perf_counter() - a), 0))
-            a = time.perf_counter()
-            self.pygame_frame()
+
+    def draw(self, frame: list[int]):
+        self.buffer = frame
+
+    def show(self):
+        self.pygame_frame()
 
     def setup_visualisation(self):
         pygame.init()

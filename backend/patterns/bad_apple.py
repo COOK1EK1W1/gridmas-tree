@@ -24,10 +24,8 @@ def run():
 
         for i, pixel in enumerate(tree.pixels):
             if 0.5 < pixel.z < 2.5:
-                if frame[coords[i][1]][coords[i][0]].any():
-                    pixel.set_rgb(150, 150, 150)
-                else:
-                    pixel.set_rgb(0, 0, 0)
+                value = int(frame[coords[i][1]][coords[i][0]][0])
+                pixel.set_rgb(value, value, value)
 
             else:
                 pixel.set_rgb(0, 0, 0)
