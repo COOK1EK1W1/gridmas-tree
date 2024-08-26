@@ -23,11 +23,8 @@ def run():
     interval = 50
     while True:
         if i == 0:
-            random_z_coord = (random.randrange(0, int(tree.height * 100), 1)) / 100
-
-            random_x_coord = (random.randrange(-100, 100, 1)) / (100 * (random_z_coord + 1))
-            random_y_coord = (random.randrange(-100, 100, 1)) / (100 * (random_z_coord + 1))
-            explosions.append(Explosion(random_x_coord, random_y_coord, random_z_coord, 40))
+            center_light = tree.get_light(random.randrange(0, 499))
+            explosions.append(Explosion(center_light.x, center_light.y, center_light.z, 5))
             interval = random.randrange(50, 140)
         i = (i + 1) % interval
 
@@ -44,7 +41,7 @@ def run():
                 pixel.fade(0.5)
 
             for exp in explosions:
-                if exp.tick / 2 < euclidean_distance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) * 50 < exp.tick / 1.3:
+                if exp.tick / 6 < euclidean_distance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) < exp.tick / 5:
                     pixel.set_color(exp.color)
 
         tree.update()

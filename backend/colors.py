@@ -2,6 +2,9 @@ import random
 import math
 import time
 import colorsys
+from typing import Callable
+
+from util import linear
 
 
 class tcolors:
@@ -31,6 +34,8 @@ class Color:
 
         self._L_step = 0
         self._L_total = 1
+
+        self._L_fn = linear
 
     def set_rgb(self, r: int, g: int, b: int):
         self.r = r & 0xff
@@ -62,25 +67,27 @@ class Color:
         self._L_previous = (self.r, self.g, self.b)
         self._L_step = 0
 
-    def lerp(self, target: tuple[int, int, int], time: int, override: bool = False):
-        self.set_lerp(target, time, override)
+    def lerp(self, target: tuple[int, int, int], time: int, override: bool = False, fn: Callable[[float], float] = linear):
+        self.set_lerp(target, time, override, fn)
         self.cont_lerp()
 
-    def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False):
+    def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False, fn: Callable[[float], float] = linear):
         if (target != self._L_target or self._L_total != time) or override:
             self.lerp_reset()
             self._L_target = target
             self._L_total = time
+            self._L_fn = fn
 
     def cont_lerp(self):
         if self._L_step == self._L_total:
             return
         self._L_step = min(self._L_step + 1, self._L_total)
         percent = clamp(self._L_step / self._L_total, 0, 1)
+        d = self._L_fn(percent)
 
-        self.r = int(self._L_previous[0] * (1 - percent) + self._L_target[0] * percent)
-        self.g = int(self._L_previous[1] * (1 - percent) + self._L_target[1] * percent)
-        self.b = int(self._L_previous[2] * (1 - percent) + self._L_target[2] * percent)
+        self.r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
+        self.g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
+        self.b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
 
     @staticmethod
     def from_hex(s: str) -> 'Color':
