@@ -23,7 +23,8 @@ def run():
     interval = 50
     while True:
         if i == 0:
-            center_light = tree.get_light(random.randrange(0, 499))
+            randomid = random.randrange(0, tree.num_pixels - 1)
+            center_light = tree.get_light(randomid)
             explosions.append(Explosion(center_light.x, center_light.y, center_light.z, 5))
             interval = random.randrange(50, 140)
         i = (i + 1) % interval
