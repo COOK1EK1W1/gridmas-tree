@@ -1,5 +1,6 @@
+from typing import Callable
 from pixel_driver.pixel_driver import PixelDriver
-from util import generate_distance_map, read_tree_csv
+from util import generate_distance_map, linear, read_tree_csv
 import multiprocessing
 import time
 import sys
@@ -96,9 +97,9 @@ class Tree():
         for pixel in self.pixels:
             pixel.set_color(color)
 
-    def lerp(self, color: Color, frames: int):
+    def lerp(self, color: Color, frames: int, fn: Callable[[float], float] = linear):
         for pixel in self.pixels:
-            pixel.lerp(color.to_tuple(), frames)
+            pixel.lerp(color.to_tuple(), frames, fn=fn)
 
     def sleep(self, frames: int, allow_lerp: bool = False):
         for _ in range(frames):
