@@ -7,11 +7,11 @@ author = "Ciaran"
 
 
 def run():
-    height = 2.8
-    a = -100
+    height = tree.height
+    a = -500
 
     coords = []
-    text = "hello world"
+    text = "(Black screen with text; The sound of buzzing bees can be heard)According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible."
     scale = 200
 
     for pixel in tree.pixels:
