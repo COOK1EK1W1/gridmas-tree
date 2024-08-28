@@ -12,22 +12,23 @@ def run():
 
     coords = []
     text = "(Black screen with text; The sound of buzzing bees can be heard)According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible."
-    scale = 200
+    scale = 100
 
     for pixel in tree.pixels:
         videox = max(min(int((pixel.x + 1) * scale), scale * 2 - 1), 0)
         videoy = max(min(int((tree.height - pixel.z) * scale), int(scale * tree.height - 1)), 0)
         coords.append((videox, videoy))
 
+    font = cv2.FONT_HERSHEY_SIMPLEX  # Font type
+    font_scale = int(height * scale * 0.03)  # Font scale (size)
+    font_color = (0, 0, 0)  # Black color in BGR
+    thickness = int(height * scale * 0.1)  # Thickness of the text
+
     while True:
-        a += 4
+        a += 5
         blank_image = np.ones((int(scale * height), int(scale * 2), 3), dtype=np.uint8)
 
 
-        font = cv2.FONT_HERSHEY_SIMPLEX  # Font type
-        font_scale = int(height * scale * 0.03)  # Font scale (size)
-        font_color = (0, 0, 0)  # Black color in BGR
-        thickness = int(height * scale * 0.1)  # Thickness of the text
 
         # Calculate the center of the image to place the text
         text_size = cv2.getTextSize(text, font, font_scale, thickness)[0]
