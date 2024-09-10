@@ -68,5 +68,3 @@ print(count)
 imshow("test", circled)
 waitKey(0)
 destroyAllWindows()
-
-
