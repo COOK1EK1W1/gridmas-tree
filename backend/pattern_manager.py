@@ -1,4 +1,5 @@
 from types import ModuleType
+import threading
 from typing import Callable
 import killableThread
 import os
@@ -68,23 +69,26 @@ def run_pattern(fn: Callable[[], None]):
 
 class PatternManager:
     def __init__(self, pattern_dir: str):
+        self.lock = threading.Lock()
         self.running_task: None | killableThread.Thread = None
         self.patterns = load_patterns(pattern_dir)
         self.run("on")
 
     def run(self, name: str) -> bool:
-        pattern = self.get(name)
-        if pattern is None:
-            return False
+        with self.lock:
+            pattern = self.get(name)
+            if pattern is None:
+                return False
 
-        if self.running_task:
-            self.running_task.terminate()
-            self.running_task.join()
-        Store.get_store().reset()
-        tree.set_fps(45)
-        self.running_task = killableThread.Thread(target=run_pattern, args=(pattern.run,))
-        self.running_task.start()
-        return True
+            if self.running_task:
+                self.running_task.terminate()
+                self.running_task.join()
+            Store.get_store().reset()
+            tree.set_fps(45)
+            tree.pixel_driver.clear_queue()
+            self.running_task = killableThread.Thread(target=run_pattern, args=(pattern.run,))
+            self.running_task.start()
+            return True
 
     def get(self, name: str) -> ModuleType | None:
         patterns: list[ModuleType] = list(filter(lambda x: x.name == name, self.patterns))
