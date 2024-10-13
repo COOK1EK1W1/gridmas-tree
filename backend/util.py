@@ -2,6 +2,11 @@ import csv
 import math
 
 
+class STOPFLAG(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+
 def save_lights(light_locs: list[list[int]]) -> None:
     with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)

@@ -7,7 +7,7 @@ name = "Fire Works"
 author = "Ciaran"
 
 
-class Explosion:
+class Explosion():
     def __init__(self, x, y, z, max_age):
         self.x = x
         self.y = y
