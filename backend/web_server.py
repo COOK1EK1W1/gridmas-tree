@@ -1,4 +1,5 @@
 from pattern_manager import PatternManager
+import time
 import util
 import json
 from colors import Color
@@ -70,7 +71,8 @@ def init():
 
     @app.route('/pattern/<pattern>')
     def pattern(pattern: str):
-        if manager.run(pattern):
+        if manager.queue_pattern(pattern):
+            time.sleep(0.1)
             return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
         else:
             return "not running"

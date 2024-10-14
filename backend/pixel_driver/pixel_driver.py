@@ -8,6 +8,10 @@ class PixelDriver(ABC):
         self.queue = queue
         self.coords = coords
 
+    def clear_queue(self):
+        while not self.queue.empty():
+            self.queue.get()
+
     def run(self):
         cur_fps = 45
         start_time = time.perf_counter()

@@ -22,3 +22,4 @@ python-dotenv==1.0.1
 pyusb==1.2.1
 typing_extensions==4.12.2
 Werkzeug==3.0.3
+opencv-python==4.10.0.84

@@ -1,6 +1,6 @@
 from typing import Callable
 from pixel_driver.pixel_driver import PixelDriver
-from util import generate_distance_map, linear, read_tree_csv
+from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
 import multiprocessing
 import time
 import sys
@@ -51,6 +51,8 @@ class Tree():
         self.last_update = time.perf_counter()
         self.render_times: list[float] = []
 
+        self.stop_flag = False
+
     def set_light(self, n: int, color: Color):
         self.pixels[n].set_color(color)
 
@@ -65,6 +67,9 @@ class Tree():
         # add frame to frame queue, if frame queue is full, then this blocks until space
         self.frame_queue.put((self.fps, list(map(lambda x: x.to_int(), self.pixels))))
 
+        if self.stop_flag:
+            raise STOPFLAG("cancel")
+
         if len(self.render_times) > 100:
             self.render_times.pop(0)
 
@@ -77,7 +82,6 @@ class Tree():
 
     def set_fps(self, fps: int):
         self.fps = fps
-        self.update()
 
     def run(self):
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())

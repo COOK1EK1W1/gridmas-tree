@@ -1,6 +1,9 @@
 from types import ModuleType
+import random
+import time
+import threading
 from typing import Callable
-import killableThread
+from util import STOPFLAG
 import os
 from colors import tcolors
 from attribute import Store
@@ -58,33 +61,81 @@ def load_patterns(pattern_dir: str):
     return patterns
 
 
-def run_pattern(fn: Callable[[], None]):
+def run_pattern(name: str, fn: Callable[[], None]):
     try:
-        print("running function")
         fn()
+    except STOPFLAG:
+        tree.stop_flag = False
     except Exception as e:
+        print(tcolors.FAIL + "####### PATTERN ERROR ######")
+        print(f"pattern name: {name}")
         print(e)
+        print("############################" + tcolors.ENDC)
 
 
 class PatternManager:
     def __init__(self, pattern_dir: str):
-        self.running_task: None | killableThread.Thread = None
+        self.lock = threading.Lock()
+        self.running_task: None | threading.Thread = None
         self.patterns = load_patterns(pattern_dir)
-        self.run("on")
+        self.pattern_queue: list[str] = ["on"]
+
+        a = threading.Thread(target=self.start)
+        a.start()
+
+    def start(self):
+        while True:
+            time.sleep(0.01)
+            if len(self.pattern_queue) > 0:
+                pattern = self.pattern_queue.pop(0)
+                self.run(pattern)
+
+    def queue_pattern(self, name: str):
+        self.pattern_queue.append(name)
+        return True
+
+    def random_patterns(self):
+        running = None
+        while True:
+            if running:
+                if running.is_alive():
+                    tree.stop_flag = True
+                    running.join()
+            Store.get_store().reset()
+            tree.set_fps(45)
+            i = random.randrange(0, len(self.patterns))
+            pattern = self.patterns[i]
+            tree.pixel_driver.clear_queue()
+            running = threading.Thread(target=run_pattern, args=(pattern.name, pattern.run,))
+            running.start()
+            time.sleep(5)
 
     def run(self, name: str) -> bool:
-        pattern = self.get(name)
-        if pattern is None:
-            return False
+        with self.lock:
+            if name == "idle":
+                if self.running_task and self.running_task.is_alive():
+                    tree.stop_flag = True
+                    self.running_task.join()
+                Store.get_store().reset()
+                tree.set_fps(45)
+                tree.pixel_driver.clear_queue()
+                self.running_task = threading.Thread(target=self.random_patterns)
+                self.running_task.start()
+                return True
 
-        if self.running_task:
-            self.running_task.terminate()
-            self.running_task.join()
-        Store.get_store().reset()
-        tree.set_fps(45)
-        self.running_task = killableThread.Thread(target=run_pattern, args=(pattern.run,))
-        self.running_task.start()
-        return True
+            pattern = self.get(name)
+            if pattern is None:
+                return False
+
+            if self.running_task and self.running_task.is_alive():
+                tree.stop_flag = True
+                self.running_task.join()
+            Store.get_store().reset()
+            tree.set_fps(45)
+            tree.pixel_driver.clear_queue()
+            self.running_task = threading.Thread(target=run_pattern, args=(name, pattern.run,))
+            self.running_task.start()
+            return True
 
     def get(self, name: str) -> ModuleType | None:
         patterns: list[ModuleType] = list(filter(lambda x: x.name == name, self.patterns))
