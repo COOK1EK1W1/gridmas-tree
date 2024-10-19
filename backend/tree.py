@@ -7,11 +7,16 @@ import sys
 from colors import tcolors, Color, Pixel
 
 
-def pick_driver() -> type[PixelDriver]:
+def pick_driver(num_leds: int) -> type[PixelDriver]:
     try:
-        from pixel_driver import ws2812_tree
+        if num_leds > 500:
+            from pixel_driver import ws2812_tree_dual
 
-        return ws2812_tree.ws2812_tree
+            return ws2812_tree.ws2812_tree_dual
+        else:
+            from pixel_driver import ws2812_tree
+
+            return ws2812_tree.ws2812_tree
 
     except ImportError:
         print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
@@ -33,7 +38,7 @@ class Tree():
         self.frame_queue: multiprocessing.Queue[tuple[int, list[int]] | None] = multiprocessing.Queue(10)
 
         # select the correct pixel driver for the system, either physical or sim
-        driver = pick_driver()
+        driver = pick_driver(self.num_pixels)
         self.pixel_driver = driver(self.frame_queue, self.coords)
 
         self.height = max([x[2] for x in self.coords])

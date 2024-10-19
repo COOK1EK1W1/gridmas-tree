@@ -1,6 +1,9 @@
 <div>
   <form hx-post="/attribute/{{attribute.name}}" hx-trigger="change" hx-swap="none">
     <label>{{attribute.name}}</label>
-    <input type="range" name="value" class="w-full" value="{{attribute.get()}}" min="{{attribute.min}}" max="{{attribute.max}}" step="{{attribute.step}}"/>
+    <div class="flex">
+      <input type="range" name="value" class="w-full" value="{{attribute.get()}}" min="{{attribute.min}}" max="{{attribute.max}}" step="{{attribute.step}}" onchange="document.getElementById('{{attribute.name}}-val').textContent = this.value;"/>
+      <p id="{{attribute.name}}-val">{{attribute.value}}</p>
+    </div>
   </form>
 </div>

@@ -105,6 +105,7 @@ class PatternManager:
             tree.set_fps(45)
             i = random.randrange(0, len(self.patterns))
             pattern = self.patterns[i]
+            print(pattern.name)
             tree.pixel_driver.clear_queue()
             running = threading.Thread(target=run_pattern, args=(pattern.name, pattern.run,))
             running.start()

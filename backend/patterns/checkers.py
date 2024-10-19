@@ -7,8 +7,6 @@ author = "Ciaran"
 
 def run():
 
-    tree.set_fps(1)
-
     while True:
         color1 = Color.random()
         color2 = Color.different_from(color1)
@@ -25,3 +23,4 @@ def run():
             else:
                 pixel.set_color(color2)
         tree.update()
+        tree.sleep(45)
