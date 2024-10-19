@@ -10,7 +10,7 @@ def run():
     hue = 0
     speed = RangeAttr("speed", 0.003, -0.005, 0.005, 0.0001)
     while True:
-        hue = (hue + 1 / speed.get()) % 1
+        hue = (hue + speed.get()) % 1
         for pixel in tree.pixels:
             pixel.set_color(Color.from_hsl(hue, 1, 0.5))
         tree.update()
