@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gridmas Tree</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
+    <script src="ratelimit.js"> </script>
+</head>
+<body>
+
+    <h2 class="p-2 text-2xl">Gridmas Tree</h2>
+
+    <div id="pattern-attr" class="m-2 rounded-xl bg-orange-300 p-2">
+
+    </div>
+
+    <div class="flex flex-wrap w-full justify-center">
+      <button 
+          class="pattern-button m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500 transition-all duration-300 ease-in-out transform disabled:bg-gray-300 disabled:cursor-not-allowed disabled:scale-95 hover:bg-blue-300"
+          onclick='clicked()' 
+          hx-get="/pattern/idle" 
+          hx-target="#pattern-attr" 
+          :disabled="isDisabled">
+          Idle
+      </button>
+      {% for pattern in patterns %}
+      <button 
+          class="pattern-button m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500 transition-all duration-300 ease-in-out transform disabled:bg-gray-300 disabled:cursor-not-allowed disabled:scale-95 hover:bg-blue-300"
+          onclick='clicked()' 
+          hx-get="/pattern/{{pattern.name}}" 
+          hx-target="#pattern-attr" 
+          :disabled="isDisabled">
+          {{pattern.name}}
+      </button>
+      {% endfor %}
+    </div>
+</body>
+</html>

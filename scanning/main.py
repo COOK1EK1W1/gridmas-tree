@@ -1,4 +1,5 @@
 from collections import defaultdict
+import argparse
 from typing import List, Optional
 from cv2 import VideoCapture, imwrite, imshow, waitKey
 import numpy as np
@@ -10,11 +11,19 @@ import time
 
 print("init camera")
 
+parser = argparse.ArgumentParser(description="Process num_light and url.")
+
+# Add arguments with flags
+parser.add_argument("--num-light", type=int, required=True, help="The number of lights")
+parser.add_argument("--url", type=str, required=True, help="The URL to be processed")
+
+# Parse the arguments
+args = parser.parse_args()
+
+num_light = int(args.num_light)
+url = str(args.url)
+
 cam_port = 0
-
-url = "http://192.168.1.249"
-
-light_amount = 450
 
 cam_dir = 0
 cam_flip = False

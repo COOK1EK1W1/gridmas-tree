@@ -5,13 +5,16 @@ import json
 from colors import Color
 from attribute import Store, RangeAttr
 from tree import tree
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory
 
 
-def init():
+def init(rate_limit: bool):
     manager = PatternManager("patterns")
 
-    app = Flask(__name__)
+    app = Flask(__name__,
+            static_folder='webserver/static',
+            template_folder='webserver/templates'
+                )
 
     @app.route('/lighton')
     def lighton():
@@ -80,6 +83,14 @@ def init():
     @app.route('/', methods=['GET'])
     def home():
         return render_template('index.html', patterns=manager.patterns)
+
+    @app.route('/ratelimit.js')
+    def serve_js():
+        if rate_limit:
+            return send_from_directory("webserver/static", "ratelimit.js")
+        else:
+            return send_from_directory("webserver/static", "nonratelimit.js")
+
 
     @app.route('/setlights', methods=['POST'])
     def setLights():
