@@ -80,6 +80,9 @@ class PatternManager:
         self.patterns = load_patterns(pattern_dir)
         self.pattern_queue: list[str] = ["on"]
 
+        self.idle_stop_flag = False
+        self.running_name = ""
+
         a = threading.Thread(target=self.start)
         a.start()
 
@@ -96,7 +99,7 @@ class PatternManager:
 
     def random_patterns(self):
         running = None
-        while True:
+        while not self.idle_stop_flag:
             if running:
                 if running.is_alive():
                     tree.stop_flag = True
@@ -109,7 +112,8 @@ class PatternManager:
             tree.pixel_driver.clear_queue()
             running = threading.Thread(target=run_pattern, args=(pattern.name, pattern.run,))
             running.start()
-            time.sleep(5)
+            time.sleep(30)
+        self.idle_stop_flag = False
 
     def run(self, name: str) -> bool:
         with self.lock:
@@ -122,6 +126,7 @@ class PatternManager:
                 tree.pixel_driver.clear_queue()
                 self.running_task = threading.Thread(target=self.random_patterns)
                 self.running_task.start()
+                self.running_name = name
                 return True
 
             pattern = self.get(name)
@@ -129,6 +134,8 @@ class PatternManager:
                 return False
 
             if self.running_task and self.running_task.is_alive():
+                if self.running_name == "idle":
+                    self.idle_stop_flag = True
                 tree.stop_flag = True
                 self.running_task.join()
             Store.get_store().reset()
@@ -136,6 +143,7 @@ class PatternManager:
             tree.pixel_driver.clear_queue()
             self.running_task = threading.Thread(target=run_pattern, args=(name, pattern.run,))
             self.running_task.start()
+            self.running_name = name
             return True
 
     def get(self, name: str) -> ModuleType | None:
