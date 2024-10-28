@@ -40,7 +40,7 @@ def load_patterns(pattern_dir: str):
     pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
     patterns: list[ModuleType] = []
     for file in pattern_files:
-        print("loading pattern from " + "file" + "        ", end="\r")
+        print("loading pattern from " + file + "        ", end="\r")
         try:
             module_name = os.path.splitext(file)[0]
             module = __import__("patterns." + module_name)
