@@ -42,6 +42,9 @@ class ws2812_tree(PixelDriver):
             message = ws.ws2811_get_return_t_str(resp)
             raise RuntimeError(f'ws2811_init failed with code {resp} ({message})')
 
+    def init(self):
+        pass
+
     def draw(self, frame: list[int]):
         # Convert frame list to ctypes array
         frame_array = (c_uint32 * len(frame))(*frame)
