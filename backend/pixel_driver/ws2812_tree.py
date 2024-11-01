@@ -7,7 +7,6 @@ import _rpi_ws281x as ws
 from ctypes import c_uint32
 from pixel_driver.pixel_driver import PixelDriver
 import _rpi_ws281x as ws
-from rpi_ws281x import PixelStrip
 from pixel_driver.pixel_driver import PixelDriver
 
 

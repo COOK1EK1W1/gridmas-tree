@@ -13,6 +13,7 @@ class SimTree(PixelDriver):
         self.buffer = [0 for _ in range(len(coords))]
         self.queue = queue
 
+    def init(self):
         self.setup_visualisation()
 
     def draw(self, frame: list[int]):

@@ -13,6 +13,6 @@ if __name__ == '__main__':
     if port is None:
         print("no PORT environment variable, trying 3000")
         port = 3000
-    app = web_server.init(False)
+    app = web_server.init(True)
     tree.run()
     app.run(debug=False, host="0.0.0.0", use_reloader=False, port=port)

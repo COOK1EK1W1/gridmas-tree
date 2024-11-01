@@ -20,8 +20,8 @@ parser.add_argument("--url", type=str, required=True, help="The URL to be proces
 # Parse the arguments
 args = parser.parse_args()
 
-num_light = int(args.num_light)
-url = str(args.url)
+light_amount = int(args.num_light)
+url = "http://" + str(args.url)
 
 cam_port = 0
 
