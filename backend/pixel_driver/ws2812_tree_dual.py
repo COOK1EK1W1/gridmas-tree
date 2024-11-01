@@ -7,7 +7,6 @@ import _rpi_ws281x as ws
 from ctypes import c_uint32
 from pixel_driver.pixel_driver import PixelDriver
 import _rpi_ws281x as ws
-from rpi_ws281x import PixelStrip
 from pixel_driver.pixel_driver import PixelDriver
 
 
@@ -42,6 +41,9 @@ class ws2812_tree(PixelDriver):
         if resp != ws.WS2811_SUCCESS:
             message = ws.ws2811_get_return_t_str(resp)
             raise RuntimeError(f'ws2811_init failed with code {resp} ({message})')
+
+    def init(self):
+        pass
 
     def draw(self, frame: list[int]):
         # Convert frame list to ctypes array

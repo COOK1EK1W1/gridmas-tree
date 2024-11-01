@@ -13,9 +13,11 @@ class PixelDriver(ABC):
         while not self.queue.empty():
             self.queue.get()
 
+
     def run(self):
         cur_fps = 45
         start_time = time.perf_counter()
+        self.init()
 
         while True:
             try:
@@ -32,9 +34,11 @@ class PixelDriver(ABC):
             except queue.Empty:
                 pass
 
-
-
             self.show()
+
+    @abstractmethod
+    def init(self):
+        ...
 
     @abstractmethod
     def draw(self, frame: list[int]):
