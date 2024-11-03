@@ -1,3 +1,6 @@
+"""Holds a bunch of utility functions to make life easier
+"""
+
 import csv
 import math
 
