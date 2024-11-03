@@ -3,6 +3,8 @@ import random
 
 
 def fizzle():
+    """Slowly turn off all pixels on the tree randomly
+    """
     a = list(range(tree.num_pixels))
     random.shuffle(a)
     for i in a:

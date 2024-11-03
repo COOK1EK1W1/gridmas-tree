@@ -1,3 +1,11 @@
+"""The particle system allows you to easily add different particles to the tree to create epic effects
+
+This is a fairly basic particle system, the behavours of the particles are specified in a subclass, 
+then are added to the simulation
+
+The particle system will then advance each particle, and then draw them to the tree
+"""
+
 from abc import ABC, abstractmethod
 
 from colors import Color, Pixel
@@ -65,7 +73,21 @@ class CubeParticle(Particle):
 
 
 class SphereParticle(Particle):
+    """This is a particle of a sphere, you should sub class 
+       this to fill in your own advance function to add behaviour to it
+
+    """
     def __init__(self, x: float, y: float, z: float, radius: float, max_age: int, color: Color):
+        """typically when subclassing you'll use super().__init__(...) syntax
+
+        Args:
+            x (float): x position 
+            y (float): y position
+            z (float): z position
+            radius (float): Radius of the sphere
+            max_age (int): The maximum age of the sphere
+            color (Color): The color of the sphere
+        """
         super().__init__(x, y, z, max_age)
         self.radius = radius
         self.color = color
@@ -110,29 +132,48 @@ class SphereParticle(Particle):
 
 
 class ParticleSystem:
+    """The main particle system runner
+    """
     def __init__(self, tree: Tree):
+        """Initiate a particle system for the tree, this should be done once within the run function
+
+        Args:
+            tree (Tree): The tree to generate a particle system for
+        """
         self.tree = tree
         self._particles: list[Particle] = []
 
     def add_particle(self, particle: Particle, start: bool = False):
+        """Add a particle to the simulation
+
+        Args:
+            particle (Particle): The particle to add to the system
+            start (bool, optional): If true, the particle is added at the start of the system particle list. Defaults to False.
+        """
         if start:
             self._particles.insert(0, particle)
         else:
             self._particles.append(particle)
 
     def advance(self):
+        """This will call the advance function on all particles. But does not draw them."""
         for particle in self._particles:
             particle.s_advance()
 
         self._particles = list(filter(lambda x: x.age < x.max_age or not x.is_dead, self._particles))
 
     def draw(self) -> None:
+        """Run the draw function for all particles in the system
+        """
         for particle in self._particles:
             particle.draw(self.tree)
 
         self.tree.update()
 
     def fast_draw(self):
+        """Better for performance if there are lots of overlapping particles. However, it could
+           lead to unpredictable overlap coloring
+        """
         skip_amount = 0
         for pixel in self.tree.pixels:
             for i, particle in enumerate(self._particles):
