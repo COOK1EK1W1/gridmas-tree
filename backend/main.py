@@ -2,17 +2,21 @@
 
 from tree import tree
 import web_server
+import argparse
 
-from dotenv import load_dotenv
-import os
 
+parser = argparse.ArgumentParser(description="")
+parser.add_argument("--port", type=int, required=False, help="The port to host the Web Server")
+parser.add_argument("--tree-file", type=str, required=False, help="specify the tree file")
+parser.add_argument("--rate-limit", action="store_true", required=False, help="rate limit the web interface")
 
 if __name__ == '__main__':
-    load_dotenv()
-    port = os.environ.get("PORT")
+    args = parser.parse_args()
+
+    # try load port from env
+    port = args.port
     if port is None:
-        print("no PORT environment variable, trying 3000")
         port = 3000
-    app = web_server.init(False)
+    app = web_server.init(args.rate_limit == True)
     tree.run()
-    app.run(debug=False, host="0.0.0.0", use_reloader=False, port=port)
+    app.run(debug=False, host="0.0.0.0", use_reloader=False, port=int(port))

@@ -3,7 +3,6 @@ from pixel_driver.pixel_driver import PixelDriver
 from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
 import multiprocessing
 import time
-import sys
 from colors import tcolors, Color, Pixel
 
 
@@ -12,32 +11,31 @@ def pick_driver(num_leds: int) -> type[PixelDriver]:
         if num_leds > 500:
             from pixel_driver import ws2812_tree_dual
 
-            return ws2812_tree.ws2812_tree_dual
+            return ws2812_tree_dual.ws2812_tree_dual
         else:
             from pixel_driver import ws2812_tree
 
             return ws2812_tree.ws2812_tree
 
     except ImportError:
-        print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
-        print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
+        print(f"{tcolors.WARNING}Using pygame simulator, Neopixels not found{tcolors.ENDC}\n")
 
         from pixel_driver import sim_tree
         return sim_tree.SimTree
 
 
 class Tree():
-    """This is the main way to modify the pixels on the tree. 
-    
-    
+    """This is the main way to modify the pixels on the tree.
+
+
        To use in your file, import as follows:
          from tree import tree
-       
+
        After this, you can modify the pixels on the tree as such:
          def main():
            for pixel in tree.pixels:
              pixel.set_rgb(0, 0, 0)
-           
+
        Attributes:
          pixels: list[Pixel]: Pixel buffer held by the tree. Gets pushed to pixel driver on every update. The arry is in the same order as the lights on the strip
          coords: list[tuple[float, float, float]]: A list of 3d coordinates (x,y,z) which is in ordeer of pixels on the strip i.e. parrallel with tree.pixels
@@ -45,6 +43,7 @@ class Tree():
          height: float: Height of the tree
          distances: list[list[float]]: A 2d array which holds pre-computed 3D euclidean distances between all pairs of pixels. The index of each array is parrallel with tree.pixels
     """
+
     def __init__(self):
         self.fps = 45
 
@@ -62,12 +61,6 @@ class Tree():
         self.height = max([x[2] for x in self.coords])
 
         self.distances = generate_distance_map(self.coords)
-
-        total_size = sys.getsizeof(self.distances)
-        for row in self.distances:
-            for element in row:
-                total_size += sys.getsizeof(element)
-        print("Size of the distance array in bytes:", total_size)
 
         self.pixels: list[Pixel] = [Pixel((x[0], x[1], x[2])) for x in self.coords]
 
@@ -101,10 +94,10 @@ class Tree():
            the buffer to the pygame+openGL simulator , when ran on a raspberry pi it
            will push it to the LED strip
 
-           Update also regulates the frame rate; typically the tree will 
+           Update also regulates the frame rate; typically the tree will
            target 45 fps, if your pattern runs faster than 22ms it will sleep the
-           rest of the time until its time to generate a new frame. This shouldn't 
-           affect the end developer, as they should just think of the main while 
+           rest of the time until its time to generate a new frame. This shouldn't
+           affect the end developer, as they should just think of the main while
            loop running every 22ms
 
         Raises:
@@ -135,7 +128,7 @@ class Tree():
            If unset, the default fps is 45
 
         Args:
-            fps (int): target fps for the animation. 
+            fps (int): target fps for the animation.
         """
         self.fps = fps
 
@@ -143,11 +136,10 @@ class Tree():
         """Internal
         """
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
-        print("running the processs")
         process.start()
 
     def fade(self, n: float = 1.1):
-        """Fade the entire tree. 
+        """Fade the entire tree.
            n<1 will cause the tree to become brighter.
            tree.lerp(0, 0, 0) is prefered to tree.fade() as it if more performant
            and gived better cotnrol over timing.

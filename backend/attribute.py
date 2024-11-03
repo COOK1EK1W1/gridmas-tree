@@ -16,6 +16,7 @@ T = TypeVar("T")
 class Attribute(Generic[T], ABC):
     """Only initialise attributes once in the run function
     """
+
     def __init__(self, name: str, value: T):
         self.name = name
         self.value: T = value
@@ -29,8 +30,8 @@ class Attribute(Generic[T], ABC):
         return self.value
 
     def set(self, value: T):
-        """Set the value of the range. 
-        
+        """Set the value of the range.
+
            The use of this is discouraged in a pattern
 
         Args:

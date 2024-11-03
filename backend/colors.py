@@ -1,8 +1,8 @@
-""" colors is a module which contains class definitions for Color and Pixel as well as 
+""" colors is a module which contains class definitions for Color and Pixel as well as
     helper functions for converting colors between formats
 
-   I appologise to all british programmers who spell color as colour, but within the 
-   programming world we spell it color. This will be the cause of 90% of your bugs 
+   I appologise to all british programmers who spell color as colour, but within the
+   programming world we spell it color. This will be the cause of 90% of your bugs
    if you're not use to programming with the color spelling
 """
 
@@ -33,12 +33,13 @@ def clamp(val: float | int, minv: float | int, maxv: float | int):
 
 class Color:
     """A class representing a color
-    
+
        Attributes:
        r: int: Red
        g: int: Green
        b: int: Blue
     """
+
     def __init__(self, r: int, g: int, b: int):
         self.r: int = r & 0xff
         self.g: int = g & 0xff
@@ -258,12 +259,12 @@ class Color:
 
 
 class Pixel(Color):
-    """The pixel class extends the Color class by adding 3D coordinates to a color. 
+    """The pixel class extends the Color class by adding 3D coordinates to a color.
        All the same methods and attributes exist on a pixel so they act the same way
 
-       Coordintates are in the GIFT format so range between -1 and 1 on X and Y axis, 
+       Coordintates are in the GIFT format so range between -1 and 1 on X and Y axis,
        and 0 and tree.height on the Z axis
-       
+
        Attributes:
        x: float: The x axis position
        y: float: The y axis position
@@ -271,6 +272,7 @@ class Pixel(Color):
        a: float: The polar angle in radians from the x axis going clockwise when looking downward on the tree
        d: float: The polar distance from the Z axis (trunk)
     """
+
     def __init__(self, coord: tuple[float, float, float], color: Color = Color.black()):
         super().__init__(*color.to_tuple())
         self.x = coord[0]
@@ -299,7 +301,7 @@ def tuple2hex(t: tuple[int, int, int]) -> str:
     """Convert an RGB tuple to hex string
 
     Args:
-        t (tuple[int, int, int]): RGB color 
+        t (tuple[int, int, int]): RGB color
 
     Returns:
         str: Hex value of the color
