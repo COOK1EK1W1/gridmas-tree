@@ -171,7 +171,7 @@ class Tree():
         Args:
             color (Color): Target color
             frames (int): The number of frames to perform the lerp over
-            fn (Callable[[float], float], optional): Unsure. Defaults to linear.
+            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
         """
         for pixel in self.pixels:
             pixel.lerp(color.to_tuple(), frames, fn=fn)
