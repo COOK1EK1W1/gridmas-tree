@@ -19,7 +19,7 @@ def pick_driver(num_leds: int) -> type[PixelDriver]:
             return ws2812_tree.ws2812_tree
 
     except ImportError:
-        print(f"{tcolors.WARNING}Cannot find neopixel module, probably because your running on a device which is not supported")
+        print(f"{tcolors.WARNING}Cannot find neopixel module, probably because you're running on a device which is not supported")
         print(f"will attempt to run in dev mode{tcolors.ENDC}\n")
 
         from pixel_driver import sim_tree
