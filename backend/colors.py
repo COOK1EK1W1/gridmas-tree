@@ -123,7 +123,7 @@ class Color:
             target (tuple[int, int, int]): The target color
             time (int): The time taken for the lerp to complete
             override (bool, optional): If set to true, the lerp will only progress when you call lerp again. Defaults to False.
-            fn (Callable[[float], float], optional): Unknown. Defaults to linear.
+            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
         """
         self.set_lerp(target, time, override, fn)
         self.cont_lerp()
@@ -135,7 +135,7 @@ class Color:
             target (tuple[int, int, int]): Target color
             time (int): Time taken to complete the lerp
             override (bool, optional): If true, the target can be changed while the lerp is in progress. Defaults to False.
-            fn (Callable[[float], float], optional): Unkown. Defaults to linear.
+            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
         """
         if (target != self._L_target or self._L_total != time) or override:
             self.lerp_reset()
