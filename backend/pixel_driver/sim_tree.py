@@ -1,3 +1,6 @@
+import os
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from multiprocessing import Queue
 from colors import int2tuple
 import pygame.locals as PLocals

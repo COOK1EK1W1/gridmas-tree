@@ -10,7 +10,7 @@ import _rpi_ws281x as ws
 from pixel_driver.pixel_driver import PixelDriver
 
 
-class ws2812_tree(PixelDriver):
+class ws2812_tree_dual(PixelDriver):
     def __init__(self, queue: "Queue[tuple[int, list[int]] | None]", coords: list[tuple[float, float, float]]):
 
         super().__init__(queue, coords)

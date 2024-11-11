@@ -12,8 +12,8 @@ def init(rate_limit: bool):
     manager = PatternManager("patterns")
 
     app = Flask(__name__,
-            static_folder='webserver/static',
-            template_folder='webserver/templates'
+                static_folder='webserver/static',
+                template_folder='webserver/templates'
                 )
 
     @app.route('/lighton')
@@ -90,7 +90,6 @@ def init(rate_limit: bool):
             return send_from_directory("webserver/static", "ratelimit.js")
         else:
             return send_from_directory("webserver/static", "nonratelimit.js")
-
 
     @app.route('/setlights', methods=['POST'])
     def setLights():

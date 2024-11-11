@@ -1,6 +1,6 @@
 """The particle system allows you to easily add different particles to the tree to create epic effects
 
-This is a fairly basic particle system, the behavours of the particles are specified in a subclass, 
+This is a fairly basic particle system, the behavours of the particles are specified in a subclass,
 then are added to the simulation
 
 The particle system will then advance each particle, and then draw them to the tree
@@ -73,15 +73,16 @@ class CubeParticle(Particle):
 
 
 class SphereParticle(Particle):
-    """This is a particle of a sphere, you should sub class 
+    """This is a particle of a sphere, you should sub class
        this to fill in your own advance function to add behaviour to it
 
     """
+
     def __init__(self, x: float, y: float, z: float, radius: float, max_age: int, color: Color):
         """typically when subclassing you'll use super().__init__(...) syntax
 
         Args:
-            x (float): x position 
+            x (float): x position
             y (float): y position
             z (float): z position
             radius (float): Radius of the sphere

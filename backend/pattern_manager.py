@@ -35,7 +35,7 @@ def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
 
 def load_patterns(pattern_dir: str):
 
-    print(f"\n{tcolors.OKBLUE}{print_message_centered('loading patterns', 60, '#')}{tcolors.ENDC}")
+    print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
 
     pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
     patterns: list[ModuleType] = []
@@ -55,7 +55,7 @@ def load_patterns(pattern_dir: str):
         except Exception as e:
             print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
 
-    print(f"{tcolors.OKBLUE}{print_message_centered('loading patterns', 60, '#')}{tcolors.ENDC}")
+    print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
 
     patterns.sort(key=lambda x: x.name.upper())
     return patterns
