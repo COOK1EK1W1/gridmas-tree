@@ -161,7 +161,7 @@ class ParticleSystem:
         for particle in self._particles:
             particle.s_advance()
 
-        self._particles = list(filter(lambda x: x.age < x.max_age or not x.is_dead, self._particles))
+        self._particles = list(filter(lambda x: x.age < x.max_age and not x.is_dead, self._particles))
 
     def draw(self) -> None:
         """Run the draw function for all particles in the system
