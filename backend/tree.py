@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from pixel_driver.pixel_driver import PixelDriver
 from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
 import multiprocessing
@@ -52,7 +52,7 @@ class Tree():
         self.num_pixels = int(len(self.coords))
 
         # create a 10 frame buffer to the pixel driver
-        self.frame_queue: multiprocessing.Queue[tuple[int, list[int]] | None] = multiprocessing.Queue(10)
+        self.frame_queue: multiprocessing.Queue[Optional[tuple[int, list[int]]]] = multiprocessing.Queue(10)
 
         # select the correct pixel driver for the system, either physical or sim
         driver = pick_driver(self.num_pixels)

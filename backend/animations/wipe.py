@@ -1,11 +1,11 @@
-from typing import Callable
+from typing import Callable, Optional
 from util import linear
 from tree import tree
 from colors import Color
 import math
 
 
-def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Color | None = None):
+def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Color] = None):
     """Wipe a color from one side to the other. The angle is defined by Theta and Alpha.
        The prefered way to wipe a color on the tree is wipe_frames()
 
@@ -34,7 +34,7 @@ def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Color | Non
         tree.update()
 
 
-def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Color | None = None):
+def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Optional[Color] = None):
     """A more predictable version of wipe().
 
     Args:

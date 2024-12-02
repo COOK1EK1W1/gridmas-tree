@@ -17,6 +17,11 @@ if __name__ == '__main__':
     port = args.port
     if port is None:
         port = 3000
-    app = web_server.init(args.rate_limit == True)
+
+    if args.rate_limit:
+        app = web_server.init(True)
+    else:
+        app = web_server.init(False)
+
     tree.run()
     app.run(debug=False, host="0.0.0.0", use_reloader=False, port=int(port))

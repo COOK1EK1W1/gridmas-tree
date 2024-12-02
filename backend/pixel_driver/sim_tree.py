@@ -3,6 +3,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from multiprocessing import Queue
 from colors import int2tuple
+from typing import Optional
 import pygame.locals as PLocals
 import pygame
 import OpenGL.GL as GL
@@ -11,7 +12,7 @@ from pixel_driver.pixel_driver import PixelDriver
 
 
 class SimTree(PixelDriver):
-    def __init__(self, queue: "Queue[tuple[int, list[int]] | None]", coords: list[tuple[float, float, float]]):
+    def __init__(self, queue: "Queue[Optional[tuple[int, list[int]]]]", coords: list[tuple[float, float, float]]):
         super().__init__(queue, coords)
         self.buffer = [0 for _ in range(len(coords))]
         self.queue = queue
