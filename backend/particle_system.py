@@ -8,6 +8,7 @@ The particle system will then advance each particle, and then draw them to the t
 
 from abc import ABC, abstractmethod
 
+from typing import Optional
 from colors import Color, Pixel
 from util import euclidean_distance
 from tree import Tree
@@ -38,7 +39,7 @@ class Particle(ABC):
         ...
 
     @abstractmethod
-    def fast_draw(self, pixel: Pixel) -> Color | None:
+    def fast_draw(self, pixel: Pixel) -> Optional[Color]:
         ...
 
 
@@ -61,7 +62,7 @@ class CubeParticle(Particle):
     def advance(self):
         ...
 
-    def fast_Draw(self, pixel: Pixel) -> Color | None:
+    def fast_Draw(self, pixel: Pixel) -> Optional[Color]:
         # Check if the pixel is within the outer bounding box
         if self.z - self.length < pixel.z < self.z + self.length and \
            self.x - self.length < pixel.x < self.x + self.length and \
@@ -115,7 +116,7 @@ class SphereParticle(Particle):
     def advance(self):
         ...
 
-    def fast_draw(self, pixel: Pixel) -> Color | None:
+    def fast_draw(self, pixel: Pixel) -> Optional[Color]:
         inner_radius = 0.866  # sqrt(3) / 2, side length of box inscribed by sphere
         if self.z - self.radius < pixel.z < self.z + self.radius and \
            self.x - self.radius < pixel.x < self.x + self.radius and \

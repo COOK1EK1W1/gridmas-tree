@@ -10,7 +10,7 @@ import random
 import math
 import time
 import colorsys
-from typing import Callable
+from typing import Callable, Union
 
 from util import linear
 
@@ -27,7 +27,7 @@ class tcolors:
     UNDERLINE = '\033[4m'
 
 
-def clamp(val: float | int, minv: float | int, maxv: float | int):
+def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
     return min(max(val, minv), maxv)
 
 

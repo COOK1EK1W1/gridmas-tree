@@ -2,7 +2,7 @@ from types import ModuleType
 import random
 import time
 import threading
-from typing import Callable
+from typing import Callable, Optional
 from util import STOPFLAG
 import os
 from colors import tcolors
@@ -76,7 +76,7 @@ def run_pattern(name: str, fn: Callable[[], None]):
 class PatternManager:
     def __init__(self, pattern_dir: str):
         self.lock = threading.Lock()
-        self.running_task: None | threading.Thread = None
+        self.running_task: Optional[threading.Thread] = None
         self.patterns = load_patterns(pattern_dir)
         self.pattern_queue: list[str] = ["on"]
 
@@ -146,7 +146,7 @@ class PatternManager:
             self.running_name = name
             return True
 
-    def get(self, name: str) -> ModuleType | None:
+    def get(self, name: str) -> Optional[ModuleType]:
         patterns: list[ModuleType] = list(filter(lambda x: x.name == name, self.patterns))
         if len(patterns) == 0:
             return None

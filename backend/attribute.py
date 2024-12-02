@@ -3,10 +3,10 @@
 """
 from abc import ABC, abstractmethod
 from colors import Color
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Union, Optional
 
 
-def clamp(val: float | int, minv: float | int, maxv: float | int) -> float | int:
+def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]) -> Union[float, int]:
     return min(max(val, minv), maxv)
 
 
@@ -85,15 +85,15 @@ class ColorAttr(Attribute[Color]):
 
 
 class Store:
-    instance: "None | Store" = None
+    instance: "Optional[Store]" = None
 
     def __init__(self):
-        self.store: list[ColorAttr | RangeAttr] = []
+        self.store: list[Union[ColorAttr, RangeAttr]] = []
 
     def reset(self):
         self.store = []
 
-    def add(self, attr: ColorAttr | RangeAttr):
+    def add(self, attr: Union[ColorAttr, RangeAttr]):
         self.store.append(attr)
 
     def __iter__(self):
