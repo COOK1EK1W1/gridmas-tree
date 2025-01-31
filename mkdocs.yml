@@ -1,0 +1,100 @@
+site_name: GRIDmas Tree
+site_description: The home of GRIDmas Tree documentation
+site_author: Ciaran Cook, Owen Plimer
+
+theme:
+  name: "material"
+  custom_dir: overrides
+
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+    - navigation.footer
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.path
+    - navigation.top
+
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      primary: custom
+
+
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+
+plugins:
+  - mkdocstrings
+  - search
+
+nav:
+  - index.md
+  - Reference:
+    - tree.md
+    - colors.md
+    - attributes.md
+  - Examples:
+    - Home: Examples/index.md
+    - Examples/update.md
+    - Examples/black.md
+    - Examples/fill.md
+    - Examples/sleep.md
+    - Examples/set_light.md
+
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+
+extra:
+  social:
+    - icon:  fontawesome/brands/github
+      link: https://github.com/COOK1EK1W1/gridmas-tree
+      name: View Code
+
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/ciarancook3
+      name: My Twitter
+
+    - icon: fontawesome/brands/instagram
+      link: https://www.instagram.com/ciaran_cook0
+      name: My Instagram
+
+    - icon: fontawesome/solid/paper-plane
+      link: mailto:ciarancook0@gmail.com
+      name: Email Me
+    
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/channel/UCFexSWHGiTuA4ENCclFC84w
+      name: Find me on YoutTube
+
+copyright: Copyright &copy; 2025 Cairan Cook
+
+extra_css:
+  - stylesheets/extra.css
