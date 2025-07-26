@@ -12,6 +12,8 @@ export default function Home() {
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [output, setOutput] = useState("");
   const [lights, setLights] = useState<Array<Array<number>>>([]);
+  const [running, setRunning] = useState(false);
+  const [loop, setLoop] = useState<any>(null);
 
   // Load Pyodide when the component mounts
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function Home() {
       });
       setPyodide(pyodideInstance);
       pyodideInstance.FS.mkdir("pixel_driver");
-      ["util.py", "colors.py", "tree.csv", "treeTest.py", "prelude.py", "tree.py"].map((x) => {
+      ["util.py", "colors.py", "tree.csv", "treeTest.py", "prelude.py", "tree.py", "particle_system.py"].map((x) => {
         fetch(`http://localhost:3000/api/send-script?s=${x}`).then((res) =>
           res.text().then(res2 => {
             console.log(res2)
@@ -39,7 +41,7 @@ export default function Home() {
     editorRef.current = editor;
   }
 
-  function handleRun() {
+  function save() {
     if (pyodide) {
       try {
         pyodide.FS.writeFile("curPattern.py", `from prelude import *
@@ -63,6 +65,22 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
     }
   }
 
+  useEffect(() => {
+    if (running) {
+      setLoop(setInterval(() => {
+        const start = performance.now()
+        const res = pyodide.runPython(`
+curPattern.draw()
+list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
+`)
+        setLights(res.toJs())
+        const end = performance.now()
+        console.log("took: ", end - start)
+      }, 22))
+    }
+  }, [running])
+
+
   return (
     <div className="h-full flex flex-row">
       <div className="w-1/2 bg-slate-200 h-full">
@@ -71,11 +89,13 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
 import time
 import math
 
+wave_offset = 0  # this will move the wave up along the z-axis (height)
+
 def draw():
     wave_speed = 0.03
     wave_period = 0.5
     color_change_rate = 0.2
-    wave_offset = 0  # this will move the wave up along the z-axis (height)
+    global wave_offset
 
     # slowly change color over time for the wave (rainbow-like cycle)
     r = int((math.sin(color_change_rate * time.time()) + 1) / 2 * 255)
@@ -109,7 +129,8 @@ def draw():
           </Canvas>
 
         </div>
-        <button onClick={handleRun}>run</button>
+        <button onClick={save} className="cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2">save</button>
+        <button onClick={() => setRunning((a) => !a)} className="cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2">run</button>
         <div>{output}</div>
       </div>
       <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>

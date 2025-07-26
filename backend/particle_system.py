@@ -170,8 +170,6 @@ class ParticleSystem:
         for particle in self._particles:
             particle.draw(self.tree)
 
-        self.tree.update()
-
     def fast_draw(self):
         """Better for performance if there are lots of overlapping particles. However, it could
            lead to unpredictable overlap coloring
@@ -186,4 +184,3 @@ class ParticleSystem:
                     break
         # if len(self._particles) != 0:
             # print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
-        self.tree.update()
