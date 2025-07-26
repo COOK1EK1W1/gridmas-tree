@@ -14,6 +14,7 @@ export default function Home() {
   const [lights, setLights] = useState<Array<Array<number>>>([]);
   const [running, setRunning] = useState(false);
   const [loop, setLoop] = useState<any>(null);
+  const [loopTimes, setLoopTimes] = useState<number[]>([])
 
   // Load Pyodide when the component mounts
   useEffect(() => {
@@ -41,23 +42,28 @@ export default function Home() {
     editorRef.current = editor;
   }
 
-  function save() {
+  function handleRun() {
+    // stop running 
+    if (running) {
+      setRunning(false);
+      return
+    }
+
+    // we want to start running
     if (pyodide) {
       try {
         pyodide.FS.writeFile("curPattern.py", `from prelude import *
 ` + editorRef.current.getValue())
-        const res = pyodide.runPython(`import curPattern
+        pyodide.runPython(`import curPattern
 import prelude
 from tree import tree
 import importlib
 importlib.reload(curPattern)
-curPattern.draw()
-
-list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
 `)
-        console.log(res.toJs())
-        setLights(res.toJs())
+        setRunning(true)
+        setOutput("")
       } catch (error) {
+        setRunning(false)
         setOutput(error.toString());
       }
     } else {
@@ -65,18 +71,37 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
     }
   }
 
+  // if we see running change
   useEffect(() => {
     if (running) {
+      if (pyodide == null) {
+        setOutput("bruh")
+        return
+      }
       setLoop(setInterval(() => {
         const start = performance.now()
-        const res = pyodide.runPython(`
+        try {
+          const res = pyodide.runPython(`
 curPattern.draw()
 list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
 `)
-        setLights(res.toJs())
+          setLights(res.toJs())
+        } catch (error) {
+          setRunning(false)
+          setOutput(error.toString())
+        }
         const end = performance.now()
-        console.log("took: ", end - start)
+        setLoopTimes((a) => {
+          a.push(end - start)
+          if (a.length > 20) {
+            a.shift()
+          }
+          return a
+        })
       }, 22))
+    } else {
+      clearInterval(loop)
+
     }
   }, [running])
 
@@ -129,8 +154,8 @@ def draw():
           </Canvas>
 
         </div>
-        <button onClick={save} className="cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2">save</button>
-        <button onClick={() => setRunning((a) => !a)} className="cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2">run</button>
+        <button onClick={handleRun} className={`cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2 ${running ? "bg-green" : ""}`}>{!running ? "run" : "stop"}</button>
+        <p>{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</p>
         <div>{output}</div>
       </div>
       <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
