@@ -1,27 +1,8 @@
 from typing import Callable, Optional
-from pixel_driver.pixel_driver import PixelDriver
 from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
 import multiprocessing
 import time
 from colors import tcolors, Color, Pixel
-
-
-def pick_driver(num_leds: int) -> type[PixelDriver]:
-    try:
-        if num_leds > 500:
-            from pixel_driver import ws2812_tree_dual
-
-            return ws2812_tree_dual.ws2812_tree_dual
-        else:
-            from pixel_driver import ws2812_tree
-
-            return ws2812_tree.ws2812_tree
-
-    except ImportError:
-        print(f"{tcolors.WARNING}Using pygame simulator, Neopixels not found{tcolors.ENDC}\n")
-
-        from pixel_driver import sim_tree
-        return sim_tree.SimTree
 
 
 class Tree():
@@ -50,13 +31,6 @@ class Tree():
         self.coords = read_tree_csv()
 
         self.num_pixels = int(len(self.coords))
-
-        # create a 10 frame buffer to the pixel driver
-        self.frame_queue: multiprocessing.Queue[Optional[tuple[int, list[int]]]] = multiprocessing.Queue(10)
-
-        # select the correct pixel driver for the system, either physical or sim
-        driver = pick_driver(self.num_pixels)
-        self.pixel_driver = driver(self.frame_queue, self.coords)
 
         self.height = max([x[2] for x in self.coords])
 
@@ -89,39 +63,8 @@ class Tree():
         """
         return self.pixels[n]
 
-    def update(self):
-        """This pushes the pixel buffer to the pixel driver, for pc use this pushes
-           the buffer to the pygame+openGL simulator , when ran on a raspberry pi it
-           will push it to the LED strip
-
-           Update also regulates the frame rate; typically the tree will
-           target 45 fps, if your pattern runs faster than 22ms it will sleep the
-           rest of the time until its time to generate a new frame. This shouldn't
-           affect the end developer, as they should just think of the main while
-           loop running every 22ms
-
-        Raises:
-            STOPFLAG
-        """
-        t = time.perf_counter()
-        render_time = t - self.last_update
-        self.render_times.append(render_time)
-
-        # add frame to frame queue, if frame queue is full, then this blocks until space
-        self.frame_queue.put((self.fps, list(map(lambda x: x.to_int(), self.pixels))))
-
-        if self.stop_flag:
-            raise STOPFLAG("cancel")
-
-        if len(self.render_times) > 100:
-            self.render_times.pop(0)
-
-        if len(self.render_times) != 0:
-            avgrender = sum(self.render_times) / len(self.render_times)
-
-            if avgrender != 0:
-                print(f"render: {str(avgrender*1000)[0:5]}ms ps: {round((avgrender / (1/tree.fps))*100, 2)}%       ", end="\r")
-        self.last_update = time.perf_counter()
+    def request_frame(self):
+        return self.pixels
 
     def set_fps(self, fps: int):
         """Allows you to change the speed that you want the animation to run at.
