@@ -26,7 +26,7 @@ export default function PatternEditor() {
       setPyodide(pyodideInstance);
       pyodideInstance.FS.mkdir("pixel_driver");
       ["util.py", "colors.py", "tree.csv", "treeTest.py", "prelude.py", "tree.py", "particle_system.py"].map((x) => {
-        fetch(`${process.env.BASEURL}/api/send-script?s=${x}`).then((res) =>
+        fetch(`${process.env.NEXT_PUBLIC_BASEURL}/api/send-script?s=${x}`).then((res) =>
           res.text().then(res2 => {
             console.log(res2)
             pyodideInstance.FS.writeFile(x, res2)
