@@ -8,12 +8,12 @@ export default async function Pattern({ params }: { params: Promise<{ patternid:
   const patternId = (await params).patternid
 
   // get the user data
-  let userData = await auth.api.getSession({ headers: await headers() })
+  const userData = await auth.api.getSession({ headers: await headers() })
 
   // get the pattern data
   const patternData = await prisma.pattern.findUnique({ where: { id: patternId } })
   if (patternData == null) {
-    return (<div>this mission doesn't exist</div>)
+    return (<div>this mission doesn&apos;t exist</div>)
   }
 
   // import the mission from the data
