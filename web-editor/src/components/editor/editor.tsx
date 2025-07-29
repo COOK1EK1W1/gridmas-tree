@@ -2,9 +2,10 @@
 import CodeEditor from "./code";
 import { PyodideInterface } from "pyodide";
 import TreeVis from "./treevis";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditor } from "@/util/context/editorContext";
 import TopBar from "./topBar";
+import { Button } from "../ui/button";
 
 export default function PatternEditor() {
   const { codeRef, setLights } = useEditor()
@@ -12,10 +13,26 @@ export default function PatternEditor() {
 
 
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
   const [loop, setLoop] = useState<any>(null);
   const [loopTimes, setLoopTimes] = useState<number[]>([])
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  function appendOutput(x: string) {
+    setOutput((prev) => {
+      const a = [...prev, x]
+      if (a.length > 200) {
+        a.shift()
+      }
+      return a
+    })
+  }
+
+  useEffect(() => {
+    // Scrolls to the bottom every time messages change
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [output]);
 
   // Load Pyodide when the component mounts
   useEffect(() => {
@@ -23,6 +40,7 @@ export default function PatternEditor() {
       const pyodideInstance = await window.loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
       });
+      pyodideInstance.globals.set("print_to_react", appendOutput);
       setPyodide(pyodideInstance);
 
       // load all the core libraries
@@ -35,11 +53,44 @@ export default function PatternEditor() {
           })
         )
       })
+      pyodideInstance.runPython(`import sys
+
+class JSWriter:
+    def write(self, s):
+        if s.strip():
+            print_to_react(s)
+
+    def flush(self):
+        pass
+
+sys.stdout = JSWriter()
+sys.stderr = JSWriter()`)
     };
 
     loadPyodide();
   }, []);
 
+  //update the pattern in the filesystem
+  function handleUpdate() {
+    // we want to start running
+    if (pyodide && codeRef.current) {
+      try {
+        pyodide.FS.writeFile("curPattern.py", `from prelude import *
+` + codeRef.current.getValue())
+        pyodide.runPython(`import curPattern
+import prelude
+from tree import tree
+import importlib
+importlib.reload(curPattern)
+`)
+      } catch (error: any) {
+        setRunning(false)
+        setOutput([error.toString()]);
+      }
+    } else {
+      setOutput(["Pyodide is still loading..."]);
+    }
+  }
 
   function handleRun() {
     // stop running 
@@ -60,13 +111,13 @@ import importlib
 importlib.reload(curPattern)
 `)
         setRunning(true)
-        setOutput("")
+        setOutput([])
       } catch (error: any) {
         setRunning(false)
-        setOutput(error.toString());
+        setOutput([error.toString()]);
       }
     } else {
-      setOutput("Pyodide is still loading...");
+      setOutput(["Pyodide is still loading..."]);
     }
   }
 
@@ -74,7 +125,6 @@ importlib.reload(curPattern)
   useEffect(() => {
     if (running) {
       if (pyodide == null) {
-        setOutput("bruh")
         return
       }
       setLoop(setInterval(() => {
@@ -87,7 +137,7 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
           setLights(res.toJs())
         } catch (error: any) {
           setRunning(false)
-          setOutput(error.toString())
+          appendOutput(error.toString())
         }
         const end = performance.now()
         setLoopTimes((a) => {
@@ -104,7 +154,6 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
     }
   }, [running])
 
-
   return (
     <div className="h-full flex flex-row">
       <div className="w-1/2 bg-slate-200 h-full">
@@ -115,10 +164,21 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
         <div className="flex-grow">
           <TreeVis />
         </div>
-        <div className="h-30">
-          <button onClick={handleRun} className={`cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2 ${running ? "bg-green" : ""}`}>{!running ? "run" : "stop"}</button>
-          <p>{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</p>
-          <div>{output}</div>
+        <div className="h-52">
+          <div className="h-12">
+            <Button className="w-28 m-2" onClick={handleRun}>{!running ? "Run" : "Stop"}</Button>
+            <Button className="w-28 m-2" onClick={handleUpdate}>Update</Button>
+            <span className="w-28 m-2">{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</span>
+          </div>
+          <div className="h-40 overflow-auto">{output.map((x, i) => (
+            <p key={i} className={`px-2 font-mono ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+              {x}
+            </p>
+
+
+          ))}
+            <div ref={bottomRef} />
+          </div>
         </div>
       </div>
       <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
