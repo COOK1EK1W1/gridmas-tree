@@ -24,6 +24,8 @@ export default function PatternEditor() {
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.4/full/",
       });
       setPyodide(pyodideInstance);
+
+      // load all the core libraries
       pyodideInstance.FS.mkdir("pixel_driver");
       ["util.py", "colors.py", "tree.csv", "treeTest.py", "prelude.py", "tree.py", "particle_system.py"].map((x) => {
         fetch(`${process.env.NEXT_PUBLIC_BASEURL}/api/send-script?s=${x}`).then((res) =>
@@ -109,14 +111,15 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
         <TopBar />
         <CodeEditor />
       </div>
-      <div className="w-1/2 h-full">
-        <div className="h-[50dvh] bg-black">
+      <div className="w-1/2 h-screen flex flex-col">
+        <div className="flex-grow">
           <TreeVis />
-
         </div>
-        <button onClick={handleRun} className={`cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2 ${running ? "bg-green" : ""}`}>{!running ? "run" : "stop"}</button>
-        <p>{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</p>
-        <div>{output}</div>
+        <div className="h-30">
+          <button onClick={handleRun} className={`cursor-pointer bg-slate-800 w-28 py-1 rounded-xl m-2 ${running ? "bg-green" : ""}`}>{!running ? "run" : "stop"}</button>
+          <p>{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</p>
+          <div>{output}</div>
+        </div>
       </div>
       <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     </div >

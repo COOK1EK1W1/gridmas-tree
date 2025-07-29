@@ -7,9 +7,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body
-        className={`h-full`}
-      >
+      <body className={"fixed overflow-hidden h-[100dvh] w-full select-none"}>
         {children}
       </body>
     </html>
