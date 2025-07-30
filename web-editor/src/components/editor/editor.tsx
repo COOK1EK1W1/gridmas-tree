@@ -7,23 +7,31 @@ import { useEditor } from "@/util/context/editorContext";
 import TopBar from "./topBar";
 import { Button } from "../ui/button";
 
+type Message = {
+  content: string,
+  error: boolean,
+  frame: number
+}
+
 export default function PatternEditor() {
   const { codeRef, setLights } = useEditor()
 
 
 
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
-  const [output, setOutput] = useState<string[]>([]);
+  const [output, setOutput] = useState<Message[]>([]);
   const [running, setRunning] = useState(false);
   const [loop, setLoop] = useState<any>(null);
   const [loopTimes, setLoopTimes] = useState<number[]>([])
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  function appendOutput(x: string) {
+  console.log(output.length)
+  function appendOutput(x: string, frame: number) {
     setOutput((prev) => {
-      const a = [...prev, x]
-      if (a.length > 200) {
-        a.shift()
+      const a = [...prev, { content: x, frame: frame, error: false }]
+      // split the output to 200 lines so we get that buttery smooth scroll
+      if (a.length > 400) {
+        return a.slice(200, 200)
       }
       return a
     })
@@ -58,7 +66,7 @@ export default function PatternEditor() {
 class JSWriter:
     def write(self, s):
         if s.strip():
-            print_to_react(s)
+            print_to_react(s, 0)
 
     def flush(self):
         pass
@@ -88,7 +96,7 @@ importlib.reload(curPattern)
         setOutput([error.toString()]);
       }
     } else {
-      setOutput(["Pyodide is still loading..."]);
+      setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
     }
   }
 
@@ -117,7 +125,7 @@ importlib.reload(curPattern)
         setOutput([error.toString()]);
       }
     } else {
-      setOutput(["Pyodide is still loading..."]);
+      setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
     }
   }
 
@@ -137,7 +145,7 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
           setLights(res.toJs())
         } catch (error: any) {
           setRunning(false)
-          appendOutput(error.toString())
+          appendOutput(error.toString(), 0)
         }
         const end = performance.now()
         setLoopTimes((a) => {
@@ -171,9 +179,12 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
             <span className="w-28 m-2">{(loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)}ms / 22ms</span>
           </div>
           <div className="h-40 overflow-auto">{output.map((x, i) => (
-            <p key={i} className={`px-2 font-mono ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-              {x}
-            </p>
+            <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+              <p className="font-mono flex-grow">
+                {x.content}
+              </p>
+              <span className="text-slate-600 text-xs">frame {x.frame}</span>
+            </div>
 
 
           ))}
