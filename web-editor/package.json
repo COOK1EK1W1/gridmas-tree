@@ -23,6 +23,7 @@
     "pyodide": "^0.28.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-snowfall": "^2.3.0",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
