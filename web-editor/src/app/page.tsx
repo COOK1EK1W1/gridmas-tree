@@ -4,9 +4,10 @@ import { auth } from "@/util/auth";
 import prisma from "@/util/prisma";
 import { Pattern } from "@prisma/client";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 export default async function Home() {
-  let userData = await auth.api.getSession({ headers: await headers() })
+  const userData = await auth.api.getSession({ headers: await headers() })
   let patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
 
   // if user exists, then grab their personal projects
@@ -40,8 +41,10 @@ export default async function Home() {
       <Snow />
       <div className="w-full text-center py-16">
         <h1 className="text-8xl font-bold">GRIDmas Tree</h1>
-        <h2 className="text-2xl">Program GRID's Tree</h2>
+        <h2 className="text-2xl">Program GRID&apos;s Tree</h2>
       </div>
+
+      <Link href="/playground" className="p-2 bg-slate-200 text-black rounded-xl">Playground</Link>
 
       <div className="w-1/2">
         <h3> Example Patterns</h3>
