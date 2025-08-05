@@ -52,7 +52,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="bg-green-800 text-orange-100 w-full h-full flex flex-col items-center">
+    <div className="overflow-auto h-[100dvh] bg-green-800 text-orange-100 w-full h-full flex flex-col items-center">
       <Snow />
       <div className="w-full text-center py-8">
         <h1 className="text-6xl font-bold">GRIDmas Tree</h1>
