@@ -1,6 +1,5 @@
 from typing import Callable, Optional
 from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
-import multiprocessing
 import time
 from colors import tcolors, Color, Pixel
 
@@ -26,9 +25,12 @@ class Tree():
     """
 
     def __init__(self):
-        self.fps = 45
+        pass
 
-        self.coords = read_tree_csv()
+
+    def init(self, tree_file: str):
+        """Initialise / reset the tree"""
+        self.coords = read_tree_csv(tree_file)
 
         self.num_pixels = int(len(self.coords))
 
@@ -40,8 +42,7 @@ class Tree():
 
         self.last_update = time.perf_counter()
         self.render_times: list[float] = []
-
-        self.stop_flag = False
+        pass
 
     def set_light(self, n: int, color: Color):
         """Set the Nth light in the strip to the specified color
@@ -74,12 +75,6 @@ class Tree():
             fps (int): target fps for the animation.
         """
         self.fps = fps
-
-    def run(self):
-        """Internal
-        """
-        process = multiprocessing.Process(target=self.pixel_driver.run, args=())
-        process.start()
 
     def fade(self, n: float = 1.1):
         """Fade the entire tree.

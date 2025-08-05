@@ -16,9 +16,9 @@ def save_lights(light_locs: list[list[int]]) -> None:
         writer.writerows(light_locs)
 
 
-def read_tree_csv() -> list[tuple[float, float, float]]:
+def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
     # TODO fix this in the processing stage
-    with open("tree.csv") as csvfile:
+    with open(location) as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists: list[tuple[float, float, float]] = []
         for row in reader:

@@ -1,3 +1,4 @@
+import multiprocessing
 from types import ModuleType
 import random
 import time
@@ -60,19 +61,6 @@ def load_patterns(pattern_dir: str):
     patterns.sort(key=lambda x: x.name.upper())
     return patterns
 
-
-def run_pattern(name: str, fn: Callable[[], None]):
-    try:
-        fn()
-    except STOPFLAG:
-        tree.stop_flag = False
-    except Exception as e:
-        print(tcolors.FAIL + "####### PATTERN ERROR ######")
-        print(f"pattern name: {name}")
-        print(e)
-        print("############################" + tcolors.ENDC)
-
-
 class PatternManager:
     def __init__(self, pattern_dir: str):
         self.lock = threading.Lock()
@@ -82,9 +70,13 @@ class PatternManager:
 
         self.idle_stop_flag = False
         self.running_name = ""
+        self.request_queue = multiprocessing.Queue()
 
-        a = threading.Thread(target=self.start)
-        a.start()
+    def draw_current(self):
+        pass
+
+    def handle_queue(self):
+        pass
 
     def start(self):
         while True:

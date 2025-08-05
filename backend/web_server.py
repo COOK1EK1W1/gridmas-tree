@@ -8,8 +8,8 @@ from tree import tree
 from flask import Flask, request, render_template, send_from_directory
 
 
-def init(rate_limit: bool):
-    manager = PatternManager("patterns")
+def init(rate_limit: bool, patternManager: PatternManager):
+    manager = patternManager
 
     app = Flask(__name__,
                 static_folder='webserver/static',
