@@ -2,33 +2,59 @@
 import { useEditor } from "@/util/context/editorContext";
 import { tree } from "@/util/trees/2025";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { useState } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Camera } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "../ui/button";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
-const colors = ["bg-black", "bg-white", "bg-grey"]
 export default function TreeVis() {
   const { lights } = useEditor()
 
-  const [colorOpen, setColorOpen] = useState(false)
-  const [bgColor, setBgColor] = useState<(typeof colors)[number]>("bg-black")
+  const canvasRef = useRef<any>(null)
+
+  function handlePhoto() {
+    if (canvasRef.current === null) { return }
+
+    const dataURL = canvasRef.current.domElement.toDataURL("image/jpeg")
+
+    const image = new Image()
+    image.src = dataURL
+    image.onload = () => {
+      const newCanvas = document.createElement("canvas")
+      newCanvas.width = 420
+      newCanvas.height = 750
+      const ctx = newCanvas.getContext("2d")
+      if (!ctx) return
+      const startX = (image.width - 420) / 2;
+      const startY = (image.height - 750) / 2;
+      ctx.drawImage(image, startX, startY, 420, 750, 0, 0, 420, 750);
+
+      // Save cropped image
+      const croppedURL = newCanvas.toDataURL("image/jpeg");
+      const link = document.createElement("a");
+      link.download = "canvas-image.jpeg";
+      link.href = croppedURL;
+      document.body.appendChild(link)
+      link.click();
+      document.body.removeChild(link)
+    }
+
+  }
 
   return (
-    <div className={`h-full ${bgColor}`}>
-      {/* controls
-      <div className="relative top-2 left-2">
-        <div className={` h-10 bg-slate-500 duration-200 rounded-lg overflow-hidden ${colorOpen ? "w-30" : "w-10"}`} onMouseOver={() => setColorOpen(true)} onMouseOut={() => setColorOpen(false)} >
-          <span className={`${bgColor} rounded-lg w-8 h-8 inline-block m-1`} onMouseDown={(a) => { setColorOpen(!a) }} />
-          {colors.map((x, i) => (
-            <span key={i} className={`${x} rounded-lg w-8 h-8 inline-block m-1`} onMouseDown={() => setBgColor(x)} />
-          ))}
-        </div>
+    <div className={`h-full `}>
+      <div className="fixed bottom-2 right-2 hidden">
+        <Button onClick={handlePhoto} className="cursor-pointer z-1000">
+          <Camera />
+        </Button>
       </div>
-      */}
 
 
       {/* tree visualiser */}
-      <Canvas camera={{ translateY: 2 }}>
+      <Canvas style={{ background: "rgb(1, 1, 1)" }} gl={{ preserveDrawingBuffer: true }} onCreated={({ gl }) => {
+        canvasRef.current = gl
+      }} camera={{ translateY: 2 }}>
         <ambientLight />
         {tree.map(([x, y, z], i) => (
           <mesh key={i} position={[x, z, y]}>
@@ -73,7 +99,7 @@ export default function TreeVis() {
         <OrbitControls maxPolarAngle={Math.PI - 1} enablePan={false} target={[0, treeHeight / 2, 0]} />
       </Canvas>
 
-    </div>
+    </div >
   )
 
 }
