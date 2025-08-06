@@ -1,11 +1,13 @@
+from prelude import *
 import time
 import math
 
+wave_offset = 0  # this will move the wave up along the z-axis (height)
 def draw():
+    global wave_offset
     wave_speed = 0.03
     wave_period = 0.5
     color_change_rate = 0.2
-    wave_offset = 0  # this will move the wave up along the z-axis (height)
 
     # slowly change color over time for the wave (rainbow-like cycle)
     r = int((math.sin(color_change_rate * time.time()) + 1) / 2 * 255)
@@ -23,4 +25,4 @@ def draw():
         pixel.set_color(wave_intensity_color)
 
         # increase the wave offset to move the wave upwards
-        wave_offset = (wave_offset + wave_speed) % (6)
+    wave_offset = (wave_offset + wave_speed) % (6)

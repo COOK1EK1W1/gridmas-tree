@@ -4,9 +4,8 @@ from renderer import Renderer
 from pattern_manager import PatternManager
 from tree import tree
 from pattern_manager import PatternManager
-import web_server
+from web_server import DrawFrame, StartPattern, StopPattern, WebServer
 import argparse
-import multiprocessing
 
 
 parser = argparse.ArgumentParser(description="")
@@ -21,7 +20,7 @@ if __name__ == '__main__':
     # try load port from env
     port = args.port
     if port is None:
-        port = 3000
+        port = 4000
 
     is_rate_limit = False
     if args.rate_limit:
@@ -33,13 +32,25 @@ if __name__ == '__main__':
 
     renderer = Renderer(tree.coords)
 
-    app = web_server.init(is_rate_limit, patternManager)
-    multiprocessing.Process(target=app.run, kwargs={"debug":False, "host":"0.0.0.0", "use_reloader":False, "port":int(port)}).start()
+    web_server = WebServer(is_rate_limit, patternManager)
+    web_server.run(port)
 
     while True:
 
         # 1 handle web request queue
-        patternManager.handle_queue()
+        req = web_server.get_next_request()
+        while req != None:
+            match req:
+                case StopPattern():
+                    patternManager.unload_pattern()
+                    pass
+                case StartPattern(name=name):
+                    patternManager.load_pattern(name)
+                case DrawFrame(frame=frame):
+                    patternManager.unload_pattern()
+                case _: 
+                    pass
+            req = web_server.get_next_request()
 
         # 2. call draw()
         patternManager.draw_current()

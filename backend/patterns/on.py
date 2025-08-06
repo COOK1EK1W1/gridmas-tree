@@ -1,9 +1,10 @@
-from animations.wipe import wipe_frames
-from colors import Color
+from prelude import *
 
-name = "on"
-author = "Ciaran"
+i = 0
+def draw():
+    global i
+    for pixel in tree.pixels:
+        if pixel.z < i:
+            pixel.set_rgb(200, 55, 2)
 
-
-def run():
-    wipe_frames(0, 0, Color(200, 55, 2), 70)
+    i += tree.height / 70
