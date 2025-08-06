@@ -7,7 +7,7 @@ from pattern_manager import PatternManager
 from web_server import DrawFrame, StartPattern, StopPattern, WebServer
 import argparse
 
-
+# add the command line arguments
 parser = argparse.ArgumentParser(description="")
 parser.add_argument("--port", type=int, required=False, help="The port to host the Web Server")
 parser.add_argument("--tree-file", type=str, required=False, help="specify the tree file")
@@ -17,24 +17,29 @@ parser.add_argument("--pattern-dir", type=str, required=False, help="the directo
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    # try load port from env
-    port = args.port
-    if port is None:
-        port = 4000
+    # Start pattern manager and load patterns
+    patternManager = PatternManager(args.pattern_dir or "patterns/")
 
+    # initialise tree
+    tree.init(args.tree_file or "tree.csv")
+
+    # Initialise the rendering pipeline
+    renderer = Renderer(tree.coords)
+
+    # Web server
     is_rate_limit = False
     if args.rate_limit:
         is_rate_limit = True
 
-    patternManager = PatternManager(args.pattern_dir or "patterns/")
-
-    tree.init(args.tree_file or "tree.csv")
-
-    renderer = Renderer(tree.coords)
+    port = args.port
+    if port is None:
+        port = 4000
 
     web_server = WebServer(is_rate_limit, patternManager)
     web_server.run(port)
 
+
+    ## main loop
     while True:
 
         # 1 handle web request queue
@@ -43,11 +48,16 @@ if __name__ == '__main__':
             match req:
                 case StopPattern():
                     patternManager.unload_pattern()
-                    pass
+
                 case StartPattern(name=name):
                     patternManager.load_pattern(name)
+
                 case DrawFrame(frame=frame):
                     patternManager.unload_pattern()
+                    for i, pixel in enumerate(frame):
+                        if (pixel != None):
+                            tree.pixels[i].set_rgb(pixel[0], pixel[1], pixel[2])
+
                 case _: 
                     pass
             req = web_server.get_next_request()

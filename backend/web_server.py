@@ -2,7 +2,6 @@ from abc import ABC
 import multiprocessing
 from typing import Optional
 from pattern_manager import PatternManager
-import time
 import util
 import json
 from colors import Color
@@ -40,23 +39,25 @@ class WebServer:
         self.request_queue: multiprocessing.Queue[Request] = multiprocessing.Queue()
         self.process = None
 
+
+        ## util lights
+
         @app.route('/lighton')
         def lighton():
-            for i in range(tree.num_pixels):
-                tree.set_light(i, Color.white())
-            tree.update()
+            frame = DrawFrame([(255, 255, 255) for _ in range(tree.num_pixels)])
+            self.request_queue.put_nowait(frame)
             return "All On"
 
         @app.route('/lighton/<int:number>')
         def lightonN(number: int):
-            tree.set_light(number, Color.white())
-            tree.update()
+            frame = DrawFrame([(255, 255, 255) if i == number else None for i in range(tree.num_pixels)])
+            self.request_queue.put_nowait(frame)
             return "on"
 
         @app.route('/lightoff')
         def lightoff():
-            tree.black()
-            tree.update()
+            frame = DrawFrame([(0, 0, 0) for _ in range(tree.num_pixels)])
+            self.request_queue.put_nowait(frame)
             return "all off"
 
         @app.route('/setalllight', methods=['POST'])
@@ -69,9 +70,11 @@ class WebServer:
 
         @app.route('/lightoff/<int:number>')
         def lightoffN(number: int):
-            tree.set_light(number, Color.black())
-            tree.update()
+            frame = DrawFrame([(0, 0, 0) if i == number else None for i in range(tree.num_pixels)])
+            self.request_queue.put_nowait(frame)
             return "off"
+
+
 
         @app.route('/config/setlights', methods=['POST'])
         def setLight():
@@ -101,16 +104,6 @@ class WebServer:
             self.request_queue.put_nowait(StartPattern(pattern))
             return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
 
-        @app.route('/', methods=['GET'])
-        def home():
-            return render_template('index.html', patterns=[x for x in manager.patterns.keys()])
-
-        @app.route('/ratelimit.js')
-        def serve_js():
-            if rate_limit:
-                return send_from_directory("webserver/static", "ratelimit.js")
-            else:
-                return send_from_directory("webserver/static", "nonratelimit.js")
 
         @app.route('/setlights', methods=['POST'])
         def setLights():
@@ -124,6 +117,21 @@ class WebServer:
                 tree.set_light(i, color)
             tree.update()
             return "bruh"
+
+
+        ## Web interface
+
+        @app.route('/', methods=['GET'])
+        def home():
+            return render_template('index.html', patterns=[x for x in manager.patterns.keys()])
+
+        @app.route('/ratelimit.js')
+        def serve_js():
+            if rate_limit:
+                return send_from_directory("webserver/static", "ratelimit.js")
+            else:
+                return send_from_directory("webserver/static", "nonratelimit.js")
+
 
     def run(self, port: int):
         self.process = multiprocessing.Process(target=self.app.run, kwargs={"debug":False, "host":"0.0.0.0", "use_reloader":False, "port":int(port)})

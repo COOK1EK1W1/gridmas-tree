@@ -1,7 +1,7 @@
-from typing import Callable, Optional
-from util import STOPFLAG, generate_distance_map, linear, read_tree_csv
+from typing import Callable
+from util import generate_distance_map, linear, read_tree_csv
 import time
-from colors import tcolors, Color, Pixel
+from colors import Color, Pixel
 
 
 class Tree():
