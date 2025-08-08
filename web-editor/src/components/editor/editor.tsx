@@ -20,14 +20,15 @@ export default function PatternEditor() {
   const [output, setOutput] = useState<Message[]>([]);
   const [running, setRunning] = useState(false);
   const [loopTimes, setLoopTimes] = useState<number[]>([])
+  const [libsReady, setLibsReady] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  function appendOutput(x: string, frame: number) {
+  function appendOutput(x: string, frame: number, isError = false) {
     setOutput((prev) => {
-      const a = [...prev, { content: x, frame: frame, error: false }]
-      // split the output to 200 lines so we get that buttery smooth scroll
+      const a = [...prev, { content: x, frame: frame, error: isError }]
+      // keep console to last 200 lines for smooth scrolling
       if (a.length > 400) {
-        return a.slice(200, 200)
+        return a.slice(-200)
       }
       return a
     })
@@ -41,17 +42,19 @@ export default function PatternEditor() {
   // Initialize Pyodide when it's loaded
   useEffect(() => {
     if (pyodide && !loading) {
-      pyodide.globals.set("print_to_react", appendOutput);
+      pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
 
       // load all the core libraries
-      ["util.py", "colors.py", "tree.csv", "prelude.py", "tree.py", "particle_system.py"].map((x) => {
-        fetch(`${process.env.NEXT_PUBLIC_BASEURL}/api/send-script?s=${x}`).then((res) =>
-          res.text().then(res2 => {
-            pyodide.FS.writeFile(x, res2)
-          })
-        )
-      })
-      pyodide.runPython(`import sys
+      const files = ["util.py", "colors.py", "tree.csv", "prelude.py", "tree.py", "particle_system.py"]
+      const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
+      Promise.all(files.map(async (x) => {
+        const res = await fetch(`${base}/api/send-script?s=${x}`)
+        if (!res.ok) throw new Error(`Failed to fetch ${x}: ${res.status}`)
+        const res2 = await res.text()
+        pyodide.FS.writeFile(x, res2)
+      })).then(() => {
+        // redirect stdout/stderr after libs are in place
+        pyodide.runPython(`import sys
 
 class JSWriter:
     def write(self, s):
@@ -63,6 +66,13 @@ class JSWriter:
 
 sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
+        // initialize the tree so that tree.pixels etc. are available
+        pyodide.runPython(`from tree import tree\ntree.init("tree.csv")`)
+        setLibsReady(true)
+      }).catch((e: any) => {
+        setLibsReady(false)
+        appendOutput(`Failed to load core libraries: ${e?.message ?? String(e)}`, 0, true)
+      })
     }
   }, [pyodide, loading]);
 
@@ -71,6 +81,10 @@ sys.stderr = JSWriter()`)
     if (!pyodide || !codeRef.current) {
       setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
       return false;
+    }
+    if (!libsReady) {
+      appendOutput("Runtime is initializing libraries...", 0, true)
+      return false
     }
 
     try {
@@ -118,14 +132,19 @@ importlib.reload(curPattern)
       const interval = setInterval(() => {
         const start = performance.now()
         try {
-          const res = pyodide.runPython(`
+          const res: any = pyodide.runPython(`
 curPattern.draw()
 list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
 `)
-          setLights(res.toJs())
+          const lights = res.toJs()
+          setLights(lights)
+          // prevent PyProxy leaks on older pyodide versions
+          if (typeof res?.destroy === 'function') {
+            res.destroy()
+          }
         } catch (error: any) {
           setRunning(false)
-          appendOutput(error.toString(), 0)
+          appendOutput(error.toString(), 0, true)
         }
         const end = performance.now()
         setLoopTimes((prev) => {
@@ -138,6 +157,13 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
     }
   }, [running, pyodide])
 
+  const avgMs = loopTimes.length > 0
+    ? (loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length)
+    : 0
+  const fps = avgMs > 0 ? (1000 / avgMs) : 0
+
+  const isReady = !!pyodide && libsReady && !loading
+
   return (
     <div className="h-full flex flex-row">
       <div className="w-1/2 bg-slate-200 h-full">
@@ -149,26 +175,28 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
           <TreeVis />
         </div>
         <div className="h-52">
-          <div className="h-12">
-            <Button className="w-28 m-2" onClick={handleRun}>{!running ? "Run" : "Stop"}</Button>
-            <Button className="w-28 m-2" onClick={handleUpdate}>Update</Button>
+          <div className="h-12 flex items-center">
+            <Button className="w-28 m-2" onClick={handleRun} disabled={!isReady}>
+              {!running ? (isReady ? "Run" : "Loading…") : "Stop"}
+            </Button>
+            <Button className="w-28 m-2" onClick={handleUpdate} disabled={!isReady}>Update</Button>
             <span className="w-28 m-2">
-              {loopTimes.length > 0
-                ? (loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length).toFixed(2)
-                : "0.00"
-              }ms / 22ms
+              {avgMs.toFixed(2)}ms ({fps.toFixed(1)} fps) / 22ms
             </span>
           </div>
-          <div className="h-40 overflow-auto">{output.map((x, i) => (
-            <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-              <p className="font-mono flex-grow">
-                {x.content}
-              </p>
-              <span className="text-slate-600 text-xs">frame {x.frame}</span>
-            </div>
+          <div className="h-40 overflow-auto">
+            {output.map((x, i) => (
+              <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+                <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
+                  {x.content}
+                </p>
+                {x.frame !== 0 && (
+                  <span className="text-slate-600 text-xs">frame {x.frame}</span>
+                )}
+              </div>
 
 
-          ))}
+            ))}
             <div ref={bottomRef} />
           </div>
         </div>
