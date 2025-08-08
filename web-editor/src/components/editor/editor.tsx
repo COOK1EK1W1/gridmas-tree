@@ -14,7 +14,7 @@ type Message = {
 }
 
 export default function PatternEditor() {
-  const { codeRef, setLights } = useEditor()
+  const { codeRef } = useEditor()
   const { pyodide, loading } = usePyodide();
 
   const [output, setOutput] = useState<Message[]>([]);
@@ -123,40 +123,6 @@ importlib.reload(curPattern)
     }
   }
 
-  // if we see running change
-  useEffect(() => {
-    if (running) {
-      if (pyodide == null) {
-        return
-      }
-      const interval = setInterval(() => {
-        const start = performance.now()
-        try {
-          const res: any = pyodide.runPython(`
-curPattern.draw()
-list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
-`)
-          const lights = res.toJs()
-          setLights(lights)
-          // prevent PyProxy leaks on older pyodide versions
-          if (typeof res?.destroy === 'function') {
-            res.destroy()
-          }
-        } catch (error: any) {
-          setRunning(false)
-          appendOutput(error.toString(), 0, true)
-        }
-        const end = performance.now()
-        setLoopTimes((prev) => {
-          const newTimes = [...prev, end - start];
-          return newTimes.slice(-20); // Keep only last 20 times
-        })
-      }, 22)
-
-      return () => clearInterval(interval)
-    }
-  }, [running, pyodide])
-
   const avgMs = loopTimes.length > 0
     ? (loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length)
     : 0
@@ -172,7 +138,7 @@ list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2
       </div>
       <div className="w-1/2 h-screen flex flex-col">
         <div className="flex-grow">
-          <TreeVis />
+          <TreeVis pyodide={pyodide} running={running} />
         </div>
         <div className="h-52">
           <div className="h-12 flex items-center">

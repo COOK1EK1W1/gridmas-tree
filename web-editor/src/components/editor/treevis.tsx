@@ -1,17 +1,20 @@
 "use client"
-import { useEditor } from "@/util/context/editorContext";
 import { tree } from "@/util/trees/2025";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
-export default function TreeVis() {
-  const { lights } = useEditor()
+export default function TreeVis({ pyodide, running }: { pyodide: any, running: boolean }) {
 
+  const [lights, setLights] = useState<number[][]>([])
   const canvasRef = useRef<any>(null)
+  const matRefs = []
+  for (let i = 0; i < tree.length; i++) {
+    matRefs.push(useRef(null))
+  }
 
   function handlePhoto() {
     if (canvasRef.current === null) { return }
@@ -42,6 +45,42 @@ export default function TreeVis() {
 
   }
 
+
+  // if we see running change
+  useEffect(() => {
+    if (running) {
+      if (pyodide == null) {
+        return
+      }
+      const interval = setInterval(() => {
+        const start = performance.now()
+        try {
+          const res: any = pyodide.runPython(`
+curPattern.draw()
+list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
+`)
+          const lights = res.toJs()
+          for (let i = 0; i < tree.length; i++) {
+            matRefs[i].current.color.r = lights[i][0]
+            matRefs[i].current.color.g = lights[i][1]
+            matRefs[i].current.color.b = lights[i][2]
+            //matRefs[i].current.color = [lights[i][0] / 255, lights[i][1] / 255, lights[i][2] / 255]
+          }
+          // prevent PyProxy leaks on older pyodide versions
+          if (typeof res?.destroy === 'function') {
+            res.destroy()
+          }
+        } catch (error: any) {
+          console.log(error)
+        }
+        const end = performance.now()
+      }, 22)
+
+      return () => clearInterval(interval)
+    }
+  }, [running, pyodide])
+
+
   return (
     <div className={`h-full `}>
       <div className="fixed bottom-2 right-2 hidden">
@@ -59,7 +98,7 @@ export default function TreeVis() {
         {tree.map(([x, y, z], i) => (
           <mesh key={i} position={[x, z, y]}>
             <sphereGeometry args={[0.025]} />
-            <meshStandardMaterial color={lights[i] ? [lights[i][0], lights[i][1], lights[i][2]] : [0, 0, 0]} />
+            <meshStandardMaterial ref={matRefs[i]} color={[0, 0, 0]} />
           </mesh>
         ))}
         {/*  X axis  */}
