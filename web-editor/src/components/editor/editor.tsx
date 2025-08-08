@@ -120,6 +120,7 @@ importlib.reload(curPattern)
     if (updatePattern()) {
       setRunning(true)
       setOutput([])
+      setLoopTimes([])
     }
   }
 
@@ -138,7 +139,12 @@ importlib.reload(curPattern)
       </div>
       <div className="w-1/2 h-screen flex flex-col">
         <div className="flex-grow">
-          <TreeVis pyodide={pyodide} running={running} />
+          <TreeVis
+            pyodide={pyodide}
+            running={running}
+            onFrameMs={(ms) => setLoopTimes((prev) => [...prev.slice(-199), ms])}
+            onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
+          />
         </div>
         <div className="h-52">
           <div className="h-12 flex items-center">

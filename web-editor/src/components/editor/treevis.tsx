@@ -3,18 +3,30 @@ import { tree } from "@/util/trees/2025";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Camera } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, createRef } from "react";
 import { Button } from "../ui/button";
+import type { MeshStandardMaterial } from "three";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
-export default function TreeVis({ pyodide, running }: { pyodide: any, running: boolean }) {
+export default function TreeVis({
+  pyodide,
+  running,
+  onFrameMs,
+  onLog,
+}: {
+  pyodide: any,
+  running: boolean,
+  onFrameMs?: (ms: number) => void,
+  onLog?: (message: string, frame: number, isError?: boolean) => void,
+}) {
 
-  const [lights, setLights] = useState<number[][]>([])
   const canvasRef = useRef<any>(null)
-  const matRefs = []
-  for (let i = 0; i < tree.length; i++) {
-    matRefs.push(useRef(null))
-  }
+  const frameRef = useRef<number>(0)
+
+  // Create stable refs for each material without calling hooks in a loop
+  const matRefs = useMemo(() => (
+    Array.from({ length: tree.length }, () => createRef<MeshStandardMaterial>())
+  ), [])
 
   function handlePhoto() {
     if (canvasRef.current === null) { return }
@@ -52,6 +64,7 @@ export default function TreeVis({ pyodide, running }: { pyodide: any, running: b
       if (pyodide == null) {
         return
       }
+      frameRef.current = 0
       const interval = setInterval(() => {
         const start = performance.now()
         try {
@@ -59,26 +72,31 @@ export default function TreeVis({ pyodide, running }: { pyodide: any, running: b
 curPattern.draw()
 list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
 `)
-          const lights = res.toJs()
+          const lights: number[][] = res.toJs()
           for (let i = 0; i < tree.length; i++) {
-            matRefs[i].current.color.r = lights[i][0]
-            matRefs[i].current.color.g = lights[i][1]
-            matRefs[i].current.color.b = lights[i][2]
-            //matRefs[i].current.color = [lights[i][0] / 255, lights[i][1] / 255, lights[i][2] / 255]
+            const mat = matRefs[i].current
+            if (mat) {
+              // use setRGB for clarity
+              mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
+            }
           }
           // prevent PyProxy leaks on older pyodide versions
           if (typeof res?.destroy === 'function') {
             res.destroy()
           }
         } catch (error: any) {
-          console.log(error)
+          // surface errors to the parent output panel
+          onLog?.(String(error), frameRef.current, true)
+        } finally {
+          const end = performance.now()
+          onFrameMs?.(end - start)
+          frameRef.current += 1
         }
-        const end = performance.now()
       }, 22)
 
       return () => clearInterval(interval)
     }
-  }, [running, pyodide])
+  }, [running, pyodide, matRefs, onFrameMs, onLog])
 
 
   return (
