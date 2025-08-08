@@ -1,3 +1,4 @@
+import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
 import Snow from "@/components/landing/snowLayer";
 import { Button } from "@/components/ui/button";
@@ -8,17 +9,27 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
-
-function Example({ title, image, link }: { title: string, image: string, link: string }) {
+function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
+  const bulbColors = ["#ef4444", "#22c55e", "#f59e0b", "#60a5fa", "#e879f9"]; // red, green, amber, blue, pink
+  const bulbs = Array.from({ length: 36 });
   return (
-    <Link href={link}>
-      <div className="bg-slate-300 rounded-xl overflow-hidden" >
-        <Image width={140} height={250} src={image} alt="3dplasma tree" />
-        <h4 className="text-center">{title}</h4>
-      </div >
-    </Link >
-  )
-
+    <div className="pointer-events-none relative w-full" aria-hidden>
+      <div className={`absolute inset-x-0 ${position === "top" ? "-top-2" : "-bottom-2"} flex justify-center`}>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {bulbs.map((_, i) => {
+            const color = bulbColors[i % bulbColors.length];
+            return (
+              <span
+                key={i}
+                className="festive-bulb h-2 w-2 rounded-full"
+                style={{ color, animationDelay: `${i * 0.08}s` }}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default async function Home() {
@@ -52,41 +63,46 @@ export default async function Home() {
   }
 
   return (
-    <div className="overflow-auto h-[100dvh] bg-green-800 text-orange-100 w-full h-full flex flex-col items-center">
+    <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
       <Snow />
+
+      {/* Background festive glows */}
+      <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-red-500/20 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute bottom-10 right-10 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
+
       <div className="w-full text-center py-8">
-        <h1 className="text-6xl font-bold">GRIDmas Tree</h1>
-        <h2 className="text-2xl">Program GRID&apos;s Tree</h2>
+        <h1 className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.15)]">
+          GRIDmas Tree
+        </h1>
+        <h2 className="text-2xl mt-2">Program GRID&apos;s Tree ✨❄️</h2>
       </div>
+
+      <FestiveLights position="top" />
 
       <div className="flex gap-2 py-8">
         <Link href="/playground">
-          <Button>Playground</Button>
+          <Button className="bg-red-600 hover:bg-red-700 text-white border border-red-300/40 shadow-lg shadow-red-500/20 hover:shadow-red-500/40 transition-transform hover:-translate-y-0.5">Playground</Button>
         </Link>
         <Link href="/reference">
-          <Button>Reference</Button>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-300/40 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-transform hover:-translate-y-0.5">Reference</Button>
         </Link>
       </div>
 
-      <div className="w-8/9 md:w-125 lg:w-200">
-        <h3> Example Patterns</h3>
-        <div className="text-black w-full bg-slate-200 rounded-4xl my-2 flex flex-wrap p-4 gap-4">
-
-          <Example title="3D Plasma" image="/3dplasma.jpeg" link="/p/3dplasma" />
-          <Example title="3D Fire" image="/3dfire.jpeg" link="/p/3dfire" />
-          <Example title="Caduceus" image="/caduceus.jpeg" link="/p/caduceus" />
-          <Example title="Borealis" image="/borealis.jpeg" link="/p/borealis" />
-          <Example title="Wave Flow" image="/waveflow.jpeg" link="/p/waveflow" />
-
+      <div>
+        <h3 className="font-semibold tracking-wide">🎄 Your Patterns</h3>
+        <div className="candy-frame rounded-4xl my-2">
+          <PersonalPatterns patterns={patterns} />
         </div>
       </div>
 
-
-      <div className="w-8/9 md:w-125 lg:w-200">
-        <h3> Your Patterns</h3>
-        <PersonalPatterns patterns={patterns} />
+      <div>
+        <h3 className="font-semibold tracking-wide">🎁 Example Patterns</h3>
+        <div className="candy-frame rounded-4xl my-2">
+          <ExampleProjects />
+        </div>
       </div>
 
-    </div >
+      <FestiveLights position="bottom" />
+    </div>
   )
 }

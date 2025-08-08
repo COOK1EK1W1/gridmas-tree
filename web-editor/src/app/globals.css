@@ -125,3 +125,53 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.55; transform: translateY(0px); }
+  50% { opacity: 1; transform: translateY(1px); }
+}
+
+.candy-border {
+  border: 6px solid;
+  border-image: repeating-linear-gradient(
+    45deg,
+    #ef4444 0 12px,
+    #ffffff 12px 24px,
+    #16a34a 24px 36px,
+    #ffffff 36px 48px
+  ) 8;
+}
+
+.festive-bulb {
+  background-color: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  animation: twinkle 2.4s infinite;
+}
+
+.candy-frame {
+  position: relative;
+  border-radius: 1.5rem; /* matches rounded-4xl */
+  padding: 12px; /* space between border and content */
+  border: 5px solid transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    repeating-linear-gradient(
+      45deg,
+      #ef4444 0 10px,
+      #ffffff 10px 20px,
+      #16a34a 20px 30px,
+      #ffffff 30px 40px
+    ) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.candy-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
