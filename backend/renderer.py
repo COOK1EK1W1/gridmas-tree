@@ -4,13 +4,12 @@ import multiprocessing
 
 class Renderer:
     def __init__(self, coords: list[tuple[float, float, float]]):
-        driver = self.pick_driver(len(coords))
 
         # create a 10 frame buffer to the pixel driver
         self.frame_queue: multiprocessing.Queue[Optional[tuple[int, list[int]]]] = multiprocessing.Queue(10)
 
         # select the correct pixel driver for the system, either physical or sim
-        driver = self.pick_driver(len(coords))
+        driver = self._pick_driver(len(coords))
         self.pixel_driver = driver(self.frame_queue, coords)
 
         self.fps = 45
@@ -18,13 +17,13 @@ class Renderer:
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
         process.start()
 
-    def add_to_queue(self, frame: list[Pixel]):
+    def add_to_queue(self, frame: list[int]):
         """Add a frame to the queue to be rendered
         This function blocks until there is space in the queue"""
-        self.frame_queue.put((self.fps, list(map(lambda x: x.to_int(), frame))))
+        self.frame_queue.put((self.fps, frame))
         pass
 
-    def pick_driver(self, num_leds: int):
+    def _pick_driver(self, num_leds: int):
         """Pick the driver for renderign, if we have pygame use that, else we can use pixel"""
         try:
             if num_leds > 500:

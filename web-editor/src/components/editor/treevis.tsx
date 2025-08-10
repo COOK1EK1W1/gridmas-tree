@@ -70,9 +70,9 @@ export default function TreeVis({
         try {
           const res: any = pyodide.runPython(`
 curPattern.draw()
-list(map(lambda x: [x.to_tuple()[0] / 255, x.to_tuple()[1] / 255, x.to_tuple()[2] / 255], tree.request_frame()))
+tree.request_frame()
 `)
-          const lights: number[][] = res.toJs()
+          const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
           for (let i = 0; i < tree.length; i++) {
             const mat = matRefs[i].current
             if (mat) {

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from util import generate_distance_map, linear, read_tree_csv
 import time
 from colors import Color, Pixel
@@ -29,7 +29,8 @@ class Tree():
 
 
     def init(self, tree_file: str):
-        """Initialise / reset the tree"""
+        """For internal use
+        Initialise / reset the tree"""
         self.coords = read_tree_csv(tree_file)
 
         self.num_pixels = int(len(self.coords))
@@ -42,7 +43,29 @@ class Tree():
 
         self.last_update = time.perf_counter()
         self.render_times: list[float] = []
-        pass
+
+    def request_frame(self):
+        """For internal use
+        return the current pixel buffer"""
+        colors: list[int] = []
+
+        # loop for every pixel and determine what color it should be
+        for i in range(self.num_pixels):
+
+            # 1. check if the pixel has been directly changed
+            if self.pixels[i].changed:
+                colors.append(self.pixels[i].to_int())
+                self.pixels[i].changed = False
+                continue
+
+            # 2. check for objects
+
+            # 3. check for background
+
+            # default last color used.
+            colors.append(self.pixels[i].to_int())
+
+        return colors
 
     def set_light(self, n: int, color: Color):
         """Set the Nth light in the strip to the specified color
@@ -63,9 +86,6 @@ class Tree():
             Pixel: The light that you have requested. You can then set the color of it directly
         """
         return self.pixels[n]
-
-    def request_frame(self):
-        return self.pixels
 
     def set_fps(self, fps: int):
         """Allows you to change the speed that you want the animation to run at.
@@ -114,18 +134,11 @@ class Tree():
         for pixel in self.pixels:
             pixel.lerp(color.to_tuple(), frames, fn=fn)
 
-    def sleep(self, frames: int, allow_lerp: bool = False):
-        """_summary_
-
-        Args:
-            frames (int): _description_
-            allow_lerp (bool, optional): _description_. Defaults to False.
-        """
-        for _ in range(frames):
-            if allow_lerp:
-                for pixel in tree.pixels:
-                    pixel.cont_lerp()
-            self.update()
-
+def pixels(a: Optional[int] = None):
+    global tree
+    if a is None:
+        return tree.pixels
+    else:
+        return tree.pixels[a]
 
 tree = Tree()

@@ -15,6 +15,8 @@ from typing import Callable, Union
 from util import linear
 
 
+
+
 class tcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -41,9 +43,10 @@ class Color:
     """
 
     def __init__(self, r: int, g: int, b: int):
-        self.r: int = r & 0xff
-        self.g: int = g & 0xff
-        self.b: int = b & 0xff
+        self.changed = False
+        self._r: int = r & 0xff
+        self._g: int = g & 0xff
+        self._b: int = b & 0xff
 
         self._L_previous = (0, 0, 0)
         self._L_target = (0, 0, 0)
@@ -52,6 +55,18 @@ class Color:
         self._L_total = 1
 
         self._L_fn = linear
+
+    @property
+    def r(self):
+        return self._r
+
+    @property
+    def g(self):
+        return self._g
+
+    @property
+    def b(self):
+        return self._b
 
     def set_rgb(self, r: int, g: int, b: int):
         """Set the red, green and blue values of the color.
@@ -62,11 +77,12 @@ class Color:
             g (int): Green value: 0 - 255
             b (int): Blue value: 0 - 255
         """
-        self.r = r & 0xff
-        self.g = g & 0xff
-        self.b = b & 0xff
+        self._r = r & 0xff
+        self._g = g & 0xff
+        self._b = b & 0xff
 
         self.lerp_reset()
+        self.changed = True
 
     def set_color(self, color: 'Color'):
         """Set the color to another named color.
@@ -75,6 +91,7 @@ class Color:
             color (Color): Named color
         """
         self.set_rgb(*color.to_tuple())
+        self.changed = True
 
     def fade(self, n: float = 1.1):
         """Fade the color slightly
@@ -82,11 +99,12 @@ class Color:
         Args:
             n (float, optional): The greater the value of n, the faster the fade will progress. Values less than 0 cause the color to get brighter to a max color of white. Defaults to 1.1.
         """
-        self.r = int(clamp(self.r / n, 0, 255))
-        self.g = int(clamp(self.g / n, 0, 255))
-        self.b = int(clamp(self.b / n, 0, 255))
+        self._r = int(clamp(self.r / n, 0, 255))
+        self._g = int(clamp(self.g / n, 0, 255))
+        self._b = int(clamp(self.b / n, 0, 255))
 
         self.lerp_reset()
+        self.changed = True
 
     def to_hex(self) -> str:
         """Returns the hex value of an RGB color
@@ -152,9 +170,10 @@ class Color:
         percent = clamp(self._L_step / self._L_total, 0, 1)
         d = self._L_fn(percent)
 
-        self.r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
-        self.g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
-        self.b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
+        self._r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
+        self._g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
+        self._b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
+        self.changed = True
 
     @staticmethod
     def from_hex(s: str) -> 'Color':
@@ -184,51 +203,6 @@ class Color:
         return Color(int(r * 255), int(g * 255), int(b * 255))
 
     @staticmethod
-    def white() -> 'Color':
-        """The color white
-
-        Returns:
-            Color: White
-        """
-        return Color(255, 255, 255)
-
-    @staticmethod
-    def black() -> 'Color':
-        """The color black. Since LED's can't be black. This is equivalent to off.
-
-        Returns:
-            Color: Black
-        """
-        return Color(0, 0, 0)
-
-    @staticmethod
-    def red() -> 'Color':
-        """The color red
-
-        Returns:
-            Color: Red
-        """
-        return Color(255, 0, 0)
-
-    @staticmethod
-    def green() -> 'Color':
-        """The color green
-
-        Returns:
-            Color: Green
-        """
-        return Color(0, 255, 0)
-
-    @staticmethod
-    def blue() -> 'Color':
-        """The color blue
-
-        Returns:
-            Color: Blue
-        """
-        return Color(0, 0, 255)
-
-    @staticmethod
     def random(saturation: float = 1, lightness: float = 0.6) -> 'Color':
         """Generate a random color.
            The random value is for the Hue. The saturation and lightness can be specified
@@ -256,6 +230,82 @@ class Color:
         newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
         nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
         return Color(int(nr), int(ng), int(nb))
+
+    @staticmethod
+    def black():
+        return Color(0, 0, 0)
+
+    @staticmethod
+    def red():
+        return Color(255, 0, 0)
+
+    @staticmethod
+    def orange():
+        return Color(252, 81, 8)
+
+    @staticmethod
+    def amber():
+        return Color(251, 136, 10)
+
+    @staticmethod
+    def yellow():
+        return Color(234, 163, 8)
+
+    @staticmethod
+    def lime():
+        return Color(107, 202, 3)
+
+    @staticmethod
+    def green():
+        return Color(0, 255, 0)
+
+    @staticmethod
+    def emerald():
+        return Color(23, 178, 106)
+
+    @staticmethod
+    def teal():
+        return Color(23, 175, 150)
+
+    @staticmethod
+    def cyan():
+        return Color(21, 170, 210)
+
+    @staticmethod
+    def sky():
+        return Color(20, 146, 241)
+
+    @staticmethod
+    def blue():
+        return Color(0, 0, 255)
+
+    @staticmethod
+    def indigo():
+        return Color(78, 64, 255)
+
+    @staticmethod
+    def violet():
+        return Color(122, 47, 255)
+
+    @staticmethod
+    def purple():
+        return Color(155, 30, 255)
+
+    @staticmethod
+    def fuchsia():
+        return Color(215, 0, 250)
+
+    @staticmethod
+    def pink():
+        return Color(240, 15, 137)
+
+    @staticmethod
+    def rose():
+        return Color(251, 0, 69)
+
+    @staticmethod
+    def white():
+        return Color(255, 255, 255)
 
 
 class Pixel(Color):
