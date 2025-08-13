@@ -11,6 +11,7 @@ constructor(r, g, b)
 rgb(r, g, b)
 hsl(h, s, l)
 hex(s)
+bit_string(i)
 random(saturation, lightness)
 different_from(c: Color)
 
@@ -37,12 +38,9 @@ black()
 ### instance methods
 
 to_tuple()
-to_hex()
 to_hsl()
-
-brightness()
-hue()
-saturation()
+to_hex()
+to_bit_string()
 
 
 on() // set to white

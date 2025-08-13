@@ -53,8 +53,8 @@ class Tree():
         for i in range(self.num_pixels):
 
             # 1. check if the pixel has been directly changed
-            if self.pixels[i].changed:
-                colors.append(self.pixels[i].to_int())
+            if self.pixels[i]._changed:
+                colors.append(self.pixels[i].to_bit_string())
                 self.pixels[i].changed = False
                 continue
 
@@ -63,7 +63,7 @@ class Tree():
             # 3. check for background
 
             # default last color used.
-            colors.append(self.pixels[i].to_int())
+            colors.append(self.pixels[i].to_bit_string())
 
         return colors
 

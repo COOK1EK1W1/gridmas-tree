@@ -1,6 +1,6 @@
 from typing import Optional
-from colors import Pixel, tcolors
 import multiprocessing
+from util import tcolors
 
 class Renderer:
     def __init__(self, coords: list[tuple[float, float, float]]):

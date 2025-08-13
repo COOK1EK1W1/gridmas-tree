@@ -3,6 +3,7 @@
 
 import csv
 import math
+from typing import Iterable, Union
 
 
 def save_lights(light_locs: list[list[int]]) -> None:
@@ -10,6 +11,19 @@ def save_lights(light_locs: list[list[int]]) -> None:
         writer = csv.writer(file)
         writer.writerows(light_locs)
 
+class tcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
+    return min(max(val, minv), maxv)
 
 def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
     # TODO fix this in the processing stage
@@ -31,9 +45,7 @@ def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
     return list_of_lists
 
 
-def euclidean_distance(a: list[float], b: list[float]) -> float:
-    if len(a) != len(b):
-        raise Exception("mismatch input size")
+def dist(a: Iterable[float], b: Iterable[float]) -> float:
     total = 0
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2
@@ -45,7 +57,7 @@ def generate_distance_map(coords: list[tuple[float, float, float]]) -> list[list
     for fr in coords:
         inter: list[float] = []
         for to in coords:
-            inter.append(euclidean_distance([x for x in fr], [x for x in to]))
+            inter.append(dist([x for x in fr], [x for x in to]))
         ret.append(inter)
     return ret
 
