@@ -18,6 +18,12 @@ export default function PersonalPatterns({ patterns }: { patterns: Pick<Pattern,
     console.log(`${action} clicked for`, id)
   }
 
+  if (patterns.length == 0) {
+    return (
+      <p className="text-black w-full">You have no patterns yet!</p>
+    )
+  }
+
   return (
     <div className="text-black w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 p-4 gap-4">
       {patterns.map((pattern) => (
