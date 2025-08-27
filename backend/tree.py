@@ -39,7 +39,7 @@ class Tree():
 
         self.distances = generate_distance_map(self.coords)
 
-        self.pixels: list[Pixel] = [Pixel((x[0], x[1], x[2])) for x in self.coords]
+        self.pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2])) for i, x in enumerate(self.coords)]
 
         self.last_update = time.perf_counter()
         self.render_times: list[float] = []
@@ -74,7 +74,7 @@ class Tree():
             n (int): The light you want to set
             color (Color): The color that you want to set the light to
         """
-        self.pixels[n].set_color(color)
+        self.pixels[n].set(color)
 
     def get_light(self, n: int) -> Pixel:
         """Get the Nth light on the strip
@@ -121,7 +121,7 @@ class Tree():
             color (Color): The color you want to set the tree to
         """
         for pixel in self.pixels:
-            pixel.set_color(color)
+            pixel.set(color)
 
     def lerp(self, color: Color, frames: int, fn: Callable[[float], float] = linear):
         """Lerp the entire tree from its current color to the target color over the specified amount of frames

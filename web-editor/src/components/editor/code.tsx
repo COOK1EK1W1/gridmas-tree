@@ -36,7 +36,7 @@ def draw():
         wave_intensity_color = Color(int(wave_color[0] * intensity), int(wave_color[1] * intensity), int(wave_color[2] * intensity))
 
         # set the light to the calculated color
-        pixel.set_color(wave_intensity_color)
+        pixel.set(wave_intensity_color)
 
         # increase the wave offset to move the wave upwards
     wave_offset = (wave_offset + wave_speed) % (6)` : pattern} />

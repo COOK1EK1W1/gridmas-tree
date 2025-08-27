@@ -223,6 +223,7 @@ class Color:
         """
 
         self.set_lerp(target, n, override, fn)
+        self.cont_lerp()
   
     def lerp_reset(self):
         self._L_previous = (self.r, self.g, self.b)
@@ -254,6 +255,14 @@ class Color:
 
     def set(self, c: "Color"):
         """Set the color to another color by value"""
+        self._r = c._r
+        self._g = c._g
+        self._b = c._b
+
+        self.lerp_reset()
+        self.changed = True
+
+    def set_color(self, c: "Color"):
         self._r = c._r
         self._g = c._g
         self._b = c._b

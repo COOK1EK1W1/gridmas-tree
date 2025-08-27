@@ -54,6 +54,7 @@ lerp_cont()
 set(c: Color)
 
 set_<same name as static methods>()
+set_color(c:color)
 set_rgb(r, g, b)
 set_red()
 set_yellow()

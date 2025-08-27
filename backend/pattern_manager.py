@@ -1,5 +1,6 @@
-from types import ModuleType
+from types import GeneratorType, ModuleType
 import os
+from typing import Generator
 from util import tcolors
 import math
 
@@ -58,15 +59,26 @@ class PatternManager:
 
         self.currentPattern = self.patterns["on"]
 
+        self.generator = None
+
     def draw_current(self):
         if self.currentPattern != None:
-            self.currentPattern.draw()
+            if self.generator:
+                next(self.generator)
+            else:
+                res: Generator[None, None, None] | None = self.currentPattern.draw()
+                print(res)
+                if isinstance(res, GeneratorType):
+                    self.generator = res
+
 
     def load_pattern(self, name: str):
         self.currentPattern = self.patterns[name]
+        self.generator = None
 
     def unload_pattern(self):
         self.currentPattern = None
+        self.generator = None
 
     def get(self, name: str):
         return self.patterns[name]

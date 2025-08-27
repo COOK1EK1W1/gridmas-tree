@@ -31,8 +31,7 @@ def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Co
             else:
                 if fade:
                     tree.get_light(i).lerp(fade.to_tuple(), 50)
-        tree.update()
-
+        yield
 
 def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Optional[Color] = None):
     """A more predictable version of wipe().
@@ -62,7 +61,7 @@ def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade
             else:
                 if fade:
                     tree.get_light(i).lerp(fade.to_tuple(), 50)
-        tree.update()
+        yield
 
 
 def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45, lerp_frame: int = 20, lerp_fn: Callable[[float], float] = linear):
@@ -93,4 +92,4 @@ def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45,
                 tree.get_light(i).lerp(color.to_tuple(), lerp_frame, fn=lerp_fn)
             else:
                 tree.get_light(i).cont_lerp()
-        tree.update()
+        yield

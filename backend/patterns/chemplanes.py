@@ -8,11 +8,11 @@ name = "Chem planes"
 author = "Ciaran"
 
 
-def run():
+def draw():
     color = Color(255, 255, 0)
     speed = RangeAttr("speed", 45, 30, 90, 1)
     while True:
         theta = random.uniform(0, 6.28)
         alpha = random.uniform(0, 6.28)
-        wipe_frames(theta, alpha, color, int(speed.get()), Color.black())
+        yield from wipe_frames(theta, alpha, color, int(speed.get()), Color.black())
         color = Color.different_from(color)

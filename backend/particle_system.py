@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 from typing import Optional
 from colors import Color, Pixel
-from util import euclidean_distance
+from util import dist
 from tree import Tree
 
 
@@ -56,7 +56,7 @@ class CubeParticle(Particle):
                self.x - self.length < pixel.x < self.x + self.length and \
                self.y - self.length < pixel.y < self.y + self.length:
 
-                pixel.set_color(self.color)
+                pixel.set(self.color)
 
     @abstractmethod
     def advance(self):
@@ -106,11 +106,11 @@ class SphereParticle(Particle):
                 if self.z - inner_radius < pixel.z < self.z + inner_radius and \
                    self.x - inner_radius < pixel.x < self.x + inner_radius and \
                    self.y - inner_radius < pixel.y < self.y + inner_radius:
-                    pixel.set_color(self.color)
+                    pixel.set(self.color)
                 else:
                     # Perform the distance check if not within the inner bounding box
-                    if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
-                        pixel.set_color(self.color)
+                    if dist([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                        pixel.set(self.color)
 
     @abstractmethod
     def advance(self):
@@ -129,7 +129,7 @@ class SphereParticle(Particle):
                 return self.color
             else:
                 # Perform the distance check if not within the inner bounding box
-                if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                if dist([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
                     return self.color
 
 
@@ -179,7 +179,7 @@ class ParticleSystem:
             for i, particle in enumerate(self._particles):
                 a = particle.fast_draw(pixel)
                 if a is not None:
-                    pixel.set_color(a)
+                    pixel.set(a)
                     skip_amount += len(self._particles) - i
                     break
         # if len(self._particles) != 0:

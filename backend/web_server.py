@@ -1,5 +1,5 @@
 from abc import ABC
-import multiprocessing
+import threading
 from typing import Optional
 from pattern_manager import PatternManager
 import util
@@ -8,6 +8,7 @@ from colors import Color
 from attribute import Store, RangeAttr
 from tree import tree
 from flask import Flask, request, render_template, send_from_directory
+from queue import Queue
 
 
 class Request(ABC):
@@ -36,8 +37,9 @@ class WebServer:
                     )
 
         self.app = app
-        self.request_queue: multiprocessing.Queue[Request] = multiprocessing.Queue()
-        self.process = None
+        self.request_queue: Queue[Request] = Queue()
+        self.thread = None
+        self.should_stop = False
 
 
         ## util lights
@@ -45,19 +47,19 @@ class WebServer:
         @app.route('/lighton')
         def lighton():
             frame = DrawFrame([(255, 255, 255) for _ in range(tree.num_pixels)])
-            self.request_queue.put_nowait(frame)
+            self.request_queue.put(frame)
             return "All On"
 
         @app.route('/lighton/<int:number>')
         def lightonN(number: int):
             frame = DrawFrame([(255, 255, 255) if i == number else None for i in range(tree.num_pixels)])
-            self.request_queue.put_nowait(frame)
+            self.request_queue.put(frame)
             return "on"
 
         @app.route('/lightoff')
         def lightoff():
             frame = DrawFrame([(0, 0, 0) for _ in range(tree.num_pixels)])
-            self.request_queue.put_nowait(frame)
+            self.request_queue.put(frame)
             return "all off"
 
         @app.route('/setalllight', methods=['POST'])
@@ -71,7 +73,7 @@ class WebServer:
         @app.route('/lightoff/<int:number>')
         def lightoffN(number: int):
             frame = DrawFrame([(0, 0, 0) if i == number else None for i in range(tree.num_pixels)])
-            self.request_queue.put_nowait(frame)
+            self.request_queue.put(frame)
             return "off"
 
 
@@ -101,7 +103,7 @@ class WebServer:
 
         @app.route('/pattern/<pattern>')
         def pattern(pattern: str):
-            self.request_queue.put_nowait(StartPattern(pattern))
+            self.request_queue.put(StartPattern(pattern))
             return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
 
 
@@ -134,12 +136,23 @@ class WebServer:
 
 
     def run(self, port: int):
-        self.process = multiprocessing.Process(target=self.app.run, kwargs={"debug":False, "host":"0.0.0.0", "use_reloader":False, "port":int(port)})
-        self.process.start()
+        def run_flask():
+            self.app.run(debug=False, host="0.0.0.0", use_reloader=False, port=port)
+        
+        self.thread = threading.Thread(target=run_flask, daemon=True)
+        self.thread.start()
 
     def get_next_request(self) -> Optional[Request]:
-        if self.request_queue.empty():
+        try:
+            return self.request_queue.get_nowait()
+        except:
             return None
-        return self.request_queue.get(False)
+
+    def stop(self):
+        self.should_stop = True
+        if self.thread and self.thread.is_alive():
+            # Note: Flask doesn't have a clean shutdown method in this context
+            # The daemon thread will be cleaned up when the main process exits
+            pass
 
 
