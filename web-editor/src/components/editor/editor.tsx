@@ -23,6 +23,8 @@ export default function PatternEditor() {
   const [libsReady, setLibsReady] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
+
+  // add a message to the output section, used as a hook from inside pyodide
   function appendOutput(x: string, frame: number, isError = false) {
     setOutput((prev) => {
       const a = [...prev, { content: x, frame: frame, error: isError }]
@@ -34,10 +36,16 @@ export default function PatternEditor() {
     })
   }
 
+
+
+
+  // Scrolls to the bottom every time messages change
   useEffect(() => {
-    // Scrolls to the bottom every time messages change
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [output]);
+
+
+
 
   // Initialize Pyodide when it's loaded
   useEffect(() => {
@@ -45,15 +53,22 @@ export default function PatternEditor() {
       pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
 
       // load all the core libraries
-      const files = ["util.py", "colors.py", "tree.csv", "prelude.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py"]
+      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py"]
       const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
+
       Promise.all(files.map(async (x) => {
+
+        // fetch each script
         const res = await fetch(`${base}/api/send-script?s=${x}`)
         if (!res.ok) throw new Error(`Failed to fetch ${x}: ${res.status}`)
         const res2 = await res.text()
+
+        // save the script to file
         pyodide.FS.writeFile(x, res2)
+
       })).then(() => {
-        // redirect stdout/stderr after libs are in place
+
+        // setup redirect stdout/stderr after libs are in place
         pyodide.runPython(`
 import sys
 
@@ -67,12 +82,15 @@ class JSWriter:
 
 sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
+
+
         // initialize the tree so that tree.pixels etc. are available
         pyodide.runPython(`
 from tree import tree
 tree.init("tree.csv")
 `)
         setLibsReady(true)
+
       }).catch((e: any) => {
         setLibsReady(false)
         appendOutput(`Failed to load core libraries: ${e?.message ?? String(e)}`, 0, true)
@@ -80,23 +98,26 @@ tree.init("tree.csv")
     }
   }, [pyodide, loading]);
 
+
+
+
   // Helper function to update the pattern
   function updatePattern() {
+
     if (!pyodide || !codeRef.current) {
       setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
       return false;
     }
+
     if (!libsReady) {
       appendOutput("Runtime is initializing libraries...", 0, true)
       return false
     }
 
     try {
-      pyodide.FS.writeFile("curPattern.py", `from prelude import *
+      pyodide.FS.writeFile("curPattern.py", `from gridmas import *
 ` + codeRef.current.getValue())
       pyodide.runPython(`import curPattern
-import prelude
-from tree import tree
 import importlib
 importlib.reload(curPattern)
 `)
@@ -147,6 +168,7 @@ except Exception as e:
     }
   }
 
+
   // Effect to run the pattern continuously when running
   useEffect(() => {
     if (!running || !pyodide || !libsReady) return;
@@ -159,12 +181,12 @@ except Exception as e:
       if (!running) return;
 
       const deltaTime = currentTime - lastFrameTime;
-      
+
       if (deltaTime >= targetFrameTime) {
         drawCurrentPattern();
         lastFrameTime = currentTime;
       }
-      
+
       animationFrameId = requestAnimationFrame(animate);
     }
 
