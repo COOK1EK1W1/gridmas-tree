@@ -65,36 +65,86 @@ export default function TreeVis({
         return
       }
       frameRef.current = 0
-      const interval = setInterval(() => {
-        const start = performance.now()
-        try {
-          const res: any = pyodide.runPython(`
-curPattern.draw()
+      
+      let animationFrameId: number;
+      let lastFrameTime = 0;
+      const targetFrameTime = 1000 / 45; // 45 FPS = ~22.22ms per frame
+
+      function animate(currentTime: number) {
+        if (!running) return;
+
+        const deltaTime = currentTime - lastFrameTime;
+
+        if (deltaTime >= targetFrameTime) {
+          const start = performance.now()
+          try {
+            // Use the new generator-based system
+            const res: any = pyodide.runPython(`
+try:
+    # Check if we have a generator in the global scope
+    if 'pattern_generator' not in globals() or pattern_generator is None:
+        # Create a new generator from the pattern
+        pattern_generator = curPattern.draw()
+        if pattern_generator:
+            next(pattern_generator)
+    else:
+        # If we have a generator, call next() on it
+        try:
+            next(pattern_generator)
+        except StopIteration:
+            # Generator is exhausted, create a new one
+            pattern_generator = curPattern.draw()
+            if pattern_generator:
+                next(pattern_generator)
+        except Exception as e:
+            print_to_react(f"Error in pattern generator: {e}", 0)
+            pattern_generator = None
+except Exception as e:
+    print_to_react(f"Error in pattern execution: {e}", 0)
+    pattern_generator = None
+
+# Get the current tree state after pattern execution
 tree.request_frame()
 `)
-          const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
-          for (let i = 0; i < tree.length; i++) {
-            const mat = matRefs[i].current
-            if (mat) {
-              // use setRGB for clarity
-              mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
+            
+            // Extract the lights data from the tree state
+            const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
+            
+            // Update the material colors for each tree node
+            for (let i = 0; i < tree.length; i++) {
+              const mat = matRefs[i].current
+              if (mat) {
+                // use setRGB for clarity
+                mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
+              }
             }
+            
+            // prevent PyProxy leaks on older pyodide versions
+            if (typeof res?.destroy === 'function') {
+              res.destroy()
+            }
+          } catch (error: any) {
+            // surface errors to the parent output panel
+            onLog?.(String(error), frameRef.current, true)
+          } finally {
+            const end = performance.now()
+            onFrameMs?.(end - start)
+            frameRef.current += 1
           }
-          // prevent PyProxy leaks on older pyodide versions
-          if (typeof res?.destroy === 'function') {
-            res.destroy()
-          }
-        } catch (error: any) {
-          // surface errors to the parent output panel
-          onLog?.(String(error), frameRef.current, true)
-        } finally {
-          const end = performance.now()
-          onFrameMs?.(end - start)
-          frameRef.current += 1
+          
+          lastFrameTime = currentTime;
         }
-      }, 22)
 
-      return () => clearInterval(interval)
+        animationFrameId = requestAnimationFrame(animate);
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+
+      return () => {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
     }
   }, [running, pyodide, matRefs, onFrameMs, onLog])
 

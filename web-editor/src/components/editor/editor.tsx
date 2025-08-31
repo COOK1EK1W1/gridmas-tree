@@ -53,7 +53,7 @@ export default function PatternEditor() {
       pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
 
       // load all the core libraries
-      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py"]
+      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py", "attribute.py"]
       const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
 
       Promise.all(files.map(async (x) => {
@@ -133,71 +133,6 @@ if 'pattern_generator' in globals():
       return false;
     }
   }
-
-  // Function to draw the current pattern (similar to Python's draw_current)
-  function drawCurrentPattern() {
-    if (!pyodide || !running) return;
-
-    try {
-      pyodide.runPython(`
-try:
-    # Check if we have a generator in the global scope
-    if 'pattern_generator' not in globals() or pattern_generator is None:
-        # Create a new generator from the pattern
-        pattern_generator = curPattern.draw()
-        if pattern_generator:
-            next(pattern_generator)
-    else:
-        # If we have a generator, call next() on it
-        try:
-            next(pattern_generator)
-        except StopIteration:
-            # Generator is exhausted, create a new one
-            pattern_generator = curPattern.draw()
-            if pattern_generator:
-                next(pattern_generator)
-        except Exception as e:
-            print_to_react(f"Error in pattern generator: {e}", 0)
-            pattern_generator = None
-except Exception as e:
-    print_to_react(f"Error in pattern execution: {e}", 0)
-    pattern_generator = None
-`)
-    } catch (error: any) {
-      appendOutput(`Error drawing pattern: ${error.toString()}`, 0, true);
-    }
-  }
-
-
-  // Effect to run the pattern continuously when running
-  useEffect(() => {
-    if (!running || !pyodide || !libsReady) return;
-
-    let animationFrameId: number;
-    let lastFrameTime = 0;
-    const targetFrameTime = 1000 / 45; // 45 FPS = ~22.22ms per frame
-
-    function animate(currentTime: number) {
-      if (!running) return;
-
-      const deltaTime = currentTime - lastFrameTime;
-
-      if (deltaTime >= targetFrameTime) {
-        drawCurrentPattern();
-        lastFrameTime = currentTime;
-      }
-
-      animationFrameId = requestAnimationFrame(animate);
-    }
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [running, pyodide, libsReady]);
 
   //update the pattern in the filesystem
   function handleUpdate() {
