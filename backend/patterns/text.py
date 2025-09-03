@@ -6,7 +6,7 @@ name = "Text"
 author = "Ciaran"
 
 
-def run():
+def draw():
     height = tree.height
     a = -500
 
@@ -43,7 +43,7 @@ def run():
         for i, pixel in enumerate(tree.pixels):
             value = int(blank_image[coords[i][1]][coords[i][0]][0])
             pixel.set_rgb(value, value, value)
-        tree.update()
+        yield
 
 if __name__ == "__main__":
     run()

@@ -6,7 +6,7 @@ name = "Lerpy"
 author = "Ciaran"
 
 
-def run():
+def draw():
     color = Color.random()
     while True:
         for pixel in tree.pixels:

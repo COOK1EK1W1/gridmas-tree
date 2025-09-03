@@ -9,7 +9,7 @@ name = "RGB Helix"
 author = "Ciaran"
 
 
-def run():
+def draw():
     twist_dx = RangeAttr("twist speed", 0.01, 0.001, 0.2, 0.001)
     rotate_amount = RangeAttr("Rotate speed", 0.01, 0.001, 0.1, 0.001)
     twist_dir = 1
@@ -25,9 +25,9 @@ def run():
             a = round((modified_angle) / math.pi)
 
             hue = a / 2
-            pixel.set_color(Color.from_hsl((hue + color_offset) % 1, 1, 0.5))
+            pixel.set_color(Color.hsl((hue + color_offset) % 1, 1, 0.5))
 
-        tree.update()
+        yield
 
         offset = (offset + rotate_amount.get()) % (math.pi * 2)
 

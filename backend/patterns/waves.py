@@ -1,19 +1,17 @@
+from gridmas import *
 import random
-from animations.wipe import wipe_wave_frames
-from attribute import RangeAttr
-from colors import Color
 
 
 name = "Waves"
 author = "Ciaran"
 
+speed = RangeAttr("Speed", 45, 30, 90, 1)
+length = RangeAttr("Length", 45, 30, 90, 1)
 
-def run():
-    speed = RangeAttr("Speed", 45, 30, 90, 1)
-    length = RangeAttr("Length", 45, 30, 90, 1)
+def draw():
     color = Color.random()
     while True:
         theta = random.uniform(0, 6.28)
         alpha = random.uniform(0, 6.28)
-        wipe_wave_frames(theta, alpha, color, int(speed.get()), int(length.get()))
+        yield from wipe_wave_frames(theta, alpha, color, int(speed.get()), int(length.get()))
         color = Color.different_from(color)

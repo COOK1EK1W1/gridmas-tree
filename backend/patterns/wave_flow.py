@@ -1,4 +1,4 @@
-from prelude import *
+from gridmas import *
 import time
 import math
 

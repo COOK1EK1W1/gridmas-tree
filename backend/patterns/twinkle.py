@@ -7,7 +7,7 @@ name = "Twinkle"
 author = "Ciaran"
 
 
-def run():
+def draw():
     baseColor = ColorAttr("color", Color(120, 20, 0))
     while True:
         tr, tg, tb = baseColor.get().to_tuple()
@@ -19,4 +19,4 @@ def run():
             r, g, b = pixel.to_tuple()
             pixel.set_rgb(min(int(r + 5), tr), min(int(g + 5), tg), min(int(b + 5), tb))
 
-        tree.update()
+        yield

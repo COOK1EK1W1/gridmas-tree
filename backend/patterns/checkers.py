@@ -5,7 +5,7 @@ name = "Checkers"
 author = "Ciaran"
 
 
-def run():
+def draw():
 
     while True:
         color1 = Color.random()
@@ -22,5 +22,5 @@ def run():
                 pixel.set_color(color1)
             else:
                 pixel.set_color(color2)
-        tree.update()
+        yield
         tree.sleep(45)

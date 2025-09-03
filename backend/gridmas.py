@@ -4,3 +4,4 @@ from tree import *
 from wipe import *
 from fizzle import *
 from particle_system import *
+from attribute import *

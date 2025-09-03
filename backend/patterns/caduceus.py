@@ -29,7 +29,7 @@ class Snake(SphereParticle):
             self.is_dead = True
 
 
-def run():
+def draw():
     particle_system = ParticleSystem(tree)
 
     while True:
@@ -37,7 +37,7 @@ def run():
 
             tree.fade()
 
-            particle_system.draw()
+            yield from particle_system.draw()
             particle_system.advance()
 
         particle_system.add_particle(Snake())

@@ -35,7 +35,7 @@ def find_furthest(points: list, coords):
     return cur_pnt
 
 
-def run():
+def draw():
     # init sphere origins.
     # First sphere's origin is furthest from the coordinate system's origin
     # Second sphere's origin is the LED with the greatest distance from the first sphere's origin
@@ -79,7 +79,7 @@ def run():
                 color[s] = int(255 * (1 - dist / max_dists[s]) ** 3)
             tree.set_light(i, Color(*color))
 
-        tree.update()
+        yield
 
         # calculate radii for next iteration.
         for s in range(3):

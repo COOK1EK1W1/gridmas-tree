@@ -164,11 +164,12 @@ class ParticleSystem:
 
         self._particles = list(filter(lambda x: x.age < x.max_age and not x.is_dead, self._particles))
 
-    def draw(self) -> None:
+    def draw(self):
         """Run the draw function for all particles in the system
         """
         for particle in self._particles:
             particle.draw(self.tree)
+        yield
 
     def fast_draw(self):
         """Better for performance if there are lots of overlapping particles. However, it could

@@ -16,7 +16,7 @@ def interpolate_color(color1, color2, factor):
     )
 
 
-def run():
+def draw():
     flow_speed = RangeAttr("Flow Speed", 0.02, 0.01, 0.1, 0.01)
     color_shift_speed = RangeAttr("Color Shift Speed", 0.01, 0.001, 0.05, 0.001)
     wave_frequency = RangeAttr("Wave Frequency", 1.5, 0.5, 3.0, 0.1)
@@ -55,11 +55,11 @@ def run():
 
             tree.set_light(i, color)
 
-        tree.update()
+        yield
         time += flow_speed.get()
 
         # Slowly shift the colors over time
         hue_shift = color_shift_speed.get()
-        color1.set(Color.from_hsl((time * hue_shift) % 1, 1, 0.5))
-        color2.set(Color.from_hsl(((time * hue_shift) + 0.33) % 1, 1, 0.6))
-        color3.set(Color.from_hsl(((time * hue_shift) + 0.67) % 1, 1, 0.7))
+        color1.set(Color.hsl((time * hue_shift) % 1, 1, 0.5))
+        color2.set(Color.hsl(((time * hue_shift) + 0.33) % 1, 1, 0.6))
+        color3.set(Color.hsl(((time * hue_shift) + 0.67) % 1, 1, 0.7))

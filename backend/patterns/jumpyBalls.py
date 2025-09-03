@@ -34,7 +34,7 @@ class Ball(SphereParticle):
 
 
 
-def run():
+def draw():
 
     particle_system = ParticleSystem(tree)
 
@@ -43,6 +43,5 @@ def run():
         particle_system.add_particle(Ball())
         for _ in range(random.randrange(50, 100)):
             tree.lerp(Color(0, 0, 0), 5)
-            particle_system.draw()
+            yield from particle_system.draw()
             particle_system.advance()
-            tree.update()

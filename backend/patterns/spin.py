@@ -9,7 +9,7 @@ author = "Ciaran"
 # based on Matt Parkers xmas tree
 
 
-def run():
+def draw():
     speed = RangeAttr("speed", 0.02, -0.1, 0.1, 0.001)
     color1 = ColorAttr("color 1", Color(0, 50, 50))
     color2 = ColorAttr("color 2", Color(50, 50, 0))
@@ -33,7 +33,7 @@ def run():
 
         # use the show() option as rarely as possible as it takes ages
         # do not use show() each time you change a LED but rather wait until you have changed them all
-        tree.update()
+        yield
 
         # now we get ready for the next cycle
 

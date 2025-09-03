@@ -9,7 +9,7 @@ name = "Wandering Ball"
 author = "Ciaran"
 
 
-def run():
+def draw():
     height = 0.5
     angle = random.randrange(0, 627) / 100
     angle2 = random.randrange(0, 627) / 100
@@ -34,4 +34,4 @@ def run():
         angle = (angle + 0.1) % 6.28
         angle2 = (angle2 + 0.034) % 6.28
 
-        tree.update()
+        yield

@@ -5,7 +5,7 @@ name = "Harder Better Faster Stronger"
 author = "Ciaran"
 
 
-def run():
+def draw():
     # each second is 40 frames, the song is 123 bpm which is 41 fps
     tree.set_fps(41)
     tree.sleep(50)

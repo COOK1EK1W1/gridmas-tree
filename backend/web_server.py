@@ -4,6 +4,7 @@ from typing import Optional
 from pattern_manager import PatternManager
 import util
 import json
+import time
 from colors import Color
 from attribute import Store, RangeAttr
 from tree import tree
@@ -89,7 +90,6 @@ class WebServer:
         @app.route('/attribute/<nam>', methods=['GET'])
         def attributeG(nam: str):
             a = Store.get_store().get(nam)
-            print(a)
             return str(a.get())
 
         @app.route('/attribute/<name>', methods=['POST'])
@@ -104,6 +104,7 @@ class WebServer:
         @app.route('/pattern/<pattern>')
         def pattern(pattern: str):
             self.request_queue.put(StartPattern(pattern))
+            time.sleep(0.1)
             return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
 
 

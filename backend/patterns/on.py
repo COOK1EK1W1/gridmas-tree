@@ -1,4 +1,4 @@
-from prelude import *
+from gridmas import *
 
 i = 0
 def draw():

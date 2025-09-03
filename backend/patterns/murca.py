@@ -5,7 +5,7 @@ name = "murca"
 author = "Ciaran"
 
 
-def run():
+def draw():
     y = 0
 
     stars = [random.randint(0, tree.num_pixels) for _ in range(100)]
@@ -26,4 +26,4 @@ def run():
                     pixel.set_rgb(255, 0, 0)
                 else:
                     pixel.set_rgb(200, 200, 200)
-        tree.update()
+        yield

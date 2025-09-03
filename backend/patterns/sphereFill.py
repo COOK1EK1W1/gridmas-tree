@@ -14,7 +14,7 @@ class Sphere(SphereParticle):
         self.radius += 0.01
 
 
-def run():
+def draw():
     particle_system = ParticleSystem(tree)
     particle_system.add_particle(Sphere())
 

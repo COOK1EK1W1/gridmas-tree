@@ -87,7 +87,7 @@ def dist(x, y, z, wx, wy, wz):
     return math.sqrt((x - wx) * (x - wx) + (y - wy) * (y - wy) + (z - wz) * (z - wz))
 
 
-def run():
+def draw():
 
     treeBB = boundingBox()
     for i in tree.coords:
@@ -104,7 +104,7 @@ def run():
         for LED, pixel in enumerate(tree.pixels):
             pixel.set_rgb(*map(lambda x: int(x), workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])))
 
-        tree.update()
+        yield
 
         # Update the matrix
         for x in range(0, MATWX):

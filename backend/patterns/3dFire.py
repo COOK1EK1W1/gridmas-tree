@@ -85,7 +85,7 @@ class matrix():
         return self.get(localX, localY, localZ)
 
 
-def run():
+def draw():
     # Color are G R B
     palette: list[tuple[int, int, int]] = []
 
@@ -124,7 +124,7 @@ def run():
             v = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
             pixel.set_rgb(*palette[v])
 
-        tree.update()
+        yield
 
         oldMat.copy(workMat)
 

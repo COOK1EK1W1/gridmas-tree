@@ -1,7 +1,5 @@
+from gridmas import *
 import random
-from colors import Color
-from util import euclidean_distance
-from tree import tree
 
 name = "Fire Works"
 author = "Ciaran"
@@ -17,7 +15,7 @@ class Explosion():
         self.color = Color.random()
 
 
-def run():
+def draw():
     explosions: list[Explosion] = []
     i = 0
     interval = 50
@@ -42,8 +40,8 @@ def run():
                 pixel.fade(0.5)
 
             for exp in explosions:
-                if exp.tick / 6 < euclidean_distance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) < exp.tick / 5:
+                if exp.tick / 6 < dist([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) < exp.tick / 5:
                     pixel.set_color(exp.color)
 
-        tree.update()
+        yield
         explosions = list(filter(lambda x: x.tick <= x.max_age, explosions))

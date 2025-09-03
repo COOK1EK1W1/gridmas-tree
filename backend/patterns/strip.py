@@ -6,7 +6,7 @@ name = "Strip"
 author = "Ciaran"
 
 
-def run():
+def draw():
     tree.fps = 75
     fade = RangeAttr("fade", 1.1, 1.01, 2, 0.01)
     color = ColorAttr("Color", Color.white())
@@ -17,4 +17,4 @@ def run():
             for pixel in tree.pixels:
                 pixel.fade(n=fade.get())
 
-            tree.update()
+            yield

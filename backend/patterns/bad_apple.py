@@ -5,7 +5,7 @@ name = "Bad Apple"
 author = "Ciaran"
 
 
-def run():
+def draw():
     cap = cv2.VideoCapture("patterns/badapple.mp4")
     coords = []
 
@@ -29,6 +29,6 @@ def run():
 
             else:
                 pixel.set_rgb(0, 0, 0)
-        tree.update()
+        yield
 
     cap.release()

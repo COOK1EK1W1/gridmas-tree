@@ -6,7 +6,7 @@ name = "Twinkling Stars"
 author = "chatGPT"
 
 
-def run():
+def draw():
     star_color = Color(255, 255, 255)  # Star color - white
     sky_color = Color(15, 15, 40)  # Dark "sky" color - deep blue
     twinkling_frequency = 0.1  # Chance of a light twinkling each second
@@ -16,7 +16,7 @@ def run():
         pixel.set_color(sky_color)
 
     # Update the tree initially
-    tree.update()
+    yield
 
     while True:
         for pixel in tree.pixels:
@@ -27,4 +27,4 @@ def run():
                     pixel.set_color(sky_color)
 
         # Update the tree display
-        tree.update()
+        yield

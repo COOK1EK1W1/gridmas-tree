@@ -6,7 +6,7 @@ name = "RGB"
 author = "Ciaran"
 
 
-def run():
+def draw():
     sleep_time = RangeAttr("sleep time", 1, 0.1, 3, 0.1)
 
     offset = 0
@@ -18,5 +18,5 @@ def run():
             g = 255 if (i + offset) % 3 == 1 else 0
             b = 255 if (i + offset) % 3 == 2 else 0
             pixel.set_rgb(r, g, b)
-        tree.update()
+        yield
         time.sleep(sleep_time.get())

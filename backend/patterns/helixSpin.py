@@ -12,7 +12,7 @@ ASCENT_SPEED = 0.01  # Speed of movement upwards
 COLOR_CYCLE_SPEED = 0.05  # Speed of color change
 
 
-def run():
+def draw():
     angle_offset = 0  # Current angle offset for spinning
     vertical_offset = 0  # Current vertical offset for moving upwards
 
@@ -42,7 +42,7 @@ def run():
                 pixel.fade(1.1)
 
         # Update the tree display
-        tree.update()
+        yield
 
         # Move the helix
         angle_offset = (angle_offset + SPIN_SPEED.get()) % (2 * math.pi)
