@@ -18,6 +18,9 @@ export default function PersonalPatterns({ patterns }: { patterns: Pick<Pattern,
     console.log(`${action} clicked for`, id)
   }
 
+  console.log(patterns);
+  console.log(`Length of patterns array: ${patterns.length}`);
+
   if (patterns.length == 0) {
     return (
       <p className="text-black w-full">You have no patterns yet!</p>

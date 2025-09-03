@@ -59,7 +59,12 @@ export default async function Home() {
     if (!user) {
       return <></>
     }
-    patterns = user.patterns
+    // patterns = user.patterns
+
+    const patterns = await prisma.pattern.findMany({
+
+    });
+
   }
 
   return (
