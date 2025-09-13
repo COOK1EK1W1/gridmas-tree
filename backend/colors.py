@@ -152,14 +152,35 @@ class Color:
 
     @staticmethod
     def pink() -> "Color":
+        """pink Get the color pink
+
+        Get the color value of Pink
+
+        Returns:
+            Color: The color pink (240,15,137)
+        """
         return Color(240, 15, 137)
 
     @staticmethod
     def rose() -> "Color":
+        """rose Get the color rose
+
+        Get the color value of Rose
+
+        Returns:
+            Color: The color rose (251,0,69)
+        """
         return Color(251, 0, 69)
 
     @staticmethod
     def white() -> "Color":
+        """white Get the color white
+
+        Get the color value of White
+
+        Returns:
+            Color: The color white (255,255,255)
+        """
         return Color(255, 255, 255)
 
     def to_tuple(self) -> tuple[int, int, int]:
@@ -180,7 +201,15 @@ class Color:
         return (self._r << 8) | (self._g << 16) | self._b
 
     def on(self):
-        """Set the color fully on (white)"""
+        """on Set the color to on
+
+        Sets the color to the fully on state (white, RGB(255,255,255))
+        
+        Examples:
+            >>> my_color = Color.red() # Creates a new color that is red
+            >>> my_color.on() # The color is now white (255,255,255)
+            >>> my_color.off() # The color is now black (0,0,0)
+        """
         self._r = 255
         self._g = 255
         self._b = 255
@@ -188,7 +217,10 @@ class Color:
         self.changed = True
 
     def off(self):
-        """Set the color fully off (black)"""
+        """off Set the color to off
+
+        Sets the color to the off state (black, RGB(0,0,0))
+        """
         self._r = 0
         self._g = 0
         self._b = 0
@@ -196,8 +228,14 @@ class Color:
         self._changed = True
 
     def fade(self, n: float = 1.1):
-        """Fade the color slightly n, The greater the value of n, the faster the fade will progress. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
+        """fade Fades a color
+
+        Fade the color slightly n
+
+        Args:
+            n (float, optional): Controls the speed of the fade. The larger the number, the faster it will fade. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
         """
+        
         self._r = int(clamp(self.r / n, 0, 255))
         self._g = int(clamp(self.g / n, 0, 255))
         self._b = int(clamp(self.b / n, 0, 255))
@@ -211,14 +249,15 @@ class Color:
         
         Each successive call to lerp will advance the interpolation by a frame. After n amount of calls, it will be the target color. Any change to the target or frames amount will reset the interpolation from the current color. fn provides a way to choose an interpolation method, defaults to linear
 
-            my_color = Color.red() # (255, 0, 0)
-            my_color.lerp((0, 0, 0), 5) # (205, 0, 0)
-            my_color.lerp((0, 0, 0), 5) # (153, 0, 0)
-            my_color.lerp((0, 0, 0), 5) # (102, 0, 0)
-            my_color.lerp((0, 0, 0), 5) # (51, 0, 0)
-            my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
+        Examples:
+            >>> my_color = Color.red() # (255, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (205, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (153, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (102, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (51, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
             # once reacing the target, lerp has no effect
-            my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
 
         """
 

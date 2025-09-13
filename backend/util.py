@@ -7,6 +7,13 @@ from typing import Iterable, Union
 
 
 def save_lights(light_locs: list[list[int]]) -> None:
+    """save_lights Save the loaded tree lights
+
+    Writes the locations of all lights passed into the file tree.csv
+
+    Args:
+        light_locs (list[list[int]]): The list of tree light positions
+    """
     with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(light_locs)
