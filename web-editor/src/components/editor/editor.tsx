@@ -53,7 +53,7 @@ export default function PatternEditor() {
       pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
 
       // load all the core libraries
-      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py", "attribute.py"]
+      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py", "attribute.py", "geometry.py"]
       const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
 
       Promise.all(files.map(async (x) => {

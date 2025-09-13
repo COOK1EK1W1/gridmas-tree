@@ -4,6 +4,9 @@ from typing import Callable, Optional
 from util import  linear, read_tree_csv
 import time
 from colors import Color, Pixel
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from geometry import Shape
 
 
 class Tree():
@@ -53,6 +56,9 @@ class Tree():
         self.pattern_started_at = time.time()
         self.frame = 0
 
+        self._shapes: list[Shape] = []
+        self._background = Color.black()
+
     def _pattern_reset(self):
         self.pattern_started_at = time.time()
         self.frame = 0
@@ -72,11 +78,25 @@ class Tree():
                 continue
 
             # 2. check for objects
+            changed = False
+            for shape in reversed(self._shapes):
+                c = shape.does_draw(self.pixels[i])
+                if c is not None:
+                    colors.append(c.to_bit_string())
+                    changed = True
+                    break
+            if changed:
+                continue
 
             # 3. check for background
+            if self._background:
+                colors.append(self._background.to_bit_string())
+                continue
 
             # default last color used.
             colors.append(self.pixels[i].to_bit_string())
+
+        self._shapes = []
 
         return colors
 
