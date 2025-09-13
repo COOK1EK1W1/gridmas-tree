@@ -1,0 +1,11 @@
+site_name: My Docs
+
+plugins:
+  - mkdocstrings
+
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+  

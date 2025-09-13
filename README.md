@@ -1,51 +1,37 @@
-# Gridmas tree
-This is a project based on Standup Maths' 500 LED christmas tree https://www.youtube.com/watch?v=TvlpIojusBE
+# Gridmas Tree - Web
+This is a project based on Standup Maths' 500 LED christmas tree. [Watch his video here](https://www.youtube.com/watch?v=TvlpIojusBE)
 
 # Docs
-Still in progress: [Docs](https://ciarancook.com/gridmastree-docs)
+Documentation for the web edition can be found through the button labeled `Reference` on the homepage, and from the `/reference` section of the website.
 
-# How To Run
+# How To Setup
 ## Downloading
-To download the Gridmas tree code you can either use the github Desktop app to clone the code or use git from the terminal as below
-
-```
-git clone https://github.com/COOK1EK1W1/gridmas-tree.git
-```
+To download the Gridmas Tree web editor you can use any of the below tools:
+- [GitHub desktop app](https://desktop.github.com/download/)
+    ![Opening with the GitHub desktop app](OpenWithGithubDesktop.png)
+- [Git](https://git-scm.com/downloads)
+    ```bash
+    git clone https://github.com/COOK1EK1W1/gridmas-tree.git
+    ```
+- [GitHub CLI](https://cli.github.com/)
+    ```bash
+    gh repo clone COOK1EK1W1/gridmas-tree
+    ```
 
 ## Setup
-The project comes with a virtual environment (venv) setup script. Using this is optional but recommended.
+Now that you have the project downloaded, you a ready to install the project dependencies.
+It is recommended to use the [NPM Bun](https://www.npmjs.com/package/bun) package for running the project. 
 
-### Venv
-To set up a venv, run the following commands. If you are not setting up a venv, proceed to Installing Modules
-
+To install the dependencies:
+```bash
+bun i
 ```
-python -m venv venv
+Now wait for the dependencies to be installed.
 
-[WINDOWS ONLY]
-venv/Scripts/activate.bat
-
-[MAC/LINUX ONLY]
-source venv/bin/activate
-```
-
-### Installing Modules
-To install the modules required for the project to work run the following command
-
-```
-pip install -r requirements.txt
+## Run
+To run the project, run the below command:
+```bash
+bun run dev
 ```
 
-### Running
-Now that the project has been setup, you are ready to run it.
-
-To run the tree simulator, run the following commands
-
-```
-cd backend
-
-python main.py
-```
-
-This will start the webserver, and - assuming that you don't have 1000 LEDs connected, because who doesn't? - will start the tree simulator program.
-
-Once the webserver is up and running, you should be able to access the tree controller at [This address](http://localhost:3000). (http://localhost:3000)
+This will start a local web server which you can access. There will be an IP address echo'd in your terminal, _copy/paste_ it into your browser of choice to see the web view

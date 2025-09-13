@@ -1,9 +1,16 @@
 import { authClient } from "@/util/auth-client";
+import { User } from "@/util/user";
 
-export default function TopBar() {
+
+export default function TopBar(user? : User) {
   const { signIn } = authClient
+
+  if (typeof user !== undefined) {
+    console.log("User provided");
+  }
+  
   return (
-    <div className="flex flex-row w-full justify-around py-4">
+    <div className="flex flex-row w-full justify-start py-4 gap-4 ps-4">
       <button
         className="bg-white border-2 border-slate-200 rounded-xl p-2"
         onClick={async () => {
@@ -24,7 +31,9 @@ export default function TopBar() {
           ></path>
         </svg>
         Sign in with Google
-      </button><button
+      </button>
+      <button
+        className="bg-white border-2 border-slate-200 rounded-xl p-2"
         onClick={async () => {
           await signIn.social({
             provider: "github",
