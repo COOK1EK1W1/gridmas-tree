@@ -22,6 +22,13 @@ class tcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+PI = 3.1415926535897932384626433832795028841971693993
+HALF_PI = PI/2
+TWO_PI = PI*2
+TAU = PI * 2
+
+
 def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
     return min(max(val, minv), maxv)
 
@@ -50,16 +57,6 @@ def dist(a: Iterable[float], b: Iterable[float]) -> float:
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2
     return math.sqrt(total)
-
-
-def generate_distance_map(coords: list[tuple[float, float, float]]) -> list[list[float]]:
-    ret: list[list[float]] = []
-    for fr in coords:
-        inter: list[float] = []
-        for to in coords:
-            inter.append(dist([x for x in fr], [x for x in to]))
-        ret.append(inter)
-    return ret
 
 
 def linear(x: float) -> float:

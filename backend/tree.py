@@ -1,5 +1,7 @@
+from math import dist
+import math
 from typing import Callable, Optional
-from util import generate_distance_map, linear, read_tree_csv
+from util import  linear, read_tree_csv
 import time
 from colors import Color, Pixel
 
@@ -37,12 +39,23 @@ class Tree():
 
         self.height = max([x[2] for x in self.coords])
 
-        self.distances = generate_distance_map(self.coords)
+        self.pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self.coords)]
 
-        self.pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2])) for i, x in enumerate(self.coords)]
+        # 2d array, cols from, rows to -> dist
+        self.distances = self._generate_distance_map()
+
+        # 2d array, cols from id, rows sorted array of distance
+        self.pixel_distance_matrix = self._generate_pixel_distances()
 
         self.last_update = time.perf_counter()
         self.render_times: list[float] = []
+
+        self.pattern_started_at = time.time()
+        self.frame = 0
+
+    def _pattern_reset(self):
+        self.pattern_started_at = time.time()
+        self.frame = 0
 
     def request_frame(self):
         """For internal use
@@ -134,11 +147,43 @@ class Tree():
         for pixel in self.pixels:
             pixel.lerp(color.to_tuple(), frames, fn=fn)
 
+    def _generate_distance_map(self) -> list[list[float]]:
+        ret: list[list[float]] = []
+        for fr in self.coords:
+            inter: list[float] = []
+            for to in self.coords:
+                inter.append(dist([x for x in fr], [x for x in to]))
+            ret.append(inter)
+        return ret
+
+    def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
+        ret: list[list[tuple[Pixel, float]]] = []
+        for i in range(len(self.coords)):
+            distances: list[tuple[Pixel, float]] = []
+            for j in range(len(self.coords)):
+                distances.append((self.pixels[j], self.distances[i][j]))
+
+            ret.append(sorted(distances, key=lambda x: x[1]))
+            pass
+
+        return ret
+
+
 def pixels(a: Optional[int] = None):
     global tree
     if a is None:
         return tree.pixels
     else:
         return tree.pixels[a]
+
+def frame():
+    return tree.frame
+
+def seconds():
+    return math.floor(time.time() - tree.pattern_started_at)
+
+def millis():
+    return math.floor((time.time() - tree.pattern_started_at) * 1000)
+
 
 tree = Tree()

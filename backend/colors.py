@@ -9,9 +9,12 @@
 import random
 import math
 import colorsys
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from tree import Tree
 from typing import Callable
 
-from util import linear, clamp, dist
+from util import linear, clamp
 
 
 class Color:
@@ -397,7 +400,7 @@ class Pixel(Color):
        d: float: The polar distance from the Z axis (trunk)
     """
 
-    def __init__(self, id: int, coord: tuple[float, float, float], color: Color = Color.black()):
+    def __init__(self, id: int, coord: tuple[float, float, float], tree: "Tree", color: Color = Color.black()):
         super().__init__(*color.to_tuple())
         self._id = id
 
@@ -407,6 +410,8 @@ class Pixel(Color):
 
         self._a = math.atan2(self._y, self._x)
         self._d = math.sqrt(self._y ** 2 + self._x ** 2)
+        
+        self._tree = tree
 
     @property
     def id(self) -> int:
@@ -445,18 +450,23 @@ class Pixel(Color):
 
     def distance_to(self, p: "Pixel") -> float:
         """Find the distance to the passed pixel"""
-        # TODO: Cache all distances
-        return dist(p.xyz, self.xyz)
+        return self._tree.distances[self._id][p.id]
 
-    def nearest(self, n: int) -> list["Pixel"]:
+    def nearest(self, n: int) -> list[tuple["Pixel", float]]:
         """Find the distance to the passed pixel"""
-        # TODO: Once we have a defined way to access all pixels complete implementation. Use the cached distances to quickly look up
-        return []
+        return self._tree.pixel_distance_matrix[self._id][:n]
 
     def within(self, d: float) -> list["Pixel"]:
         """Find all pixels that are within a certain radius"""
-        # TODO: Once we have a defined way to access all pixels complete implementation. Use the cached distances to quickly look up
-        return []
+        left = 0
+        right = len(self._tree.pixels) - 1
+        while left < right:
+            mid = (left + right) // 2
+            if self._tree.pixel_distance_matrix[self._id][mid][1] < d:
+                left = mid + 1
+            else:
+                right = mid
+        return self._tree.pixel_distance_matrix[self._id][:left]
 
 def int2tuple(c: int) -> tuple[int, int, int]:
     """conver the 24bit encoded int to tuple of R, G, and B.
