@@ -1,12 +1,12 @@
 import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
+import Login from "@/components/landing/signin";
 import Snow from "@/components/landing/snowLayer";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";
 import prisma from "@/util/prisma";
 import { Pattern } from "@prisma/client";
 import { headers } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 
 function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
@@ -44,27 +44,14 @@ export default async function Home() {
         email: userData.user.email
       },
       include: {
-        patterns: {
-          select: {
-            title: true,
-            modifiedAt: true,
-            id: true,
-          },
-          orderBy: {
-            modifiedAt: "desc"
-          }
-        }
+        patterns: true
       },
     })
     if (!user) {
       return <></>
     }
-    // patterns = user.patterns
-
-    const patterns = await prisma.pattern.findMany({
-
-    });
-
+    console.log(user)
+    patterns = user.patterns
   }
 
   return (
@@ -96,9 +83,12 @@ export default async function Home() {
       <div>
         <h3 className="font-semibold tracking-wide">🎄 Your Patterns</h3>
         <div className="candy-frame rounded-4xl my-2">
-          <PersonalPatterns patterns={patterns} />
+          {userData ?
+            <PersonalPatterns patterns={patterns} /> :
+            <Login />
+          }
         </div>
-      </div>
+      </div >
 
       <div>
         <h3 className="font-semibold tracking-wide">🎁 Example Patterns</h3>
@@ -108,6 +98,6 @@ export default async function Home() {
       </div>
 
       <FestiveLights position="bottom" />
-    </div>
+    </div >
   )
 }
