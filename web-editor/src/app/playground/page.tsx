@@ -34,12 +34,12 @@ export default async function Mission() {
     }
     patterns = user.patterns
 
-    console.log(user);
+    //console.log(user);
   }
   // just use the offline provider
   return (
     <EditorProvider>
-      <PatternEditor />
+      <PatternEditor userData={userData} />
     </EditorProvider>
   )
 }

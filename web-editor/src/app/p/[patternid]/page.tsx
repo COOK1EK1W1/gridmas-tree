@@ -23,7 +23,7 @@ export default async function Pattern({ params }: { params: Promise<{ patternid:
 
   return (
     <CloudEditorProvider cloudPattern={patternData.data}>
-      <PatternEditor />
+      <PatternEditor userData={userData} />
     </CloudEditorProvider>
   )
 }

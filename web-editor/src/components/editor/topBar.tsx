@@ -1,20 +1,17 @@
-import { User } from "@/util/user";
 import { Button } from "../ui/button";
 import { createNew, savePattern } from "../landing/actions";
 import { useEditor } from "@/util/context/editorContext";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 
-export default function TopBar(user?: User) {
-  const { codeRef, patternID } = useEditor()
+export default function TopBar({ user }: { user: any }) {
+  const { codeRef, patternID, patternTitle } = useEditor()
 
   const [isPending, startTransition] = useTransition()
 
   const router = useRouter()
-  if (typeof user !== undefined) {
-    console.log("User provided");
-  }
 
   const handleSave = () => {
     if (patternID) {
@@ -25,15 +22,24 @@ export default function TopBar(user?: User) {
     } else {
       let name = window.prompt("Enter the pattern name")
       if (name !== null && name !== "") {
-        createNew(name, codeRef.current?.getValue())
+        startTransition(async () => {
+          const res = await createNew(name, codeRef.current?.getValue())
+          if (res.data) {
+            router.push(`/p/${res.data.id}`)
+          }
+        })
       }
     }
   }
+  console.log(user, "here")
 
   return (
-    <div className="flex flex-row w-full justify-start py-4 gap-4 ps-4">
-      <h2 onClick={() => router.push("/")}>GRIDmas</h2>
-      <Button onClick={handleSave}>Save Now</Button>
+    <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-900 flex flex-row w-full h-15 p-2 flex justify-between items-center">
+      <h2 onClick={() => router.push("/")} className="font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 text-xl cursor-pointer">GRIDmas Tree</h2>
+      <div className="flex items-center">
+        <div className="inline text-white px-2 font-semibold">{patternTitle}</div>
+        {user ? <Button onClick={handleSave} variant="green">Save Now</Button> : <Link href="/" className="text-white text-sm"><div className="text-right">Changes will not be saved </div><div className="text-right">Sign in to save</div></Link>}
+      </div>
     </div>
   )
 }

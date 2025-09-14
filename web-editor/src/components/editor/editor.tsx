@@ -13,7 +13,7 @@ type Message = {
   frame: number
 }
 
-export default function PatternEditor() {
+export default function PatternEditor({ userData }: { userData: any }) {
   const { codeRef } = useEditor()
   const { pyodide, loading } = usePyodide();
 
@@ -178,7 +178,7 @@ if 'pattern_generator' in globals():
   return (
     <div className="h-full flex flex-row">
       <div className="w-1/2 bg-slate-200 h-full">
-        <TopBar />
+        <TopBar user={userData} />
         <CodeEditor />
       </div>
       <div className="w-1/2 h-screen flex flex-col">
@@ -192,10 +192,10 @@ if 'pattern_generator' in globals():
         </div>
         <div className="h-52">
           <div className="h-12 flex items-center">
-            <Button className="w-28 m-2" onClick={handleRun} disabled={!isReady}>
+            <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
               {!running ? (isReady ? "Run" : "Loading…") : "Stop"}
             </Button>
-            <Button className="w-28 m-2" onClick={handleUpdate} disabled={!isReady}>Update</Button>
+            <Button className="w-28 m-2" variant="red" onClick={handleUpdate} disabled={!isReady}>Update</Button>
             <span className="w-28 m-2">
               {avgMs.toFixed(2)}ms ({fps.toFixed(1)} fps) / 22ms
             </span>

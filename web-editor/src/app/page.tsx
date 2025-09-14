@@ -45,9 +45,9 @@ export default async function Home() {
       <div aria-hidden className="pointer-events-none absolute bottom-10 right-10 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
 
       <div className="w-full text-center py-8">
-        <h1 className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.15)]">
+        <span className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.15)]">
           GRIDmas Tree
-        </h1>
+        </span>
         <h2 className="text-2xl mt-2">Program GRID&apos;s Tree ✨❄️</h2>
       </div>
 
@@ -55,10 +55,10 @@ export default async function Home() {
 
       <div className="flex gap-2 py-8">
         <Link href="/playground">
-          <Button className="bg-red-600 hover:bg-red-700 text-white border border-red-300/40 shadow-lg shadow-red-500/20 hover:shadow-red-500/40 transition-transform hover:-translate-y-0.5">Playground</Button>
+          <Button variant="red">Playground</Button>
         </Link>
         <Link href="/reference">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-300/40 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-transform hover:-translate-y-0.5">Reference</Button>
+          <Button variant="green">Reference</Button>
         </Link>
       </div>
 

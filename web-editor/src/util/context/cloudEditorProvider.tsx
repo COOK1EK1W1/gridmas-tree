@@ -25,6 +25,7 @@ export default function CloudEditorProvider({ children, cloudPattern }: Props) {
     <editorContext.Provider value={{
       pattern,
       patternID: cloudPattern.id,
+      patternTitle: cloudPattern.title,
       setPattern,
       lights,
       setLights,

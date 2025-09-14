@@ -7,6 +7,7 @@ export const syncStatusKeys = ["idle", "synced", "syncing", "notSynced", "error"
 type provided = {
   pattern: string,
   patternID: string | null,
+  patternTitle: string | null,
   setPattern: Dispatch<SetStateAction<string>>,
   lights: number[][],
   setLights: Dispatch<SetStateAction<number[][]>>,
