@@ -74,3 +74,78 @@ export async function savePattern(id: string, data: string): Promise<Result<bool
   return { data: true, error: null }
 }
 
+export async function deletePattern(id: string): Promise<Result<boolean, string>> {
+  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  if (userData.error !== null) {
+    return { error: "Could not authenticate", data: null }
+  }
+
+  const userID = userData.data?.user.id
+  if (!userID) {
+    return { error: "User not authenticated", data: null }
+  }
+
+  const res = await tryCatch(prisma.pattern.delete({
+    where: { id: id, userId: userID },
+  }))
+  if (res.error !== null) {
+    return { error: "Could not update pattern", data: null }
+  }
+
+  return { data: true, error: null }
+}
+
+export async function renamePattern(id: string, name: string): Promise<Result<boolean, string>> {
+  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  if (userData.error !== null) {
+    return { error: "Could not authenticate", data: null }
+  }
+
+  const userID = userData.data?.user.id
+  if (!userID) {
+    return { error: "User not authenticated", data: null }
+  }
+
+  const res = await tryCatch(prisma.pattern.update({
+    where: { id: id, userId: userID }, data: { title: name, modifiedAt: new Date() }
+  }))
+  if (res.error !== null) {
+    return { error: "Could not update pattern", data: null }
+  }
+
+  return { data: true, error: null }
+}
+
+export async function duplicatePattern(id: string, new_name: string): Promise<Result<boolean, string>> {
+  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  if (userData.error !== null) {
+    return { error: "Could not authenticate", data: null }
+  }
+
+  const userID = userData.data?.user.id
+  if (!userID) {
+    return { error: "User not authenticated", data: null }
+  }
+
+  const res = await tryCatch(prisma.pattern.findFirst({
+    where: { id: id, userId: userID }
+  }))
+  if (res.error !== null || res.data === null) {
+    return { error: "Could not update pattern", data: null }
+  }
+
+  const res2 = await tryCatch(prisma.pattern.create({
+    data: {
+      title: new_name,
+      modifiedAt: new Date(),
+      data: res.data?.data,
+      userId: userID
+    }
+  }))
+  if (res2.error !== null) {
+    return { error: "Could not update pattern", data: null }
+  }
+
+  return { data: true, error: null }
+}
+

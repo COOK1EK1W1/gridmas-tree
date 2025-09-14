@@ -1,15 +1,13 @@
 import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
-import Login from "@/components/landing/signin";
+import SignoutBit from "@/components/landing/signout";
 import Snow from "@/components/landing/snowLayer";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";
-import prisma from "@/util/prisma";
 import { Pattern } from "@prisma/client";
-import { signOut } from "better-auth/api";
-import { Dot } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { Suspense } from "react";
 
 function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
   const bulbColors = ["#ef4444", "#22c55e", "#f59e0b", "#60a5fa", "#e879f9"]; // red, green, amber, blue, pink
@@ -38,23 +36,6 @@ export default async function Home() {
   const userData = await auth.api.getSession({ headers: await headers() })
   let patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
 
-  // if user exists, then grab their personal projects
-  if (userData !== null) {
-
-    const user = await prisma.user.findFirst({
-      where: {
-        email: userData.user.email
-      },
-      include: {
-        patterns: true
-      },
-    })
-    if (!user) {
-      return <></>
-    }
-    patterns = user.patterns
-  }
-
   return (
     <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
       <Snow />
@@ -81,7 +62,17 @@ export default async function Home() {
         </Link>
       </div>
 
-      <PersonalPatterns patterns={patterns} userData={userData} />
+      <div>
+        <div className="flex justify-between">
+          <span className="font-semibold tracking-wide">🎄 Your Patterns</span>
+          <SignoutBit userData={userData} />
+        </div>
+        <div className="candy-frame rounded-4xl my-2">
+          <Suspense>
+            <PersonalPatterns patterns={patterns} userData={userData} />
+          </Suspense>
+        </div>
+      </div>
 
       <div>
         <h3 className="font-semibold tracking-wide">🎁 Example Patterns</h3>
