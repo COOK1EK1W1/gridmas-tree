@@ -6,6 +6,12 @@ import { useEditor } from "@/util/context/editorContext";
 import TopBar from "./topBar";
 import { Button } from "../ui/button";
 import { usePyodide } from "@/util/usePyodide";
+import JSZip from "jszip";
+
+// Global variable to store preloaded zip data
+declare global {
+  var preloadedZipData: Blob | null;
+}
 
 type Message = {
   content: string,
@@ -21,7 +27,32 @@ export default function PatternEditor({ userData }: { userData: any }) {
   const [running, setRunning] = useState(false);
   const [loopTimes, setLoopTimes] = useState<number[]>([])
   const [libsReady, setLibsReady] = useState(false)
+  const [zipPreloaded, setZipPreloaded] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Preload the zip file as soon as the component mounts
+  useEffect(() => {
+    const preloadZip = async () => {
+      if (globalThis.preloadedZipData) {
+        setZipPreloaded(true)
+        return
+      }
+
+      try {
+        const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
+        const res = await fetch(`${base}/api/send-scripts-zip`)
+        if (res.ok) {
+          globalThis.preloadedZipData = await res.blob()
+          setZipPreloaded(true)
+        }
+      } catch (error) {
+        console.warn('Failed to preload zip data:', error)
+        // Don't set zipPreloaded to true, so we'll try again later
+      }
+    }
+
+    preloadZip()
+  }, [])
 
 
   // add a message to the output section, used as a hook from inside pyodide
@@ -52,24 +83,37 @@ export default function PatternEditor({ userData }: { userData: any }) {
     if (pyodide && !loading) {
       pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
 
-      // load all the core libraries
-      const files = ["util.py", "colors.py", "tree.csv", "gridmas.py", "tree.py", "particle_system.py", "fizzle.py", "wipe.py", "attribute.py", "geometry.py"]
-      const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
+      const loadCoreLibraries = async () => {
+        try {
+          let zipBlob: Blob
 
-      Promise.all(files.map(async (x) => {
+          // Use preloaded data if available, otherwise fetch it
+          if (globalThis.preloadedZipData) {
+            zipBlob = globalThis.preloadedZipData
+          } else {
+            // Fallback: fetch the zip file if preloading failed
+            const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
+            const res = await fetch(`${base}/api/send-scripts-zip`)
+            if (!res.ok) throw new Error(`Failed to fetch core libraries zip: ${res.status}`)
+            zipBlob = await res.blob()
+          }
 
-        // fetch each script
-        const res = await fetch(`${base}/api/send-script?s=${x}`)
-        if (!res.ok) throw new Error(`Failed to fetch ${x}: ${res.status}`)
-        const res2 = await res.text()
+          const zip = new JSZip()
+          const zipContents = await zip.loadAsync(zipBlob)
 
-        // save the script to file
-        pyodide.FS.writeFile(x, res2)
+          // Extract and write each file to Pyodide's filesystem
+          const filePromises = Object.keys(zipContents.files).map(async (fileName) => {
+            const file = zipContents.files[fileName]
+            if (!file.dir) { // Skip directories
+              const content = await file.async('text')
+              pyodide.FS.writeFile(fileName, content)
+            }
+          })
 
-      })).then(() => {
+          await Promise.all(filePromises)
 
-        // setup redirect stdout/stderr after libs are in place
-        pyodide.runPython(`
+          // setup redirect stdout/stderr after libs are in place
+          pyodide.runPython(`
 import sys
 
 class JSWriter:
@@ -83,18 +127,20 @@ class JSWriter:
 sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
 
-
-        // initialize the tree so that tree.pixels etc. are available
-        pyodide.runPython(`
+          // initialize the tree so that tree.pixels etc. are available
+          pyodide.runPython(`
 from tree import tree
 tree.init("tree.csv")
 `)
-        setLibsReady(true)
+          setLibsReady(true)
 
-      }).catch((e: any) => {
-        setLibsReady(false)
-        appendOutput(`Failed to load core libraries: ${e?.message ?? String(e)}`, 0, true)
-      })
+        } catch (e: any) {
+          setLibsReady(false)
+          appendOutput(`Failed to load core libraries: ${e?.message ?? String(e)}`, 0, true)
+        }
+      }
+
+      loadCoreLibraries()
     }
   }, [pyodide, loading]);
 
@@ -173,7 +219,7 @@ if 'pattern_generator' in globals():
     : 0
   const fps = avgMs > 0 ? (1000 / avgMs) : 0
 
-  const isReady = !!pyodide && libsReady && !loading
+  const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
   return (
     <div className="h-full flex flex-row">
@@ -193,7 +239,7 @@ if 'pattern_generator' in globals():
         <div className="h-52">
           <div className="h-12 flex items-center">
             <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
-              {!running ? (isReady ? "Run" : "Loading…") : "Stop"}
+              {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
             </Button>
             <Button className="w-28 m-2" variant="red" onClick={handleUpdate} disabled={!isReady}>Update</Button>
             <span className="w-28 m-2">

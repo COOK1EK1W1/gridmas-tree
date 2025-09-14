@@ -10,6 +10,7 @@ export default function RootLayout({
       <head>
         {/*<script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />*/}
         <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+        <link rel="preload" href="/api/send-scripts-zip" as="fetch" crossOrigin="anonymous" />
       </head>
       <body className={"fixed overflow-hidden h-[100dvh] w-full select-none"}>
         {children}
