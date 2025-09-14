@@ -19,6 +19,8 @@ export default function EditorProvider({ children }: Props) {
 
   return (
     <editorContext.Provider value={{
+      patternID: null,
+      patternTitle: null,
       pattern,
       setPattern,
       lights,

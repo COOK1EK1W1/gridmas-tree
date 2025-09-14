@@ -10,7 +10,7 @@ export default function SignoutBit({ userData }: { userData: any }) {
   const [isPending, startTransition] = useTransition()
   const handleSignout = () => {
     startTransition(async () => {
-      let a = await signOut()
+      const a = await signOut()
       if (a.data) {
         router.push("")
       }

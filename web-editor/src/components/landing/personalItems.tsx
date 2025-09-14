@@ -1,5 +1,5 @@
 "use client"
-import { CirclePlus, Dot } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +20,10 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
   const router = useRouter()
 
   const handleCreateNew = () => {
-    let name = window.prompt("Enter the pattern name")
+    const name = window.prompt("Enter the pattern name")
     if (name !== null && name !== "") {
       startTransition(async () => {
-        let a = await createNew(name)
+        const a = await createNew(name)
         if (a.error === null) {
           router.push(`/p/${a.data.id}`)
         } else {
@@ -35,7 +35,7 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
-      let a = await deletePattern(id)
+      const a = await deletePattern(id)
       if (a.error === null) {
         router.push("/")
       } else {
@@ -45,10 +45,10 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
   }
 
   const handleRename = (id: string) => {
-    let name = window.prompt("Enter the new name")
+    const name = window.prompt("Enter the new name")
     if (name !== null && name !== "") {
       startTransition(async () => {
-        let a = await renamePattern(id, name)
+        const a = await renamePattern(id, name)
         if (a.error === null) {
           router.push("/")
         } else {
@@ -60,10 +60,10 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
 
 
   const handleDuplicate = (id: string) => {
-    let name = window.prompt("Enter the new name")
+    const name = window.prompt("Enter the new name")
     if (name !== null && name !== "") {
       startTransition(async () => {
-        let a = await duplicatePattern(id, name)
+        const a = await duplicatePattern(id, name)
         if (a.error === null) {
           router.push("/")
         } else {

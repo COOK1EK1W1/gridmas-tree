@@ -20,7 +20,7 @@ export default function TopBar({ user }: { user: any }) {
         const res = await savePattern(patternID, codeRef.current.getValue())
       })
     } else {
-      let name = window.prompt("Enter the pattern name")
+      const name = window.prompt("Enter the pattern name")
       if (name !== null && name !== "") {
         startTransition(async () => {
           const res = await createNew(name, codeRef.current?.getValue())

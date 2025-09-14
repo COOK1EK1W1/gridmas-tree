@@ -34,7 +34,7 @@ function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
 
 export default async function Home() {
   const userData = await auth.api.getSession({ headers: await headers() })
-  let patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
+  const patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
 
   return (
     <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">

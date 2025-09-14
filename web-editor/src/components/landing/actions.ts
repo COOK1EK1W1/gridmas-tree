@@ -53,7 +53,7 @@ def draw():
 }
 
 export async function savePattern(id: string, data: string): Promise<Result<boolean, string>> {
-  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  const userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
   if (userData.error !== null) {
     return { error: "Could not authenticate", data: null }
   }
@@ -75,7 +75,7 @@ export async function savePattern(id: string, data: string): Promise<Result<bool
 }
 
 export async function deletePattern(id: string): Promise<Result<boolean, string>> {
-  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  const userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
   if (userData.error !== null) {
     return { error: "Could not authenticate", data: null }
   }
@@ -96,7 +96,7 @@ export async function deletePattern(id: string): Promise<Result<boolean, string>
 }
 
 export async function renamePattern(id: string, name: string): Promise<Result<boolean, string>> {
-  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  const userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
   if (userData.error !== null) {
     return { error: "Could not authenticate", data: null }
   }
@@ -117,7 +117,7 @@ export async function renamePattern(id: string, name: string): Promise<Result<bo
 }
 
 export async function duplicatePattern(id: string, new_name: string): Promise<Result<boolean, string>> {
-  let userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
+  const userData = await tryCatch(auth.api.getSession({ headers: await headers() }))
   if (userData.error !== null) {
     return { error: "Could not authenticate", data: null }
   }
