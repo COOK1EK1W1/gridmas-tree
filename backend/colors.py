@@ -326,6 +326,7 @@ class Color:
         self.changed = True
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     def set_color(self, c: "Color"):
         self._r = c._r
         self._g = c._g
@@ -335,6 +336,9 @@ class Color:
         self.changed = True
 
     def set_rgb(self, r: int, g: int, b: int):
+=======
+    def set_rgb(self, r: int, g: int, b: int):        
+>>>>>>> Stashed changes
 =======
     def set_rgb(self, r: int, g: int, b: int):        
 >>>>>>> Stashed changes
