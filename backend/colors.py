@@ -200,7 +200,14 @@ class Color:
         return (self._r, self._g, self._b)
 
     def to_hex(self) -> str:
-        """Returns the hex value of an RGB color, in form "#FFFFFF" """
+        """to_hex Get the hex value of the current color
+
+        Convert the current color to the hex value representing it and then return
+
+        Returns:
+            str: The current color in the format #RRGGBB
+        """
+
         return tuple2hex((self._r, self._g, self._b))
 
     def to_hsl(self) -> tuple[float, float, float]:
@@ -220,7 +227,6 @@ class Color:
         Examples:
             >>> my_color = Color.red() # Creates a new color that is red
             >>> my_color.on() # The color is now white (255,255,255)
-            >>> my_color.off() # The color is now black (0,0,0)
         """
         self._r = 255
         self._g = 255
@@ -231,7 +237,11 @@ class Color:
     def off(self):
         """off Set the color to off
 
-        Sets the color to the off state (black, RGB(0,0,0))
+        Sets the color to the fully off state (black, RGB(0,0,0))
+        
+        Examples:
+            >>> my_color = Color.red() # Creates a new color that is red
+            >>> my_color.off() # The color is now black (0,0,0)
         """
         self._r = 0
         self._g = 0
@@ -276,6 +286,10 @@ class Color:
         self.set_lerp(target, n, override, fn)
   
     def lerp_reset(self):
+        """lerp_reset Reset to lerp step 0
+
+        This method sets the previous lerp state to the current color, and sets the step number to 0
+        """
         self._L_previous = (self.r, self.g, self.b)
         self._L_step = 0
 
@@ -311,6 +325,7 @@ class Color:
         self.lerp_reset()
         self.changed = True
 
+<<<<<<< Updated upstream
     def set_color(self, c: "Color"):
         self._r = c._r
         self._g = c._g
@@ -320,6 +335,9 @@ class Color:
         self.changed = True
 
     def set_rgb(self, r: int, g: int, b: int):
+=======
+    def set_rgb(self, r: int, g: int, b: int):        
+>>>>>>> Stashed changes
         """Set the red, green and blue values of the color, values between 0 and 255"""
         self._r = r & 0xff
         self._g = g & 0xff
