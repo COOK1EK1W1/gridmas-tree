@@ -5,6 +5,8 @@ import { Dispatch, RefObject, SetStateAction, createContext, useContext } from '
 export const syncStatusKeys = ["idle", "synced", "syncing", "notSynced", "error"] as const
 
 type provided = {
+  editorVal: string
+  setEditorVal: Dispatch<SetStateAction<string>>
   pattern: string,
   patternID: string | null,
   patternTitle: string | null,

@@ -7,41 +7,47 @@ from tree import tree
 name = "Jumpy Balls"
 author = "Ciaran"
 
-class Ball(SphereParticle):
+class Ball:
     def __init__(self):
 
-        super().__init__(random.random() - 0.5, random.random()-0.5, tree.height, 0.2, 100, Color.random())
+        self.c = Color.random()
+        self.x = random.random() - 0.5
+        self.y = random.random() - 0.5
+        self.z = tree.height
         self.xVel = (random.random() - 0.5) * 0.3
         self.yVel = (random.random() - 0.5) * 0.3
         self.zVel = (1 - random.random()) * 0.03
 
-    def advance(self):
-        self.zVel -= 0.03
-        self.z += self.zVel
-        self.x += self.xVel
-        self.y += self.yVel
-
-        if self.z < 0:
-            self.zVel *= -0.9
-            self.z = 0.1
-        if self.x > 0.8 or self.x < -0.8:
-            self.xVel *= -0.9
-            self.yVel += (random.random() - 0.5) * 0.1
-        if self.y > 0.8 or self.y < -0.8:
-            self.yVel *= -0.9
-            self.xVel += (random.random() - 0.5) * 0.1
 
 
 
 
 def draw():
+    balls = []
 
-    particle_system = ParticleSystem(tree)
-
-
+    
     while True:
-        particle_system.add_particle(Ball())
+        balls.append(Ball())
+        if len(balls) > 5:
+            balls.pop(0)
         for _ in range(random.randrange(50, 100)):
             tree.lerp(Color(0, 0, 0), 5)
-            yield from particle_system.draw()
-            particle_system.advance()
+            for ball in balls:
+                Sphere((ball.x, ball.y, ball.z), 0.2, ball.c)
+
+                ball.zVel -= 0.03
+                ball.z += ball.zVel
+                ball.x += ball.xVel
+                ball.y += ball.yVel
+
+                if ball.z < 0:
+                    ball.zVel *= -0.9
+                    ball.z = 0.1
+                if ball.x > 0.8 or ball.x < -0.8:
+                    ball.xVel *= -0.9
+                    ball.yVel += (random.random() - 0.5) * 0.1
+                if ball.y > 0.8 or ball.y < -0.8:
+                    ball.yVel *= -0.9
+                    ball.xVel += (random.random() - 0.5) * 0.1
+
+            yield

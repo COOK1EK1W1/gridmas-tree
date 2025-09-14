@@ -161,8 +161,7 @@ tree.init("tree.csv")
     }
 
     try {
-      pyodide.FS.writeFile("curPattern.py", `from gridmas import *
-` + codeRef.current.getValue())
+      pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
       pyodide.runPython(`import curPattern
 import importlib
 importlib.reload(curPattern)

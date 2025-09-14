@@ -331,9 +331,9 @@ class Color:
     def set_hsl(self, hue: float, sat: float, lig: float):
         """Set the color via HSL, values between 0 and 1.0"""
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
-        self._r = int(r)
-        self._g = int(g)
-        self._b = int(b)
+        self._r = int(r * 255)
+        self._g = int(g * 255)
+        self._b = int(b * 255)
 
         self.lerp_reset()
         self.changed = True

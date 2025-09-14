@@ -1,48 +1,44 @@
-from tree import tree
+from gridmas import *
 import math
 import random
-from particle_system import ParticleSystem, SphereParticle
-from colors import Color
+
 
 
 name = "Fountain"
 author = "Ciaran"
 
 
-class Dropplet(SphereParticle):
+class Dropplet:
     def __init__(self):
-        super().__init__(0, 0, 0, 0.15, 100, Color(100, 100, 240))
+        self.x = 0
+        self.y = 0
+        self.z = 0
         self.zAcl = -0.003
         self.zVel = 0.1
         self.xVel = 0.008
         self.dist = 0
         self.angle = random.random() * 2 * math.pi
 
-    def advance(self):
-        self.z += self.zVel
-        self.zVel += self.zAcl
-
-        self.x = self.dist * math.sin(self.angle)
-        self.y = self.dist * math.cos(self.angle)
-
-        self.dist += self.xVel
-
-        if (self.z < -0.2):
-            self.is_dead = True
-
 
 def draw():
-    particle_system = ParticleSystem(tree)
+    snowflakes = []
     while True:
+        snowflakes = list(filter(lambda x: x.z > -0.2, snowflakes))
 
+        tree.fade(10)
         for _ in range(random.randint(2, 3)):
 
-            tree.fade()
+            for flake in snowflakes:
+                Sphere((flake.x, flake.y, flake.z), 0.15, Color(100,100,240))
 
-            yield from particle_system.draw()
-            particle_system.advance()
-        particle_system.add_particle(Dropplet())
+                flake.z += flake.zVel
+                flake.zVel += flake.zAcl
 
+                flake.x = flake.dist * math.sin(flake.angle)
+                flake.y = flake.dist * math.cos(flake.angle)
 
-if __name__ == "__main__":
-    run()
+                flake.dist += flake.xVel
+
+            yield
+            
+        snowflakes.append(Dropplet())

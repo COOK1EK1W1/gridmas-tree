@@ -2,7 +2,7 @@ from gridmas import *
 import random
 
 
-name = "Chem planes"
+name = "Fade Planes"
 author = "Ciaran"
 
 speed = RangeAttr("speed", 45, 30, 90, 1)

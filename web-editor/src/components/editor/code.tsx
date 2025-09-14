@@ -2,7 +2,7 @@ import { useEditor } from "@/util/context/editorContext";
 import { Editor, OnMount } from "@monaco-editor/react";
 
 export default function CodeEditor() {
-  const { codeRef, pattern } = useEditor()
+  const { codeRef, pattern, setEditorVal } = useEditor()
 
   // let the global state manager know where we are
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -12,7 +12,7 @@ export default function CodeEditor() {
   return (
     <div>
       {/* use default wave pattern if no cloud pattern */}
-      <Editor onMount={handleEditorDidMount} height="100vh" defaultLanguage="python" defaultValue={pattern === "" ? `import time
+      <Editor onChange={(a) => setEditorVal(a ?? "")} onMount={handleEditorDidMount} height="100vh" defaultLanguage="python" defaultValue={pattern === "" ? `import time
 import math
 
 wave_offset = 0  # this will move the wave up along the z-axis (height)

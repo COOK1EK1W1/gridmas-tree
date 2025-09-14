@@ -135,17 +135,14 @@ class Tree():
         """
         self.fps = fps
 
-    def fade(self, n: float = 1.1):
+    def fade(self, n: int = 10):
         """Fade the entire tree.
-           n<1 will cause the tree to become brighter.
-           tree.lerp(0, 0, 0) is prefered to tree.fade() as it if more performant
-           and gived better cotnrol over timing.
-
+            fades the tree to black over n frames
         Args:
-            n (float, optional): Unknown. Defaults to 1.1.
+            n (int, optional): Unknown. Defaults to 10
         """
         for pixel in self.pixels:
-            pixel.fade(n)
+            pixel.lerp((0, 0, 0), n)
 
     def black(self):
         """Sets all pixels on the tree to black (0, 0, 0)
