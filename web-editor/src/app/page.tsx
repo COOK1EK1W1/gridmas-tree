@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";
 import prisma from "@/util/prisma";
 import { Pattern } from "@prisma/client";
+import { signOut } from "better-auth/api";
+import { Dot } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -50,7 +52,6 @@ export default async function Home() {
     if (!user) {
       return <></>
     }
-    console.log(user)
     patterns = user.patterns
   }
 
@@ -80,15 +81,7 @@ export default async function Home() {
         </Link>
       </div>
 
-      <div>
-        <h3 className="font-semibold tracking-wide">🎄 Your Patterns</h3>
-        <div className="candy-frame rounded-4xl my-2">
-          {userData ?
-            <PersonalPatterns patterns={patterns} /> :
-            <Login />
-          }
-        </div>
-      </div >
+      <PersonalPatterns patterns={patterns} userData={userData} />
 
       <div>
         <h3 className="font-semibold tracking-wide">🎁 Example Patterns</h3>
