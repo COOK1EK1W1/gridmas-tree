@@ -1,31 +1,25 @@
-from particle_system import ParticleSystem, SphereParticle
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Sphere Fill"
 author = "Ciaran"
 
-
-class Sphere(SphereParticle):
+class SphereO:
     def __init__(self):
-        super().__init__(0, 0, tree.height / 2, 0, 300, Color.random())
-
-    def advance(self):
-        self.radius += 0.01
-
+        self.c = Color.random()
+        self.x = 0
+        self.y = 0
+        self.z = tree.height/2
+        self.radius = 0
+spheres = []
 
 def draw():
-    particle_system = ParticleSystem(tree)
-    particle_system.add_particle(Sphere())
+    global spheres
+    spheres.append(SphereO())
+    spheres = list(filter(lambda x: x.radius < 4, spheres))
 
-    tree.black()
-    while True:
-        for _ in range(100):
-
-            particle_system.fast_draw()
-            particle_system.advance()
-        particle_system.add_particle(Sphere(), start=True)
-
-
-if __name__ == "__main__":
-    run()
+    for _ in range(100):
+        for sphere in spheres:
+            Sphere((sphere.x, sphere.y, sphere.z), sphere.radius, sphere.c)
+            
+            sphere.radius += 0.01
+        yield

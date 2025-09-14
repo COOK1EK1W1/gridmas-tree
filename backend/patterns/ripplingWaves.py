@@ -1,7 +1,4 @@
-import math
-from attribute import RangeAttr, ColorAttr
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Rippling Waves"
 author = "Claude 3.5"
