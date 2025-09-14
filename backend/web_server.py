@@ -98,7 +98,7 @@ class WebServer:
             if isinstance(attribute, RangeAttr):
                 attribute.set(float(request.form['value']))
             else:
-                attribute.set(Color.from_hex(request.form['value']))
+                attribute.set(Color.hex(request.form['value']))
             return "something"
 
         @app.route('/pattern/<pattern>')
@@ -115,7 +115,7 @@ class WebServer:
             data = json.loads(request.data)
 
             value = data["color"]
-            color = Color.from_hex(value)
+            color = Color.hex(value)
             for i in range(tree.num_pixels):
                 tree.set_light(i, color)
             tree.update()

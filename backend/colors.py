@@ -17,6 +17,7 @@ from typing import Callable
 from util import linear, clamp
 
 
+
 class Color:
     """A class representing a color """
 
@@ -30,7 +31,7 @@ class Color:
         self._L_target = (0, 0, 0)
 
         self._L_step = 0
-        self._L_total = 1
+        self._L_total = 0
 
         self._L_fn = linear
 
@@ -165,6 +166,14 @@ class Color:
     def white() -> "Color":
         return Color(255, 255, 255)
 
+    @staticmethod
+    def mix(a: "Color", b: "Color", x: float):
+        return Color(
+            int(a.r + (b.r - a.r) * x),
+            int(a.g + (b.g - a.g) * x),
+            int(a.b + (b.b - a.b) * x)
+        )
+
     def to_tuple(self) -> tuple[int, int, int]:
         """Returns the tuple of the R, G and B, values between 0 and 255 """
         return (self._r, self._g, self._b)
@@ -226,7 +235,6 @@ class Color:
         """
 
         self.set_lerp(target, n, override, fn)
-        self.cont_lerp()
   
     def lerp_reset(self):
         self._L_previous = (self.r, self.g, self.b)
@@ -252,7 +260,6 @@ class Color:
         self._r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
         self._g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
         self._b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
-        self.changed = True
 
 
 

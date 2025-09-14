@@ -1,8 +1,6 @@
+from gridmas import *
 import random
 import math
-from particle_system import ParticleSystem, SphereParticle
-from tree import tree
-from colors import Color
 
 name = "Caduceus"
 author = "Ciaran"
@@ -10,34 +8,30 @@ author = "Ciaran"
 radius = 0.15
 
 
-class Snake(SphereParticle):
+class Particle:
     def __init__(self):
-        super().__init__(0, 0, -radius, radius, 200, Color.random())
+        self.z = -radius
         self.angle = random.random() * 2 * math.pi
         self.dist = random.randint(2, 7) / 10
         self.pitch = random.randint(15, 25) / 100
         self.speed = random.randint(3, 10) / 100
+        self.col = Color.random()
 
-    def advance(self):
-        self.z += self.speed
-        dist = self.dist * ((self.z / - tree.height) + 1)
-        self.angle += self.pitch
-        self.x = dist * math.sin(self.angle)
-        self.y = dist * math.cos(self.angle)
-
-        if (self.z > tree.height + radius):
-            self.is_dead = True
-
+particles = []
 
 def draw():
-    particle_system = ParticleSystem(tree)
+    global particles
+    particles = list(filter(lambda x: x.z < tree.height, particles))
 
-    while True:
-        for _ in range(random.randint(5, 20)):
+    for p in particles:
+        p.z += p.speed
+        p.angle += p.pitch
+        p.x = p.dist * math.sin(p.angle)
+        p.y = p.dist * math.cos(p.angle)
+        Sphere([p.x, p.y, p.z], radius, p.col)
+        
+    tree.lerp(Color.black(), 10)
 
-            tree.fade()
+    if frame() % 20 == 0:
+        particles.append(Particle())
 
-            yield from particle_system.draw()
-            particle_system.advance()
-
-        particle_system.add_particle(Snake())

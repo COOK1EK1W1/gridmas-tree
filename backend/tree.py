@@ -57,11 +57,12 @@ class Tree():
         self.frame = 0
 
         self._shapes: list[Shape] = []
-        self._background = Color.black()
+        self._background = None
 
     def _pattern_reset(self):
         self.pattern_started_at = time.time()
         self.frame = 0
+        self._background = None
 
     def request_frame(self):
         """For internal use
@@ -83,6 +84,7 @@ class Tree():
                 c = shape.does_draw(self.pixels[i])
                 if c is not None:
                     colors.append(c.to_bit_string())
+                    self.pixels[i].set(c)
                     changed = True
                     break
             if changed:
@@ -96,7 +98,11 @@ class Tree():
             # default last color used.
             colors.append(self.pixels[i].to_bit_string())
 
+        for i in range(self.num_pixels):
+            self.pixels[i].cont_lerp()
+
         self._shapes = []
+        self.frame += 1
 
         return colors
 
@@ -205,5 +211,7 @@ def seconds():
 def millis():
     return math.floor((time.time() - tree.pattern_started_at) * 1000)
 
+def background(c: Color):
+    tree._background = c
 
 tree = Tree()

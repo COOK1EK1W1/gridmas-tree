@@ -1,13 +1,11 @@
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Checkers"
 author = "Ciaran"
 
 
 def draw():
-
-    while True:
+    if frame() % 100 == 0:
         color1 = Color.random()
         color2 = Color.different_from(color1)
         for pixel in tree.pixels:
@@ -22,5 +20,3 @@ def draw():
                 pixel.set_color(color1)
             else:
                 pixel.set_color(color2)
-        yield
-        tree.sleep(45)

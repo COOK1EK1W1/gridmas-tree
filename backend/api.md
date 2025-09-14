@@ -2,8 +2,6 @@
 
 ## generic functions
 
-mix(colorA, colorB)
-lerp(colorA, colorB, x)
 
 ## Color class:
 ### static methods -> make instance of color 
@@ -14,6 +12,7 @@ hex(s)
 bit_string(i)
 random(saturation, lightness)
 different_from(c: Color)
+mix(colorA, colorB)
 
 red()
 orange()
@@ -65,6 +64,11 @@ set_yellow()
 r // (readonly)
 b // (readonly)
 g // (readonly)
+
+
+
+
+
 
 
 

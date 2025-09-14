@@ -1,4 +1,4 @@
-from tree import tree
+from gridmas import *
 import math
 import random
 

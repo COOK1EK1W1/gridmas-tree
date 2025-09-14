@@ -1,4 +1,4 @@
-from tree import tree
+from grdimas import *
 import math
 
 name = "3D Plasma"

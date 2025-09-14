@@ -1,16 +1,22 @@
 from gridmas import *
 
-
-name = "Center Finder"
+name = "Checkers"
 author = "Ciaran"
 
 
-portion = RangeAttr("position", 0, -1, 1, 0.01)
-
 def draw():
-    global portion
-    for pixel in tree.pixels:
-        if pixel.y > portion.get():
-            pixel.set_rgb(200, 0, 0)
-        else:
-            pixel.set_rgb(0, 0, 200)
+    if frame() % 100 == 0:
+        color1 = Color.random()
+        color2 = Color.different_from(color1)
+        for pixel in tree.pixels:
+            x = 0
+            if pixel.x % 2 > 1:
+                x ^= 1
+            if pixel.y % 2 > 1:
+                x ^= 1
+            if pixel.z % 2 > 1:
+                x ^= 1
+            if x == 0:
+                pixel.lerp(color1.to_tuple(), 10)
+            else:
+                pixel.lerp(color2.to_tuple(), 10)
