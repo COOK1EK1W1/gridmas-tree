@@ -81,7 +81,7 @@ class matrix():
         return self.get(localX, localY, localZ)
 
 
-def dist(x, y, z, wx, wy, wz):
+def dist2(x, y, z, wx, wy, wz):
     return math.sqrt((x - wx) * (x - wx) + (y - wy) * (y - wy) + (z - wz) * (z - wz))
 
 
@@ -106,10 +106,10 @@ def draw():
     for x in range(0, MATWX):
         for y in range(0, MATWY):
             for z in range(0, MATWZ):
-                d1 = dist(x + t, y, z, MATWX, MATWY, MATWZ)
-                d2 = dist(x, y, z, MATWX / 2, MATWY / 2, MATWZ)
-                d3 = dist(x, y + t / 7, z, MATWX * 0.75, MATWY / 2, MATWZ)
-                d4 = dist(x, y, z, MATWX * 0.75, MATWY, MATWZ)
+                d1 = dist2(x + t, y, z, MATWX, MATWY, MATWZ)
+                d2 = dist2(x, y, z, MATWX / 2, MATWY / 2, MATWZ)
+                d3 = dist2(x, y + t / 7, z, MATWX * 0.75, MATWY / 2, MATWZ)
+                d4 = dist2(x, y, z, MATWX * 0.75, MATWY, MATWZ)
 
                 value = math.sin(d1 / 8) + math.sin(d2 / 8.0) + math.sin(d3 / 7.0) + math.sin(d4 / 8.0)
 

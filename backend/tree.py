@@ -1,6 +1,6 @@
 from math import dist
 import math
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, overload
 from util import  linear, read_tree_csv
 import time
 from colors import Color, Pixel
@@ -141,14 +141,9 @@ class Tree():
         Args:
             n (int, optional): Unknown. Defaults to 10
         """
+        c = Color.black()
         for pixel in self.pixels:
-            pixel.lerp((0, 0, 0), n)
-
-    def black(self):
-        """Sets all pixels on the tree to black (0, 0, 0)
-        """
-        for pixel in self.pixels:
-            pixel.set_rgb(0, 0, 0)
+            pixel.lerp(c, n)
 
     def fill(self, color: Color):
         """Set all lights on the tree to one color
@@ -168,7 +163,7 @@ class Tree():
             fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
         """
         for pixel in self.pixels:
-            pixel.lerp(color.to_tuple(), frames, fn=fn)
+            pixel.lerp(color, frames, fn=fn)
 
     def _generate_distance_map(self) -> list[list[float]]:
         ret: list[list[float]] = []
@@ -192,23 +187,96 @@ class Tree():
         return ret
 
 
-def pixels(a: Optional[int] = None):
+def tree_height():
+    return tree.height
+
+def num_pixels():
+    return tree.num_pixels
+
+def pixel_coords():
+    return tree.coords
+
+@overload
+def pixels() -> list["Pixel"]: ...
+@overload
+def pixels(a: int) -> "Pixel": ...
+
+def pixels(a: Optional[int] = None) -> Union["Pixel", list["Pixel"]]:
     global tree
     if a is None:
         return tree.pixels
     else:
         return tree.pixels[a]
 
-def frame():
+def set_pixel(n: int, color: Color):
+    """Set the Nth light in the strip to the specified color
+
+    Args:
+        n (int): The light you want to set
+        color (Color): The color that you want to set the light to
+    """
+    pixels(n).set(color)
+
+def set_fps(fps: int):
+    """Allows you to change the speed that you want the animation to run at.
+       If unset, the default fps is 45
+
+    Args:
+        fps (int): target fps for the animation.
+    """
+    tree.fps = fps
+
+def fade(n: int = 10):
+    """Fade the entire tree.
+        fades the tree to black over n frames
+    Args:
+        n (int, optional): Unknown. Defaults to 10
+    """
+    c = Color.black()
+    for pixel in tree.pixels:
+        pixel.lerp(c, n)
+
+def fill(color: Color):
+    """Set all lights on the tree to one color
+
+    Args:
+        color (Color): The color you want to set the tree to
+    """
+    for pixel in tree.pixels:
+        pixel.set(color)
+
+def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
+    """Lerp the entire tree from its current color to the target color over the specified amount of frames
+
+    Args:
+        color (Color): Target color
+        frames (int): The number of frames to perform the lerp over
+        fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
+    """
+    for pixel in tree.pixels:
+        pixel.lerp(color, frames, fn=fn)
+
+
+
+def sleep(n: int):
+    """sleep for n frames"""
+    for _ in range(n):
+        yield
+
+def frame() -> int:
+    """The current frame number since the start of the pattern"""
     return tree.frame
 
 def seconds():
+    """The number of seconds since the start of the pattern"""
     return math.floor(time.time() - tree.pattern_started_at)
 
 def millis():
+    """The number of milli seconds since the start of the pattern"""
     return math.floor((time.time() - tree.pattern_started_at) * 1000)
 
 def background(c: Color):
+    """Set the background color of the tree"""
     tree._background = c
 
 tree = Tree()

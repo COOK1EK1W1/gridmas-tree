@@ -256,7 +256,7 @@ class Color:
         self._changed = True
 
 
-    def lerp(self, target: tuple[int, int, int], n: int, override: bool = False, fn: Callable[[float], float] = linear):
+    def lerp(self, target: "Color", n: int, override: bool = False, fn: Callable[[float], float] = linear):
         """Linearly interpolate the color from its current color to the target color over n frames.
         
         Each successive call to lerp will advance the interpolation by a frame. After n amount of calls, it will be the target color. Any change to the target or frames amount will reset the interpolation from the current color. fn provides a way to choose an interpolation method, defaults to linear
@@ -279,11 +279,11 @@ class Color:
         self._L_previous = (self.r, self.g, self.b)
         self._L_step = 0
 
-    def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False, fn: Callable[[float], float] = linear):
+    def set_lerp(self, target: "Color", time: int, override: bool = False, fn: Callable[[float], float] = linear):
         """This resets the lerp and starts interpolation to target from current value. Successive calls will not change the target unless override is set to True. Use with cont_lerp to have the same effect as lerp()"""
-        if (target != self._L_target or self._L_total != time) or override:
+        if (target.to_tuple() != self._L_target or self._L_total != time) or override:
             self.lerp_reset()
-            self._L_target = target
+            self._L_target = target.to_tuple()
             self._L_total = time
             self._L_fn = fn
 
@@ -512,7 +512,7 @@ class Pixel(Color):
                 left = mid + 1
             else:
                 right = mid
-        return self._tree.pixel_distance_matrix[self._id][:left]
+        return list(map(lambda x: x[0], self._tree.pixel_distance_matrix[self._id][:left]))
 
 def int2tuple(c: int) -> tuple[int, int, int]:
     """conver the 24bit encoded int to tuple of R, G, and B.
@@ -558,32 +558,33 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     red = Color.red()
 
-    red.lerp((0, 0, 0), 5)
+    c = Color.black()
+    red.lerp(c, 5)
     if red.to_tuple() != (204, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (153, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (102, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (50, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (0, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (0, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")

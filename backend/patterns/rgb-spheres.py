@@ -1,6 +1,5 @@
 import math
-from tree import tree
-from colors import Color
+from gridmas import *
 import random
 
 name = "RGB spheres"

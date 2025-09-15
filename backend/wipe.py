@@ -1,8 +1,6 @@
 from typing import Callable, Optional
-from util import linear
-from tree import tree
-from colors import Color
 import math
+from gridmas import *
 
 
 def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Color] = None):
@@ -27,10 +25,10 @@ def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Co
     for rng in range(int(minZ * 200 - 10), int(maxZ * 200 + 10), speed):
         for i, coord in enumerate(coords2):
             if rng <= coord[2] * 200 < rng + 10:
-                tree.set_light(i, color)
+                set_pixel(i, color)
             else:
                 if fade:
-                    tree.get_light(i).lerp(fade.to_tuple(), 50)
+                    pixels(i).lerp(fade, 50)
         yield
 
 def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Optional[Color] = None):
@@ -57,10 +55,10 @@ def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade
         slice_max = (slice + 1) * slice_width + minZ
         for i, coord in enumerate(coords2):
             if slice_min <= coord[2] <= slice_max:
-                tree.set_light(i, color)
+                set_pixel(i, color)
             else:
                 if fade:
-                    tree.get_light(i).lerp(fade.to_tuple(), 50)
+                    pixels(i).lerp(fade, 50)
         yield
 
 
@@ -89,7 +87,7 @@ def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45,
         slice_max = (slice + 1) * slice_width + minZ
         for i, coord in enumerate(coords2):
             if slice_min <= coord[2] <= slice_max:
-                tree.get_light(i).lerp(color.to_tuple(), lerp_frame, fn=lerp_fn)
+                pixels(i).lerp(color, lerp_frame, fn=lerp_fn)
             else:
-                tree.get_light(i).cont_lerp()
+                pixels(i).cont_lerp()
         yield
