@@ -165,6 +165,7 @@ tree.init("tree.csv")
       pyodide.runPython(`import curPattern
 import importlib
 importlib.reload(curPattern)
+tree._pattern_reset()
 `)
       // Reset the generator when pattern is updated
       pyodide.runPython(`

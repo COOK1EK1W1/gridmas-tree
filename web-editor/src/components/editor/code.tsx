@@ -14,6 +14,7 @@ export default function CodeEditor() {
       {/* use default wave pattern if no cloud pattern */}
       <Editor onChange={(a) => setEditorVal(a ?? "")} onMount={handleEditorDidMount} height="100vh" defaultLanguage="python" defaultValue={pattern === "" ? `import time
 import math
+from gridmas import *
 
 wave_offset = 0  # this will move the wave up along the z-axis (height)
 wave_speed = 0.03
