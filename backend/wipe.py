@@ -1,11 +1,18 @@
+"""
+Use this module to wipe the tree with color.
+P.P.S please do not actually wipe the tree, the LEDs do not like being wet and may produce the magic smoke :wink:
+"""
+
 from typing import Callable, Optional
 import math
 from gridmas import *
 
 
 def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Color] = None):
-    """Wipe a color from one side to the other. The angle is defined by Theta and Alpha.
-       The prefered way to wipe a color on the tree is wipe_frames()
+    """wipe A simple wipe
+
+    Wipe a color from one side to the other. The angle is defined by Theta and Alpha.
+    The prefered way to wipe a color on the tree is wipe_frames()
 
     Args:
         theta (float): Angle in radians
@@ -32,8 +39,10 @@ def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Co
         yield
 
 def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Optional[Color] = None):
-    """A more predictable version of wipe().
+    """wipe_frames wipe for n number of frames
 
+    A more predictable version of wipe().
+    
     Args:
         theta (float): Angle in radians
         alpha (float): Angle in radians
@@ -63,7 +72,9 @@ def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade
 
 
 def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45, lerp_frame: int = 20, lerp_fn: Callable[[float], float] = linear):
-    """Lerp pixels to the target color over the specified number of lerp frames. Produces more of a wave rather than a wipe.
+    """wipe_wave_frames Wave for a number of frames
+
+    Lerp pixels to the target color over the specified number of lerp frames. Produces more of a wave rather than a wipe.
 
     Args:
         theta (float): Angle in radians
@@ -73,6 +84,7 @@ def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45,
         lerp_frame (int, optional): The number of frames to lerp over. Defaults to 20.
         lerp_fn (Callable[[float], float], optional): Unkown. Defaults to linear.
     """
+    
     # based on Matt Parkers Xmas tree
     coords2 = [[x, y, z] for [x, y, z] in tree.coords]
     for i, coord in enumerate(tree.coords):

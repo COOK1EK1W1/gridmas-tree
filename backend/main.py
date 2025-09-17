@@ -1,3 +1,11 @@
+"""This is the main entry point for GRIDmas Tree."""
+
+__author__ = "Cairan Cook"
+"""Code Author"""
+
+__documenter__ = "Owen Plimer"
+"""Documentation author"""
+
 #!/usr/bin/python3
 
 from renderer import Renderer

@@ -1,11 +1,69 @@
-site_name: My Docs
+site_name: GRIDmas Tree Docs
+repo_url: https://github.com/COOK1EK1W1/gridmas-tree
 
 plugins:
   - mkdocstrings
+  - search
 
+markdown_extensions: 
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.blocks.caption
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
-    scheme: slate
-  
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7 
+
+
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - navigation.footer
+    - announce.dismiss
+    - content.code.copy
+    - content.code.annotate
+    - search.share
+    - search.highlight
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/COOK1EK1W1
+      name: COOK1EK1W1 on Github
+
+    - icon: fontawesome/brands/github
+      link: https://github.com/owen7000
+      name: Owen7000 on Github

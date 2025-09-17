@@ -4,12 +4,46 @@ from colors import Color, Pixel
 from tree import tree
 
 class Shape(ABC):
+    """Shape Contains a shape
+
+    A shape to be used for geometry
+
+    Args:
+        ABC (abc.ABC): An abstract class
+    """
     @abstractmethod
     def does_draw(self, pixel: Pixel) -> Optional[Color]:
+        """does_draw T.B.D
+
+        Possibly to return if the shape can be drawn, although unsure, further clarification is required
+
+        Args:
+            pixel (Pixel): T.B.D
+
+        Returns:
+            Optional[Color]: T.B.D
+        """
         ...
 
 class Sphere(Shape):
+    """Sphere a 3D circle :wink:
+
+    Represents a spherical object
+
+    Args:
+        Shape (Shape): Must be an instance of Shape
+    """
+    
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
+        """__init__ Create a sphere
+
+        Create an instance of Sphere
+
+        Args:
+            pos (tuple[float, float, float]): The center point of the sphere
+            radius (float): The radius of the sphere
+            color (Color): The color of the sphere
+        """
         self.pos = pos
         self.x, self.y, self.z = pos
         self.radius = radius
@@ -79,7 +113,24 @@ class Box(Shape):
 
 
 class Line(Shape):
+    """Line A line
+
+    Has a starting point, end point, color, and a stroke
+
+    Args:
+        Shape (Shape): Must be an instance of Shape
+    """
     def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color):
+        """__init__ Create a line
+
+        Create a new instance of Line
+
+        Args:
+            a (tuple[float, float, float]): The start position of the line
+            b (tuple[float, float, float]): The end position of the line
+            stroke (float): The width of the line
+            color (Color): The color of the line
+        """
         self.ax, self.ay, self.az = a
         self.bx, self.by, self.bz = b
         self.stroke = stroke
@@ -95,7 +146,7 @@ class Line(Shape):
         tree._shapes.append(self)
 
     def does_draw(self, pixel: Pixel) -> Optional[Color]:
-                # Vector from A to point
+        # Vector from A to point
         px = pixel.x - self.ax
         py = pixel.y - self.ay
         pz = pixel.z - self.az

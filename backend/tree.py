@@ -22,11 +22,11 @@ class Tree():
              pixel.set_rgb(0, 0, 0)
 
        Attributes:
-         pixels: list[Pixel]: Pixel buffer held by the tree. Gets pushed to pixel driver on every update. The arry is in the same order as the lights on the strip
-         coords: list[tuple[float, float, float]]: A list of 3d coordinates (x,y,z) which is in ordeer of pixels on the strip i.e. parrallel with tree.pixels
-         num_pixels: int: The number of pixels on the tree. Same as doing len(tree.pixels)
-         height: float: Height of the tree
-         distances: list[list[float]]: A 2d array which holds pre-computed 3D euclidean distances between all pairs of pixels. The index of each array is parrallel with tree.pixels
+         pixels (list[Pixel]): Pixel buffer held by the tree. Gets pushed to pixel driver on every update. The arry is in the same order as the lights on the strip
+         coords (list[tuple[float, float, float]]): A list of 3d coordinates (x,y,z) which is in ordeer of pixels on the strip i.e. parrallel with tree.pixels
+         num_pixels (int): The number of pixels on the tree. Same as doing len(tree.pixels)
+         height (float): Height of the tree
+         distances (list[list[float]]): A 2d array which holds pre-computed 3D euclidean distances between all pairs of pixels. The index of each array is parrallel with tree.pixels
     """
 
     def __init__(self):
@@ -36,27 +36,40 @@ class Tree():
     def init(self, tree_file: str):
         """For internal use
         Initialise / reset the tree"""
+        
         self.coords = read_tree_csv(tree_file)
+        """The coordinates of all lights on the tree"""
 
         self.num_pixels = int(len(self.coords))
+        """The number of pixels on the tree"""
 
         self.height = max([x[2] for x in self.coords])
+        """The height of the tree"""
 
         self.pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self.coords)]
+        """The list of all pixels on the tree"""
 
         # 2d array, cols from, rows to -> dist
         self.distances = self._generate_distance_map()
+        """2d array, cols from, rows to -> dist"""
 
         # 2d array, cols from id, rows sorted array of distance
         self.pixel_distance_matrix = self._generate_pixel_distances()
+        """2d array, cols from id, rows sorted array of distance"""
 
         self.last_update = time.perf_counter()
+        """When the last update took place"""
+        
         self.render_times: list[float] = []
+        """A list of the render times for frames"""
 
         self.pattern_started_at = time.time()
         self.frame = 0
+        """The current frame that the animation is on"""
 
         self._shapes: list[Shape] = []
+        """The list of shapes that the tree can draw"""
+        
         self._background = None
 
     def _pattern_reset(self):
