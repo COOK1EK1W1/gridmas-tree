@@ -324,9 +324,7 @@ class Color:
 
         self.lerp_reset()
         self.changed = True
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+        
     def set_color(self, c: "Color"):
         self._r = c._r
         self._g = c._g
@@ -334,14 +332,8 @@ class Color:
 
         self.lerp_reset()
         self.changed = True
-
-    def set_rgb(self, r: int, g: int, b: int):
-=======
+    
     def set_rgb(self, r: int, g: int, b: int):        
->>>>>>> Stashed changes
-=======
-    def set_rgb(self, r: int, g: int, b: int):        
->>>>>>> Stashed changes
         """Set the red, green and blue values of the color, values between 0 and 255"""
         self._r = r & 0xff
         self._g = g & 0xff

@@ -7,6 +7,13 @@ hide:
 # GRIDmas Tree - Web
 This is a project based on Standup Maths' 500 LED christmas tree. [Watch his video here](https://www.youtube.com/watch?v=TvlpIojusBE)
 
+![Ciaran](https://avatars.githubusercontent.com/u/61564769?v=4){ loading=lazy align=left }
+
+The GRIDmas tree was created by Ciaran Cook in 2023 as a personal project, and in 2024 started a competition at Heriot Watt University. This year, there is a new API for the tree. You will find everything you need in this documentation site to make great patterns. Documentation for the project has been a joint effort between Cairan and Owen.
+
+<br><br><br>
+
+
 # Docs
 This is the home for documentation for **GRIDmas Tree** 2025.
 Please see the table below for the different sections you can go to.

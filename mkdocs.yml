@@ -21,6 +21,9 @@ markdown_extensions:
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.blocks.caption
 
 theme:
   name: material
@@ -54,7 +57,6 @@ theme:
     - content.code.annotate
     - search.share
     - search.highlight
-
 
 extra:
   social:
