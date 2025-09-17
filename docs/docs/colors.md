@@ -1,3 +1,0 @@
-# Colors
-
-::: backend.colors

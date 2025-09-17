@@ -1,0 +1,3 @@
+# Documentation Home
+
+This is the main entry for the documentation. There are two sections on this part of the site, **User** and **Developer**. If you are writing patterns for the 2025 competition, please head over to [User](../docs/User/) for the information you need to know. If you are helping to develop GRIDmas Tree, or are just curious about the inner workings head to [Developer](../docs/Developer/)
