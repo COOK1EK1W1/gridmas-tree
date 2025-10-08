@@ -200,7 +200,7 @@ class Tree():
         return ret
 
 
-def tree_height():
+def height():
     return tree.height
 
 def num_pixels():

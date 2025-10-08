@@ -15,23 +15,16 @@ export default function CloudEditorProvider({ children, cloudPattern }: Props) {
 
   const [pattern, setPattern] = useState<string>(cloudPattern.data)
 
-  const [lights, setLights] = useState<number[][]>([])
-  const [editorVal, setEditorVal] = useState<string>("")
-
   const [syncStatus, setSyncStatus] = useState<typeof syncStatusKeys[number]>("idle")
   const codeRef = useRef<Parameters<OnMount>[0]>(null)
 
 
   return (
     <editorContext.Provider value={{
-      editorVal,
-      setEditorVal,
       pattern,
       patternID: cloudPattern.id,
       patternTitle: cloudPattern.title,
       setPattern,
-      lights,
-      setLights,
       codeRef,
       syncStatus,
       setSyncStatus

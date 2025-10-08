@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 
 export default function TopBar({ user }: { user: any }) {
-  const { codeRef, patternID, patternTitle, pattern, editorVal } = useEditor()
+  const { codeRef, patternID, patternTitle, pattern } = useEditor()
 
   const [lastSaved, setLastSaved] = useState(pattern)
 
@@ -38,7 +38,6 @@ export default function TopBar({ user }: { user: any }) {
       }
     }
   }
-  console.log(user, "here")
 
   return (
     <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-900 flex flex-row w-full h-15 p-2 flex justify-between items-center">
@@ -48,8 +47,8 @@ export default function TopBar({ user }: { user: any }) {
         {user ? (
           <Button onClick={handleSave} variant="green">
             <LoaderCircle className={cn('animate-spin', isPending ? "inline" : "hidden")} />
-            <Check className={lastSaved === editorVal && !isPending ? "inline" : "hidden"} />
-            <CloudUpload className={lastSaved !== editorVal && !isPending ? "inline" : "hidden"} />
+            <Check className={lastSaved === codeRef.current?.getValue() && !isPending ? "inline" : "hidden"} />
+            <CloudUpload className={lastSaved !== codeRef.current?.getValue() && !isPending ? "inline" : "hidden"} />
             <span>Save Now</span>
           </Button>
         ) : (

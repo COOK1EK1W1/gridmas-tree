@@ -25,7 +25,6 @@ export default function PatternEditor({ userData }: { userData: any }) {
 
   const [output, setOutput] = useState<Message[]>([]);
   const [running, setRunning] = useState(false);
-  const [loopTimes, setLoopTimes] = useState<number[]>([])
   const [libsReady, setLibsReady] = useState(false)
   const [zipPreloaded, setZipPreloaded] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -203,7 +202,6 @@ if 'pattern_generator' in globals():
     if (updatePattern()) {
       setRunning(true)
       setOutput([])
-      setLoopTimes([])
       // Reset the generator when starting
       if (pyodide) {
         pyodide.runPython(`
@@ -213,11 +211,6 @@ if 'pattern_generator' in globals():
       }
     }
   }
-
-  const avgMs = loopTimes.length > 0
-    ? (loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length)
-    : 0
-  const fps = avgMs > 0 ? (1000 / avgMs) : 0
 
   const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
@@ -232,7 +225,6 @@ if 'pattern_generator' in globals():
           <TreeVis
             pyodide={pyodide}
             running={running}
-            onFrameMs={(ms) => setLoopTimes((prev) => [...prev.slice(-199), ms])}
             onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
           />
         </div>
@@ -241,10 +233,6 @@ if 'pattern_generator' in globals():
             <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
               {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
             </Button>
-            <Button className="w-28 m-2" variant="red" onClick={handleUpdate} disabled={!isReady}>Update</Button>
-            <span className="w-28 m-2">
-              {avgMs.toFixed(2)}ms ({fps.toFixed(1)} fps) / 22ms
-            </span>
           </div>
           <div className="h-40 overflow-auto">
             {output.map((x, i) => (

@@ -12,22 +12,15 @@ export default function EditorProvider({ children }: Props) {
 
   const [pattern, setPattern] = useState<string>("")
 
-  const [lights, setLights] = useState<number[][]>([])
-  const [editorVal, setEditorVal] = useState<string>("")
-
   const [syncStatus, setSyncStatus] = useState<typeof syncStatusKeys[number]>("idle")
   const codeRef = useRef<Parameters<OnMount>[0] | null>(null)
 
   return (
     <editorContext.Provider value={{
-      editorVal,
-      setEditorVal,
       patternID: null,
       patternTitle: null,
       pattern,
       setPattern,
-      lights,
-      setLights,
       codeRef,
       syncStatus,
       setSyncStatus

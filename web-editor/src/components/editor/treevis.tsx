@@ -11,17 +11,26 @@ const treeHeight = Math.max(...tree.map((x) => x[2]))
 export default function TreeVis({
   pyodide,
   running,
-  onFrameMs,
   onLog,
 }: {
   pyodide: any,
   running: boolean,
-  onFrameMs?: (ms: number) => void,
   onLog?: (message: string, frame: number, isError?: boolean) => void,
 }) {
 
+  const loopTimes = useRef<number[]>([])
+  const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
   const frameRef = useRef<number>(0)
+
+  const addLoopTime = (t: number) => {
+    loopTimes.current.push(t)
+    if (loopTimes.current.length > 199) {
+      loopTimes.current.shift()
+    }
+    const avgLoopTime = loopTimes.current.reduce((x, y) => x + y, 0) / loopTimes.current.length
+    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(1)}ms/22ms`
+  }
 
   // Create stable refs for each material without calling hooks in a loop
   const matRefs = useMemo(() => (
@@ -65,7 +74,7 @@ export default function TreeVis({
         return
       }
       frameRef.current = 0
-      
+
       let animationFrameId: number;
       let lastFrameTime = 0;
       const targetFrameTime = 1000 / 45; // 45 FPS = ~22.22ms per frame
@@ -106,10 +115,10 @@ except Exception as e:
 # Get the current tree state after pattern execution
 tree.request_frame()
 `)
-            
+
             // Extract the lights data from the tree state
             const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
-            
+
             // Update the material colors for each tree node
             for (let i = 0; i < tree.length; i++) {
               const mat = matRefs[i].current
@@ -118,7 +127,7 @@ tree.request_frame()
                 mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
               }
             }
-            
+
             // prevent PyProxy leaks on older pyodide versions
             if (typeof res?.destroy === 'function') {
               res.destroy()
@@ -128,10 +137,10 @@ tree.request_frame()
             onLog?.(String(error), frameRef.current, true)
           } finally {
             const end = performance.now()
-            onFrameMs?.(end - start)
+            addLoopTime(end - start)
             frameRef.current += 1
           }
-          
+
           lastFrameTime = currentTime;
         }
 
@@ -146,7 +155,7 @@ tree.request_frame()
         }
       }
     }
-  }, [running, pyodide, matRefs, onFrameMs, onLog])
+  }, [running, pyodide, matRefs, onLog])
 
 
   return (
@@ -156,6 +165,7 @@ tree.request_frame()
           <Camera />
         </Button>
       </div>
+
 
 
       {/* tree visualiser */}
@@ -206,6 +216,7 @@ tree.request_frame()
         <OrbitControls maxPolarAngle={Math.PI - 1} enablePan={false} target={[0, treeHeight / 2, 0]} />
       </Canvas>
 
+      <div className="fixed text-white top-2 right-2" ref={fpsRef}></div>
     </div >
   )
 
