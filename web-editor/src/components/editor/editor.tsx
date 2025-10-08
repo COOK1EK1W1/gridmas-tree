@@ -7,6 +7,7 @@ import TopBar from "./topBar";
 import { Button } from "../ui/button";
 import { usePyodide } from "@/util/usePyodide";
 import JSZip from "jszip";
+import Attributes from "./attributes";
 
 // Global variable to store preloaded zip data
 declare global {
@@ -128,7 +129,8 @@ sys.stderr = JSWriter()`)
 
           // initialize the tree so that tree.pixels etc. are available
           pyodide.runPython(`
-from tree import tree
+from gridmas import *
+Store.instance = None
 tree.init("tree.csv")
 `)
           setLibsReady(true)
@@ -163,6 +165,7 @@ tree.init("tree.csv")
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
       pyodide.runPython(`import curPattern
 import importlib
+Store.instance = None
 importlib.reload(curPattern)
 tree._pattern_reset()
 `)
@@ -216,9 +219,10 @@ if 'pattern_generator' in globals():
 
   return (
     <div className="h-full flex flex-row">
-      <div className="w-1/2 bg-slate-200 h-full">
+      <div className="w-1/2 bg-slate-200 h-100dvh flex flex-col">
         <TopBar user={userData} />
         <CodeEditor />
+        <Attributes />
       </div>
       <div className="w-1/2 h-screen flex flex-col">
         <div className="flex-grow">

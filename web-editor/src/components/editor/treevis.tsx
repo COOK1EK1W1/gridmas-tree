@@ -6,6 +6,7 @@ import { Camera } from "lucide-react";
 import { useEffect, useMemo, useRef, createRef } from "react";
 import { Button } from "../ui/button";
 import type { MeshStandardMaterial } from "three";
+import { useEditor, adaptPythonAttributes } from "@/util/context/editorContext";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
 export default function TreeVis({
@@ -18,6 +19,7 @@ export default function TreeVis({
   onLog?: (message: string, frame: number, isError?: boolean) => void,
 }) {
 
+  const { attributes, setAttributes, attributeRefs } = useEditor()
   const loopTimes = useRef<number[]>([])
   const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
@@ -87,6 +89,55 @@ export default function TreeVis({
         if (deltaTime >= targetFrameTime) {
           const start = performance.now()
           try {
+
+            // Read current values from attribute refs and update Python Store
+            if (attributeRefs.current && attributes.length > 0) {
+              const attributeUpdates = []
+              
+              for (let i = 0; i < attributes.length; i++) {
+                const attr = attributes[i]
+                const ref = attributeRefs.current[i]
+                
+                if (ref && ref.currentValue !== undefined) {
+                  if ('min' in attr && 'max' in attr && 'step' in attr) {
+                    // RangeAttr - get value from stored currentValue
+                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(${ref.currentValue})`)
+                  } else {
+                    // ColorAttr - get value from stored currentValue
+                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color("${ref.currentValue}"))`)
+                  }
+                }
+              }
+              
+              // Execute all attribute updates
+              if (attributeUpdates.length > 0) {
+                pyodide.runPython(attributeUpdates.join('\n'))
+              }
+            }
+
+            // set all the attributes
+            const res1 = pyodide.runPython(`
+list(map(lambda x: (x.name, x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
+`)
+
+            const attributeData = res1.toJs()
+            const adaptedAttributes = adaptPythonAttributes(attributeData)
+            
+            // Check if attributes have changed
+            if (attributes.length !== adaptedAttributes.length || 
+                !attributes.every((attr, i) => 
+                  adaptedAttributes[i] && 
+                  attr.name === adaptedAttributes[i].name
+                )) {
+              setAttributes(adaptedAttributes)
+            }
+
+            // prevent PyProxy leaks on older pyodide versions
+            if (typeof res1?.destroy === 'function') {
+              res1.destroy()
+            }
+
+
             // Use the new generator-based system
             const res: any = pyodide.runPython(`
 try:
