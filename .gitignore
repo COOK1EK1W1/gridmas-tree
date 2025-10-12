@@ -6,3 +6,5 @@ scanning/results/
 *.swp
 *.py[cod]
 *$py.class
+
+site/

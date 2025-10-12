@@ -1,18 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
 ## Getting Started
 
-First, run the development server:
+First, install dependancies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun i
+```
+
+
+Copy over the example.env > .env and insert your credentials. Database can be created through neon.tech, google and github credentials can be found by following the relevant guides on better auth website
+
+push the tables to the database, or generate the datatypes if already pushed
+```bash
+bunx prisma db push
+or
+bunx prisma generate
+```
+
+Finally, run the development server:
+
+```bash
 bun dev
 ```
+
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

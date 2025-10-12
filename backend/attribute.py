@@ -101,7 +101,7 @@ class Store:
             yield x
 
     def get(self, name: str):
-        return next(x for x in self.store if x.name == name)
+        return list(x for x in self.store if x.name == name)[0]
 
     def get_all(self):
         return self.store

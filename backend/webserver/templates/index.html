@@ -21,10 +21,10 @@
       <button 
           class="pattern-button m-2 py-4 bg-blue-200 p-2 rounded-xl w-96 shadow-lg border-2 border-blue-500 transition-all duration-300 ease-in-out transform disabled:bg-gray-300 disabled:cursor-not-allowed disabled:scale-95 hover:bg-blue-300"
           onclick='clicked()' 
-          hx-get="/pattern/{{pattern.name}}" 
+          hx-get="/pattern/{{pattern}}" 
           hx-target="#pattern-attr" 
           :disabled="isDisabled">
-          {{pattern.name}}
+          {{pattern}}
       </button>
       {% endfor %}
     </div>

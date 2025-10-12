@@ -3,22 +3,45 @@
 
 import csv
 import math
-
-
-class STOPFLAG(Exception):
-    def __init__(self, message: str):
-        self.message = message
+from typing import Iterable, Union
 
 
 def save_lights(light_locs: list[list[int]]) -> None:
+    """save_lights Save the loaded tree lights
+
+    Writes the locations of all lights passed into the file tree.csv
+
+    Args:
+        light_locs (list[list[int]]): The list of tree light positions
+    """
     with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(light_locs)
 
+class tcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-def read_tree_csv() -> list[tuple[float, float, float]]:
+
+PI = 3.1415926535897932384626433832795028841971693993
+HALF_PI = PI/2
+TWO_PI = PI*2
+TAU = PI * 2
+
+
+def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
+    return min(max(val, minv), maxv)
+
+def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
     # TODO fix this in the processing stage
-    with open("tree.csv") as csvfile:
+    with open(location) as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists: list[tuple[float, float, float]] = []
         for row in reader:
@@ -36,23 +59,11 @@ def read_tree_csv() -> list[tuple[float, float, float]]:
     return list_of_lists
 
 
-def euclidean_distance(a: list[float], b: list[float]) -> float:
-    if len(a) != len(b):
-        raise Exception("mismatch input size")
+def dist(a: Iterable[float], b: Iterable[float]) -> float:
     total = 0
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2
     return math.sqrt(total)
-
-
-def generate_distance_map(coords: list[tuple[float, float, float]]) -> list[list[float]]:
-    ret: list[list[float]] = []
-    for fr in coords:
-        inter: list[float] = []
-        for to in coords:
-            inter.append(euclidean_distance([x for x in fr], [x for x in to]))
-        ret.append(inter)
-    return ret
 
 
 def linear(x: float) -> float:

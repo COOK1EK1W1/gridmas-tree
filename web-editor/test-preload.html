@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Preload</title>
+    <link rel="preload" href="/api/send-scripts-zip" as="fetch" crossOrigin="anonymous" />
+</head>
+<body>
+    <h1>Preload Test</h1>
+    <button onclick="testPreload()">Test Preload</button>
+    <div id="result"></div>
+
+    <script>
+        async function testPreload() {
+            const start = performance.now();
+            
+            try {
+                const response = await fetch('/api/send-scripts-zip');
+                const blob = await response.blob();
+                const end = performance.now();
+                
+                document.getElementById('result').innerHTML = `
+                    <p>Success! Downloaded ${blob.size} bytes in ${(end - start).toFixed(2)}ms</p>
+                    <p>Response time: ${(end - start).toFixed(2)}ms (should be very fast due to preload)</p>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

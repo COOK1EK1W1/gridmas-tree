@@ -1,17 +1,27 @@
-from types import ModuleType
-import random
-import time
-import threading
-from typing import Callable, Optional
-from util import STOPFLAG
+"""
+    A collection of the pattern manager class and its helper functions
+"""
+
+from types import GeneratorType, ModuleType
 import os
-from colors import tcolors
-from attribute import Store
-from tree import tree
+from typing import Generator
+import attribute
+from util import tcolors
 import math
+import importlib
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
+    """print_tabulated Print a table
+
+    Print a table of three columns wide
+
+    Args:
+        item1 (str): The first column text
+        item2 (str): The second column text
+        item3 (str): The third column text
+        max_length (int): The maximum length of text allow in a column
+    """
     # Cap the length of each item
     item1 = item1[:max_length].ljust(max_length)
     item2 = item2[:max_length].ljust(max_length)
@@ -22,6 +32,18 @@ def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
 
 
 def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
+    """print_message_centered Print a message that is centered in the terminal
+
+    Creates a message string that contains the message and the required padding to make it appear in the center
+
+    Args:
+        msg (str): The message to display
+        min_len (int): The minimum length of the message for it to be centered
+        padding (str, optional): The character to use for padding the message. Defaults to " ".
+
+    Returns:
+        str: The padded message
+    """
     if len(msg) > min_len:
         return msg
     msg = " " + msg + " "
@@ -33,121 +55,122 @@ def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
     return padding * l_padding + msg + padding * r_padding
 
 
-def load_patterns(pattern_dir: str):
-
-    print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
-
-    pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
-    patterns: list[ModuleType] = []
-    for file in pattern_files:
-        print("loading pattern from " + file + "        ", end="\r")
-        try:
-            module_name = os.path.splitext(file)[0]
-            module = __import__("patterns." + module_name)
-            pattern_module = getattr(module, module_name)
-
-            name = module_name
-            display_name = pattern_module.name
-            func = pattern_module.run
-            print_tabulated(name, display_name, func, 20)
-            patterns.append(pattern_module)
-
-        except Exception as e:
-            print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
-
-    print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
-
-    patterns.sort(key=lambda x: x.name.upper())
-    return patterns
-
-
-def run_pattern(name: str, fn: Callable[[], None]):
-    try:
-        fn()
-    except STOPFLAG:
-        tree.stop_flag = False
-    except Exception as e:
-        print(tcolors.FAIL + "####### PATTERN ERROR ######")
-        print(f"pattern name: {name}")
-        print(e)
-        print("############################" + tcolors.ENDC)
 
 
 class PatternManager:
+    """ Manages patterns for the tree
+
+    The pattern manager is in charge of loading, parsing, storing and recalling pattern files
+    
+    Warning:
+        This module is intended for internal use only. You do not need to use any of this in your pattern code
+    """
+    
     def __init__(self, pattern_dir: str):
-        self.lock = threading.Lock()
-        self.running_task: Optional[threading.Thread] = None
-        self.patterns = load_patterns(pattern_dir)
-        self.pattern_queue: list[str] = ["on"]
+        """__init__ Initialise the pattern manager
 
-        self.idle_stop_flag = False
-        self.running_name = ""
+        Create a new instance of the pattern manager and load the `on` pattern
 
-        a = threading.Thread(target=self.start)
-        a.start()
+        Args:
+            pattern_dir (str): The directory to search for pattern files. The search is carried out automatically
+        """
+        self.load_patterns(pattern_dir)
 
-    def start(self):
-        while True:
-            time.sleep(0.01)
-            if len(self.pattern_queue) > 0:
-                pattern = self.pattern_queue.pop(0)
-                self.run(pattern)
+        self.currentPattern = self.patterns["on"]
 
-    def queue_pattern(self, name: str):
-        self.pattern_queue.append(name)
-        return True
+        self.generator = None
 
-    def random_patterns(self):
-        running = None
-        while not self.idle_stop_flag:
-            if running:
-                if running.is_alive():
-                    tree.stop_flag = True
-                    running.join()
-            Store.get_store().reset()
-            tree.set_fps(45)
-            i = random.randrange(0, len(self.patterns))
-            pattern = self.patterns[i]
-            print(pattern.name)
-            tree.pixel_driver.clear_queue()
-            running = threading.Thread(target=run_pattern, args=(pattern.name, pattern.run,))
-            running.start()
-            time.sleep(30)
-        self.idle_stop_flag = False
+    def load_patterns(self, pattern_dir: str):
+        """load_patterns Loads the patterns from the pattern_dir
 
-    def run(self, name: str) -> bool:
-        with self.lock:
-            if name == "idle":
-                if self.running_task and self.running_task.is_alive():
-                    tree.stop_flag = True
-                    self.running_task.join()
-                Store.get_store().reset()
-                tree.set_fps(45)
-                tree.pixel_driver.clear_queue()
-                self.running_task = threading.Thread(target=self.random_patterns)
-                self.running_task.start()
-                self.running_name = name
-                return True
+        Searches for .py files inside the python file, and then tries to import them
 
-            pattern = self.get(name)
-            if pattern is None:
-                return False
+        Args:
+            pattern_dir (str): The directory to search in
+        """
 
-            if self.running_task and self.running_task.is_alive():
-                if self.running_name == "idle":
-                    self.idle_stop_flag = True
-                tree.stop_flag = True
-                self.running_task.join()
-            Store.get_store().reset()
-            tree.set_fps(45)
-            tree.pixel_driver.clear_queue()
-            self.running_task = threading.Thread(target=run_pattern, args=(name, pattern.run,))
-            self.running_task.start()
-            self.running_name = name
-            return True
+        print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
 
-    def get(self, name: str) -> Optional[ModuleType]:
-        patterns: list[ModuleType] = list(filter(lambda x: x.name == name, self.patterns))
-        if len(patterns) == 0:
-            return None
-        return patterns[0]
+        pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
+        patterns: dict[str, ModuleType] = {}
+        for file in pattern_files:
+            print("loading pattern from " + file + "        ", end="\r")
+            try:
+                module_name = os.path.splitext(file)[0]
+                module = __import__("patterns." + module_name)
+                pattern_module = getattr(module, module_name)
+
+                pattern_module.draw
+                name = module_name
+                print_tabulated(name, "", "", 20)
+                patterns[name] = pattern_module
+
+            except Exception as e:
+                print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
+
+        print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
+
+        attribute.Store.get_store().reset()
+        self.patterns = patterns
+
+
+    def draw_current(self):
+        """draw_current Draw the current pattern
+
+        Takes the currently loaded pattern and runs it, if no pattern is loaded then nothing will happen
+        """
+        if self.currentPattern != None:
+            try:
+                if self.generator:
+                    next(self.generator)
+                else:
+                    res: Generator[None, None, None] | None = self.currentPattern.draw()
+                    if isinstance(res, GeneratorType):
+                        self.generator = res
+            except Exception as e:
+                self.generator = None
+                self.currentPattern = None
+                print("There was an error", e)
+
+
+    def load_pattern(self, name: str):
+        """load_pattern Loads a pattern
+
+        Load the pattern with a given name from the patterns directory
+
+        Args:
+            name (str): _description_
+            
+        Note:
+            TODO fix so people cant just inject whatever name they want from client side :skull:
+        """
+        attribute.Store.get_store().reset()
+        module = __import__("patterns." + name)
+        pattern_module = getattr(module, name)
+        importlib.reload(pattern_module)
+        self.currentPattern = self.patterns[name]
+        self.generator = None
+        print(attribute.Store.get_store().store)
+
+    def unload_pattern(self):
+        """unload_pattern Resets the manager state
+
+        Reset the current pattern and generator variables to effectively restart the manager
+        """
+        
+        self.currentPattern = None
+        self.generator = None
+
+    def get(self, name: str):
+        """get Gets a pattern
+
+        Feteches the pattern with a given name from the internal pattern list, then returns it
+
+        Args:
+            name (str): The name of the pattern you want to fetch
+
+        Returns:
+            code (str): Returns the python code of the pattern
+        """
+        
+        return self.patterns[name]

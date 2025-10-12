@@ -1,4 +1,4 @@
-""" colors is a module which contains class definitions for Color and Pixel as well as
+""" Colors is a module which contains class definitions for Color and Pixel as well as
     helper functions for converting colors between formats
 
    I appologise to all british programmers who spell color as colour, but within the
@@ -8,138 +8,296 @@
 
 import random
 import math
-import time
 import colorsys
-from typing import Callable, Union
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from tree import Tree
+from typing import Callable
 
-from util import linear
+from util import linear, clamp
 
-
-class tcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
-def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
-    return min(max(val, minv), maxv)
 
 
 class Color:
-    """A class representing a color
-
-       Attributes:
-       r: int: Red
-       g: int: Green
-       b: int: Blue
-    """
+    """A class representing a color """
 
     def __init__(self, r: int, g: int, b: int):
-        self.r: int = r & 0xff
-        self.g: int = g & 0xff
-        self.b: int = b & 0xff
+        self._changed = False
+        self._r: int = r & 0xff
+        self._g: int = g & 0xff
+        self._b: int = b & 0xff
 
         self._L_previous = (0, 0, 0)
         self._L_target = (0, 0, 0)
 
         self._L_step = 0
-        self._L_total = 1
+        self._L_total = 0
 
         self._L_fn = linear
 
-    def set_rgb(self, r: int, g: int, b: int):
-        """Set the red, green and blue values of the color.
-           All params are bounded between 0 and 255
+    @property
+    def r(self):
+        """Red component 0-255"""
+        return self._r
 
-        Args:
-            r (int): Red value: 0 - 255
-            g (int): Green value: 0 - 255
-            b (int): Blue value: 0 - 255
-        """
-        self.r = r & 0xff
-        self.g = g & 0xff
-        self.b = b & 0xff
+    @property
+    def g(self):
+        """Green component 0-255"""
+        return self._g
 
-        self.lerp_reset()
+    @property
+    def b(self):
+        """Blue component 0-255"""
+        return self._b
 
-    def set_color(self, color: 'Color'):
-        """Set the color to another named color.
+    """
+    ### Static methods
+    """
 
-        Args:
-            color (Color): Named color
-        """
-        self.set_rgb(*color.to_tuple())
+    @staticmethod
+    def rgb(r: int, g: int, b: int) -> 'Color':
+        """An alias for the constructor, values between 0 and 255"""
+        return Color(r, g, b)
 
-    def fade(self, n: float = 1.1):
-        """Fade the color slightly
+    @staticmethod
+    def hsl(hue: float, sat: float, lig: float) -> 'Color':
+        """Get a color from hsl format, values between 0 and 1.0"""
+        r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
+        return Color(int(r * 255), int(g * 255), int(b * 255))
 
-        Args:
-            n (float, optional): The greater the value of n, the faster the fade will progress. Values less than 0 cause the color to get brighter to a max color of white. Defaults to 1.1.
-        """
-        self.r = int(clamp(self.r / n, 0, 255))
-        self.g = int(clamp(self.g / n, 0, 255))
-        self.b = int(clamp(self.b / n, 0, 255))
+    @staticmethod
+    def hex(s: str) -> 'Color':
+        """Get a color from a string hex code, in format "#FFFFFF" """
+        return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))
 
-        self.lerp_reset()
+    @staticmethod
+    def bit_string(i: int) -> 'Color':
+        """Get a color from a string hex code, in format "#FFFFFF" """
+        r, g, b = int2tuple(i)
+        return Color(r, g, b)
 
-    def to_hex(self) -> str:
-        """Returns the hex value of an RGB color
+    @staticmethod
+    def random(saturation: float = 1, lightness: float = 0.6) -> 'Color':
+        """Generate a random color.
+           The random value is for the Hue. The saturation and lightness can be specified"""
+        return Color.hsl(random.random(), saturation, lightness)
+
+    @staticmethod
+    def different_from(color: 'Color') -> 'Color':
+        """Generate a random color which is different from the color passed into it, maintaining the same hue and saturation"""
+        h, s, v = colorsys.rgb_to_hsv(*color.to_tuple())
+        newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
+        nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
+        return Color(int(nr), int(ng), int(nb))
+
+    @staticmethod
+    def black() -> "Color":
+        return Color(0, 0, 0)
+
+    @staticmethod
+    def red() -> "Color":
+        return Color(255, 0, 0)
+
+    @staticmethod
+    def orange() -> "Color":
+        return Color(252, 81, 8)
+
+    @staticmethod
+    def amber() -> "Color":
+        return Color(251, 136, 10)
+
+    @staticmethod
+    def yellow() -> "Color":
+        return Color(234, 163, 8)
+
+    @staticmethod
+    def lime() -> "Color":
+        return Color(107, 202, 3)
+
+    @staticmethod
+    def green() -> "Color":
+        return Color(0, 255, 0)
+
+    @staticmethod
+    def emerald() -> "Color":
+        return Color(23, 178, 106)
+
+    @staticmethod
+    def teal() -> "Color":
+        return Color(23, 175, 150)
+
+    @staticmethod
+    def cyan() -> "Color":
+        return Color(21, 170, 210)
+
+    @staticmethod
+    def sky() -> "Color":
+        return Color(20, 146, 241)
+
+    @staticmethod
+    def blue() -> "Color":
+        return Color(0, 0, 255)
+
+    @staticmethod
+    def indigo() -> "Color":
+        return Color(78, 64, 255)
+
+    @staticmethod
+    def violet() -> "Color":
+        return Color(122, 47, 255)
+
+    @staticmethod
+    def purple() -> "Color":
+        return Color(155, 30, 255)
+
+    @staticmethod
+    def fuchsia() -> "Color":
+        return Color(215, 0, 250)
+
+    @staticmethod
+    def pink() -> "Color":
+        """pink Get the color pink
+
+        Get the color value of Pink
 
         Returns:
-            str: The hex value of the color
+            Color: The color pink (240,15,137)
         """
-        return tuple2hex((self.r, self.g, self.b))
+        return Color(240, 15, 137)
+
+    @staticmethod
+    def rose() -> "Color":
+        """rose Get the color rose
+
+        Get the color value of Rose
+
+        Returns:
+            Color: The color rose (251,0,69)
+        """
+        return Color(251, 0, 69)
+
+    @staticmethod
+    def white() -> "Color":
+        """white Get the color white
+
+        Get the color value of White
+
+        Returns:
+            Color: The color white (255,255,255)
+        """
+        return Color(255, 255, 255)
+
+    @staticmethod
+    def mix(a: "Color", b: "Color", x: float):
+        return Color(
+            int(a.r + (b.r - a.r) * x),
+            int(a.g + (b.g - a.g) * x),
+            int(a.b + (b.b - a.b) * x)
+        )
 
     def to_tuple(self) -> tuple[int, int, int]:
-        """Returns the tuple of the R, G and B values between 0 and 255
+        """Returns the tuple of the R, G and B, values between 0 and 255 """
+        return (self._r, self._g, self._b)
+
+    def to_hex(self) -> str:
+        """to_hex Get the hex value of the current color
+
+        Convert the current color to the hex value representing it and then return
 
         Returns:
-            tuple[int, int, int]: [Red, Green, Blue]
+            str: The current color in the format #RRGGBB
         """
-        return (self.r, self.g, self.b)
 
-    def to_int(self) -> int:
-        """Return the color as an integer
+        return tuple2hex((self._r, self._g, self._b))
 
-        Returns:
-            int: Color represented as an integer
+    def to_hsl(self) -> tuple[float, float, float]:
+        """Returns the HSL values of the color, between 0 and 1.0" """
+        return colorsys.rgb_to_hls(self._r, self._g, self._b)
+
+    def to_bit_string(self) -> int:
+        """Return the color as an byte string integer, 
+       int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB"""
+        return (self._r << 8) | (self._g << 16) | self._b
+
+    def on(self):
+        """on Set the color to on
+
+        Sets the color to the fully on state (white, RGB(255,255,255))
+        
+        Examples:
+            >>> my_color = Color.red() # Creates a new color that is red
+            >>> my_color.on() # The color is now white (255,255,255)
         """
-        return (self.r << 8) | (self.g << 16) | self.b
+        self._r = 255
+        self._g = 255
+        self._b = 255
 
+        self.changed = True
+
+    def off(self):
+        """off Set the color to off
+
+        Sets the color to the fully off state (black, RGB(0,0,0))
+        
+        Examples:
+            >>> my_color = Color.red() # Creates a new color that is red
+            >>> my_color.off() # The color is now black (0,0,0)
+        """
+        self._r = 0
+        self._g = 0
+        self._b = 0
+
+        self._changed = True
+
+    def fade(self, n: float = 1.1):
+        """fade Fades a color
+
+        Fade the color slightly n
+
+        Args:
+            n (float, optional): Controls the speed of the fade. The larger the number, the faster it will fade. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
+        """
+        
+        self._r = int(clamp(self.r / n, 0, 255))
+        self._g = int(clamp(self.g / n, 0, 255))
+        self._b = int(clamp(self.b / n, 0, 255))
+
+        self.lerp_reset()
+        self._changed = True
+
+
+    def lerp(self, target: "Color", n: int, override: bool = False, fn: Callable[[float], float] = linear):
+        """Linearly interpolate the color from its current color to the target color over n frames.
+        
+        Each successive call to lerp will advance the interpolation by a frame. After n amount of calls, it will be the target color. Any change to the target or frames amount will reset the interpolation from the current color. fn provides a way to choose an interpolation method, defaults to linear
+
+        Examples:
+            >>> my_color = Color.red() # (255, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (205, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (153, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (102, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (51, 0, 0)
+            >>> my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
+            # once reacing the target, lerp has no effect
+            >>> my_color.lerp((0, 0, 0), 5) # (0, 0, 0)
+
+        """
+
+        self.set_lerp(target, n, override, fn)
+  
     def lerp_reset(self):
+        """lerp_reset Reset to lerp step 0
+
+        This method sets the previous lerp state to the current color, and sets the step number to 0
+        """
         self._L_previous = (self.r, self.g, self.b)
         self._L_step = 0
 
-    def lerp(self, target: tuple[int, int, int], time: int, override: bool = False, fn: Callable[[float], float] = linear):
-        """Linearly interpolate the color from its current color to the target color
-
-        Args:
-            target (tuple[int, int, int]): The target color
-            time (int): The time taken for the lerp to complete
-            override (bool, optional): If set to true, the lerp will only progress when you call lerp again. Defaults to False.
-            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
-        """
-        self.set_lerp(target, time, override, fn)
-        self.cont_lerp()
-
-    def set_lerp(self, target: tuple[int, int, int], time: int, override: bool = False, fn: Callable[[float], float] = linear):
-        """This resets the lerp and starts interpolation to the target from the current value.
-
-        Args:
-            target (tuple[int, int, int]): Target color
-            time (int): Time taken to complete the lerp
-            override (bool, optional): If true, the target can be changed while the lerp is in progress. Defaults to False.
-            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
-        """
-        if (target != self._L_target or self._L_total != time) or override:
+    def set_lerp(self, target: "Color", time: int, override: bool = False, fn: Callable[[float], float] = linear):
+        """This resets the lerp and starts interpolation to target from current value. Successive calls will not change the target unless override is set to True. Use with cont_lerp to have the same effect as lerp()"""
+        if (target.to_tuple() != self._L_target or self._L_total != time) or override:
             self.lerp_reset()
-            self._L_target = target
+            self._L_target = target.to_tuple()
             self._L_total = time
             self._L_fn = fn
 
@@ -152,110 +310,139 @@ class Color:
         percent = clamp(self._L_step / self._L_total, 0, 1)
         d = self._L_fn(percent)
 
-        self.r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
-        self.g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
-        self.b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
+        self._r = int(self._L_previous[0] * (1 - d) + self._L_target[0] * d)
+        self._g = int(self._L_previous[1] * (1 - d) + self._L_target[1] * d)
+        self._b = int(self._L_previous[2] * (1 - d) + self._L_target[2] * d)
 
-    @staticmethod
-    def from_hex(s: str) -> 'Color':
-        """Get a color from a string hex code
 
-        Args:
-            s (str): The hex color
 
-        Returns:
-            Color: (r,g,b) repsentation of the color
-        """
-        return Color(int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16))
+    def set(self, c: "Color"):
+        """Set the color to another color by value"""
+        self._r = c._r
+        self._g = c._g
+        self._b = c._b
 
-    @staticmethod
-    def from_hsl(hue: float, sat: float, lig: float) -> 'Color':
-        """Get a color from hsl format
+        self.lerp_reset()
+        self.changed = True
+        
+    def set_color(self, c: "Color"):
+        self._r = c._r
+        self._g = c._g
+        self._b = c._b
 
-        Args:
-            hue (float): The hue of the target color
-            sat (float): The saturation of the target color
-            lig (float): The lightness of the target color
+        self.lerp_reset()
+        self.changed = True
+    
+    def set_rgb(self, r: int, g: int, b: int):        
+        """Set the red, green and blue values of the color, values between 0 and 255"""
+        self._r = r & 0xff
+        self._g = g & 0xff
+        self._b = b & 0xff
 
-        Returns:
-            Color: (r,g,b) repsentation of the color
-        """
+        self.lerp_reset()
+        self.changed = True
+
+    def set_hsl(self, hue: float, sat: float, lig: float):
+        """Set the color via HSL, values between 0 and 1.0"""
         r, g, b = colorsys.hsv_to_rgb(hue, sat, lig)
-        return Color(int(r * 255), int(g * 255), int(b * 255))
+        self._r = int(r * 255)
+        self._g = int(g * 255)
+        self._b = int(b * 255)
 
-    @staticmethod
-    def white() -> 'Color':
-        """The color white
+        self.lerp_reset()
+        self.changed = True
 
-        Returns:
-            Color: White
-        """
-        return Color(255, 255, 255)
+    def set_hex(self, s: str):
+        """Set the color with a string hex code, in format "#FFFFFF" """
+        self._r, self._g, self._b = int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16)
 
-    @staticmethod
-    def black() -> 'Color':
-        """The color black. Since LED's can't be black. This is equivalent to off.
+        self.lerp_reset()
+        self.changed = True
 
-        Returns:
-            Color: Black
-        """
-        return Color(0, 0, 0)
+    def set_bit_string(self, i: int):
+        """Set the color with a string hex code, in format "#FFFFFF" """
+        self._r, self._g, self._b = int2tuple(i)
 
-    @staticmethod
-    def red() -> 'Color':
-        """The color red
+        self.lerp_reset()
+        self.changed = True
 
-        Returns:
-            Color: Red
-        """
-        return Color(255, 0, 0)
+    def set_random(self, saturation: float = 1, lightness: float = 0.6):
+        """Set the color to a random color.
+           The random value is for the Hue. The saturation and lightness can be specified"""
+        self.set_hsl(random.random(), saturation, lightness)
 
-    @staticmethod
-    def green() -> 'Color':
-        """The color green
+        self.lerp_reset()
+        self.changed = True
 
-        Returns:
-            Color: Green
-        """
-        return Color(0, 255, 0)
-
-    @staticmethod
-    def blue() -> 'Color':
-        """The color blue
-
-        Returns:
-            Color: Blue
-        """
-        return Color(0, 0, 255)
-
-    @staticmethod
-    def random(saturation: float = 1, lightness: float = 0.6) -> 'Color':
-        """Generate a random color.
-           The random value is for the Hue. The saturation and lightness can be specified
-
-        Args:
-            saturation (float, optional): The target saturation. Defaults to 1.
-            lightness (float, optional): The target lightness. Defaults to 0.6.
-
-        Returns:
-            Color: The color that is generated
-        """
-        return Color.from_hsl(random.random(), saturation, lightness)
-
-    @staticmethod
-    def different_from(color: 'Color') -> 'Color':
-        """Generate a random color which is different from the color passed into it, maintaining the same hue and saturation
-
-        Args:
-            color (Color): The color which is currently in use
-
-        Returns:
-            Color: A color which is different from the one passed into the function
-        """
-        h, s, v = colorsys.rgb_to_hsv(*color.to_tuple())
+    def set_different_from(self, color: 'Color'):
+        """Set the color to a random color which is different from the color passed into it, maintaining the same hue and saturation"""
+        h, s, v = color.to_hsl()
         newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
-        nr, ng, nb = colorsys.hsv_to_rgb(newh, s, v)
-        return Color(int(nr), int(ng), int(nb))
+        self.set_hsl(newh, s, v) # handles the changed and lerp reset
+
+    def set_different_from_self(self):
+        """Set the color to a random color which is different to the current color, maintaining the same hue and saturation"""
+        h, s, v = self.to_hsl()
+        newh = ((h * 360 + random.randint(0, 180) + 40) % 360) / 360
+        self.set_hsl(newh, s, v) # handles the changed and lerp reset
+
+    def set_black(self):
+        self._r, self._g, self._b = 0, 0, 0
+
+    def set_red(self):
+        self._r, self._g, self._b = 255, 0, 0
+
+    def set_orange(self):
+        self._r, self._g, self._b = 252, 81, 8
+
+    def set_amber(self):
+        self._r, self._g, self._b = 251, 136, 10
+
+    def set_yellow(self):
+        self._r, self._g, self._b = 234, 163, 8
+
+    def set_lime(self):
+        self._r, self._g, self._b = 107, 202, 3
+
+    def set_green(self):
+        self._r, self._g, self._b = 0, 255, 0
+
+    def set_emerald(self):
+        self._r, self._g, self._b = 23, 178, 106
+
+    def set_teal(self):
+        self._r, self._g, self._b = 23, 175, 150
+
+    def set_cyan(self):
+        self._r, self._g, self._b = 21, 170, 210
+
+    def set_sky(self):
+        self._r, self._g, self._b = 20, 146, 241
+
+    def set_blue(self):
+        self._r, self._g, self._b = 0, 0, 255
+
+    def set_indigo(self):
+        self._r, self._g, self._b = 78, 64, 255
+
+    def set_violet(self):
+        self._r, self._g, self._b = 122, 47, 255
+
+    def set_purple(self):
+        self._r, self._g, self._b = 155, 30, 255
+
+    def set_fuchsia(self):
+        self._r, self._g, self._b = 215, 0, 250
+
+    def set_pink(self):
+        self._r, self._g, self._b = 240, 15, 137
+
+    def set_rose(self):
+        self._r, self._g, self._b = 251, 0, 69
+
+    def set_white(self):
+        self._r, self._g, self._b = 255, 255, 255
+
 
 
 class Pixel(Color):
@@ -273,51 +460,93 @@ class Pixel(Color):
        d: float: The polar distance from the Z axis (trunk)
     """
 
-    def __init__(self, coord: tuple[float, float, float], color: Color = Color.black()):
+    def __init__(self, id: int, coord: tuple[float, float, float], tree: "Tree", color: Color = Color.black()):
         super().__init__(*color.to_tuple())
-        self.x = coord[0]
-        self.y = coord[1]
-        self.z = coord[2]
+        self._id = id
 
-        self.a = math.atan2(self.y, self.x)
-        self.d = math.sqrt(self.y ** 2 + self.x ** 2)
+        self._x = coord[0]
+        self._y = coord[1]
+        self._z = coord[2]
 
+        self._a = math.atan2(self._y, self._x)
+        self._d = math.sqrt(self._y ** 2 + self._x ** 2)
+        
+        self._tree = tree
+
+    @property
+    def id(self) -> int:
+        """The id in the LED sequence"""
+        return self._id
+
+    @property
+    def x(self) -> float:
+        """The X coordinate, left (-1) to right (+1)"""
+        return self._x
+
+    @property
+    def y(self) -> float:
+        """The Y coordinate, front (+1) to back (-1)"""
+        return self._y
+
+    @property
+    def z(self) -> float:
+        """The Z coordinate bottom (0) to top (height())"""
+        return self._z
+
+    @property
+    def xyz(self) -> tuple[float, float, float]:
+        """The tuple containing the xyz coordinates"""
+        return (self._x, self._y, self._z)
+
+    @property
+    def a(self) -> float:
+        """The angle clockwise from the x+ direction around the tree"""
+        return self._a
+
+    @property
+    def d(self) -> float:
+        """The distance from the center line (trunk) of the tree"""
+        return self._d
+
+    def distance_to(self, p: "Pixel") -> float:
+        """Find the distance to the passed pixel"""
+        return self._tree.distances[self._id][p.id]
+
+    def nearest(self, n: int) -> list[tuple["Pixel", float]]:
+        """Find the distance to the passed pixel"""
+        return self._tree.pixel_distance_matrix[self._id][:n]
+
+    def within(self, d: float) -> list["Pixel"]:
+        """Find all pixels that are within a certain radius"""
+        left = 0
+        right = len(self._pixels()) - 1
+        while left < right:
+            mid = (left + right) // 2
+            if self._tree.pixel_distance_matrix[self._id][mid][1] < d:
+                left = mid + 1
+            else:
+                right = mid
+        return list(map(lambda x: x[0], self._tree.pixel_distance_matrix[self._id][:left]))
 
 def int2tuple(c: int) -> tuple[int, int, int]:
     """conver the 24bit encoded int to tuple of R, G, and B.
-
-       int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB
-
-    Args:
-        c (int): Color represented as an int
-
-    Returns:
-        tuple[int, int, int]: R,G,B bitmap of the input color
-    """
+       int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB"""
     return ((c >> 8) & 0xff, (c >> 16) & 0xff, c & 0xff)
+
+def tuple2int(t: tuple[int, int, int]) -> int:
+    """conver rgb to 24bit encoded int.
+       int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB
+    """
+    return (t[0] << 8) | (t[1] << 16) | t[2]
 
 
 def tuple2hex(t: tuple[int, int, int]) -> str:
-    """Convert an RGB tuple to hex string
-
-    Args:
-        t (tuple[int, int, int]): RGB color
-
-    Returns:
-        str: Hex value of the color
-    """
+    """Convert an RGB tuple to hex string """
     return '#%02x%02x%02x' % t
 
 
 def hex2tuple(h: str) -> tuple[int, int, int]:
-    """Convert a hex string to an RGB tuple
-
-    Args:
-        h (str): Hex string of a color
-
-    Returns:
-        tuple[int, int, int]: RGB tuple of the color
-    """
+    """Convert a hex string to an RGB tuple"""
     return (int(h[1:3], 16), int(h[3:5], 16), int(h[5:7], 16))
 
 
@@ -340,43 +569,36 @@ if __name__ == "__main__":
             print(test, ans)
             raise Exception("error in")
 
-if __name__ == "__main__" and False:
-    a = time.perf_counter()
-    for i in range(10_000_000):
-        newColor = Color(1, 2, 3)
-        newColor.set_rgb(3, 2, 1)
-        newColor.fade()
-    print(time.perf_counter() - a)
-
 if __name__ == "__main__":
     red = Color.red()
 
-    red.lerp((0, 0, 0), 5)
+    c = Color.black()
+    red.lerp(c, 5)
     if red.to_tuple() != (204, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (153, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (102, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (50, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (0, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")
 
-    red.lerp((0, 0, 0), 5)
+    red.lerp(c, 5)
     if red.to_tuple() != (0, 0, 0):
         print(red.to_tuple())
         raise Exception("lerp wrong")

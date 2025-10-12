@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 from typing import Optional
 from colors import Color, Pixel
-from util import euclidean_distance
+from util import dist
 from tree import Tree
 
 
@@ -50,13 +50,13 @@ class CubeParticle(Particle):
         self.color = color
 
     def draw(self, tree: Tree):
-        for pixel in tree.pixels:
+        for pixel in pixels():
             # Check if the pixel is within the outer bounding box
             if self.z - self.length < pixel.z < self.z + self.length and \
                self.x - self.length < pixel.x < self.x + self.length and \
                self.y - self.length < pixel.y < self.y + self.length:
 
-                pixel.set_color(self.color)
+                pixel.set(self.color)
 
     @abstractmethod
     def advance(self):
@@ -96,7 +96,7 @@ class SphereParticle(Particle):
 
     def draw(self, tree: Tree):
         inner_radius = 0.866  # sqrt(3) / 2, side length of box inscribed by sphere
-        for pixel in tree.pixels:
+        for pixel in pixels():
             # Check if the pixel is within the outer bounding box
             if self.z - self.radius < pixel.z < self.z + self.radius and \
                self.x - self.radius < pixel.x < self.x + self.radius and \
@@ -106,11 +106,11 @@ class SphereParticle(Particle):
                 if self.z - inner_radius < pixel.z < self.z + inner_radius and \
                    self.x - inner_radius < pixel.x < self.x + inner_radius and \
                    self.y - inner_radius < pixel.y < self.y + inner_radius:
-                    pixel.set_color(self.color)
+                    pixel.set(self.color)
                 else:
                     # Perform the distance check if not within the inner bounding box
-                    if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
-                        pixel.set_color(self.color)
+                    if dist([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                        pixel.set(self.color)
 
     @abstractmethod
     def advance(self):
@@ -129,7 +129,7 @@ class SphereParticle(Particle):
                 return self.color
             else:
                 # Perform the distance check if not within the inner bounding box
-                if euclidean_distance([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
+                if dist([pixel.x, pixel.y, pixel.z], [self.x, self.y, self.z]) < self.radius:
                     return self.color
 
 
@@ -164,26 +164,24 @@ class ParticleSystem:
 
         self._particles = list(filter(lambda x: x.age < x.max_age and not x.is_dead, self._particles))
 
-    def draw(self) -> None:
+    def draw(self):
         """Run the draw function for all particles in the system
         """
         for particle in self._particles:
             particle.draw(self.tree)
-
-        self.tree.update()
+        yield
 
     def fast_draw(self):
         """Better for performance if there are lots of overlapping particles. However, it could
            lead to unpredictable overlap coloring
         """
         skip_amount = 0
-        for pixel in self.tree.pixels:
+        for pixel in self.pixels():
             for i, particle in enumerate(self._particles):
                 a = particle.fast_draw(pixel)
                 if a is not None:
-                    pixel.set_color(a)
+                    pixel.set(a)
                     skip_amount += len(self._particles) - i
                     break
         # if len(self._particles) != 0:
-            # print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
-        self.tree.update()
+            # print(skip_amount / (len(self.pixels()) * len(self._particles)))
