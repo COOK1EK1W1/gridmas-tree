@@ -11,11 +11,11 @@ import { Suspense } from "react";
 
 function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
   const bulbColors = ["#ef4444", "#22c55e", "#f59e0b", "#60a5fa", "#e879f9"]; // red, green, amber, blue, pink
-  const bulbs = Array.from({ length: 36 });
+  const bulbs = Array.from({ length: 40 });
   return (
     <div className="pointer-events-none relative w-full" aria-hidden>
       <div className={`absolute inset-x-0 ${position === "top" ? "-top-2" : "-bottom-2"} flex justify-center`}>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           {bulbs.map((_, i) => {
             const color = bulbColors[i % bulbColors.length];
             return (

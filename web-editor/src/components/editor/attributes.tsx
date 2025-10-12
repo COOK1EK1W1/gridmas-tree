@@ -36,7 +36,7 @@ export default function Attributes() {
   }, [attributes?.length, currentValues])
 
   return (
-    <div className="h-52 bg-white">
+    <div className="hidden md:block h-52 bg-white">
       {attributes.length > 0 ? (<div className="w-full candy-frame h-full bg-white rounded grid grid-cols-1 lg:grid-cols-2 xxl:grid-cols-3 gap-8">
         {attributes.map((attr, i) => (
           <div key={i}>

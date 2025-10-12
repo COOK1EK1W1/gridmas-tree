@@ -213,7 +213,7 @@ tree._request_frame()
   return (
     <div className={`h-full `}>
       <div className="fixed bottom-2 right-2">
-        <Button onClick={handlePhoto} className="cursor-pointer z-1000">
+        <Button onClick={handlePhoto} className="hidden cursor-pointer z-1000">
           <Camera />
         </Button>
       </div>
@@ -268,7 +268,7 @@ tree._request_frame()
         <OrbitControls maxPolarAngle={Math.PI - 1} enablePan={false} target={[0, treeHeight / 2, 0]} />
       </Canvas>
 
-      <div className="fixed text-white top-2 right-2" ref={fpsRef}></div>
+      <div className="hidden md:block fixed text-white top-2 right-2" ref={fpsRef}></div>
     </div >
   )
 
