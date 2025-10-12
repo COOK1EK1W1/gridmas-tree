@@ -6,7 +6,7 @@ export default function Attributes() {
 
   const { attributes, attributeRefs } = useEditor()
   const [currentValues, setCurrentValues] = useState<(number | string)[]>([])
-  
+
   const isRangeAttr = (attr: any): attr is { name: string; default: number; min: number; max: number; step: number } => {
     return 'min' in attr && 'max' in attr && 'step' in attr;
   };
@@ -14,7 +14,7 @@ export default function Attributes() {
   // Initialize current values when attributes change
   useEffect(() => {
     if (attributes) {
-      const initialValues = attributes.map(attr => 
+      const initialValues = attributes.map(attr =>
         isRangeAttr(attr) ? attr.default : attr.default
       )
       setCurrentValues(initialValues)
@@ -25,7 +25,7 @@ export default function Attributes() {
   useEffect(() => {
     if (attributeRefs.current && attributes) {
       attributeRefs.current = attributeRefs.current.slice(0, attributes.length)
-      
+
       // Store current values in refs for easy access
       for (let i = 0; i < attributes.length; i++) {
         if (attributeRefs.current[i]) {
@@ -37,12 +37,12 @@ export default function Attributes() {
 
   return (
     <div className="h-52 bg-white">
-      <div className="w-full candy-frame h-full bg-white rounded grid grid-cols-1 lg:grid-cols-2 xxl:grid-cols-3 gap-8">
+      {attributes.length > 0 ? (<div className="w-full candy-frame h-full bg-white rounded grid grid-cols-1 lg:grid-cols-2 xxl:grid-cols-3 gap-8">
         {attributes.map((attr, i) => (
           <div key={i}>
             <div className="pb-2">{attr.name}</div>
             {isRangeAttr(attr) ? (
-              <Slider 
+              <Slider
                 ref={(el) => {
                   if (attributeRefs.current) {
                     attributeRefs.current[i] = el
@@ -54,19 +54,19 @@ export default function Attributes() {
                   newValues[i] = values[0]
                   setCurrentValues(newValues)
                 }}
-                max={attr.max} 
+                max={attr.max}
                 min={attr.min}
                 step={attr.step}
               />
             ) : (
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   ref={(el) => {
                     if (attributeRefs.current) {
                       attributeRefs.current[i] = el
                     }
                   }}
-                  type="color" 
+                  type="color"
                   value={currentValues[i] !== undefined ? currentValues[i] as string : attr.default}
                   onChange={(e) => {
                     const newValues = [...currentValues]
@@ -80,8 +80,16 @@ export default function Attributes() {
             )}
           </div>
         ))}
+      </div>) : <div className="flex w-full flex-col justify-center items-center w-full candy-frame h-full bg-white rounded">
+        <div>
+          Attributes allow you to change parameters while the pattern is running.
+        </div>
+        <code>variable = RangeAttr("myVariable", 0, -1, 1, 0.01)</code>
+        <div>or</div>
+        <code>color = ColorAttr("myColor", Color(255, 255, 255))</code>
       </div>
-    </div>
+      }
+    </div >
   )
 
 }

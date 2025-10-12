@@ -53,10 +53,19 @@ export function adaptPythonAttributes(pyodideAttributeData: any[]): (RangeAttr |
       } as RangeAttr;
     }
     
-    // Otherwise, treat as ColorAttr
+    // Otherwise, treat as ColorAttr - ensure value is a hex string
+    let colorValue = value;
+    if (typeof colorValue === 'string' && !colorValue.startsWith('#')) {
+      // If it's a string but not hex format, try to convert it
+      colorValue = `#${colorValue}`;
+    } else if (typeof colorValue !== 'string') {
+      // If it's not a string at all, convert to hex string
+      colorValue = `#${colorValue.toString()}`;
+    }
+    
     return {
       name,
-      default: value
+      default: colorValue
     } as ColorAttr;
   });
 }

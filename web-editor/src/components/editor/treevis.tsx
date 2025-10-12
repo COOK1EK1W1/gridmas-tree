@@ -93,42 +93,43 @@ export default function TreeVis({
             // Read current values from attribute refs and update Python Store
             if (attributeRefs.current && attributes.length > 0) {
               const attributeUpdates = []
-              
+
               for (let i = 0; i < attributes.length; i++) {
                 const attr = attributes[i]
                 const ref = attributeRefs.current[i]
-                
+
                 if (ref && ref.currentValue !== undefined) {
                   if ('min' in attr && 'max' in attr && 'step' in attr) {
                     // RangeAttr - get value from stored currentValue
                     attributeUpdates.push(`Store.get_store().get("${attr.name}").set(${ref.currentValue})`)
                   } else {
                     // ColorAttr - get value from stored currentValue
-                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color("${ref.currentValue}"))`)
+                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color.hex("${ref.currentValue}"))`)
                   }
                 }
               }
-              
+
+
               // Execute all attribute updates
               if (attributeUpdates.length > 0) {
                 pyodide.runPython(attributeUpdates.join('\n'))
               }
             }
 
-            // set all the attributes
+            // get all the attributes
             const res1 = pyodide.runPython(`
-list(map(lambda x: (x.name, x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
+list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
 `)
 
             const attributeData = res1.toJs()
             const adaptedAttributes = adaptPythonAttributes(attributeData)
-            
+
             // Check if attributes have changed
-            if (attributes.length !== adaptedAttributes.length || 
-                !attributes.every((attr, i) => 
-                  adaptedAttributes[i] && 
-                  attr.name === adaptedAttributes[i].name
-                )) {
+            if (attributes.length !== adaptedAttributes.length ||
+              !attributes.every((attr, i) =>
+                adaptedAttributes[i] &&
+                attr.name === adaptedAttributes[i].name
+              )) {
               setAttributes(adaptedAttributes)
             }
 
