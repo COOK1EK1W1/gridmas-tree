@@ -56,8 +56,8 @@ class Tree():
         self._background = None
 
     def _pattern_reset(self):
-        self.pattern_started_at = time.time()
-        self.frame = 0
+        self._pattern_started_at = time.time()
+        self._frame = 0
         self._background = None
 
     def _request_frame(self):
@@ -98,7 +98,7 @@ class Tree():
             self._pixels[i].cont_lerp()
 
         self._shapes = []
-        self.frame += 1
+        self._frame += 1
 
         return colors
 

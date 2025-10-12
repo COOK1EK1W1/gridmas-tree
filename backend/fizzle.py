@@ -1,4 +1,4 @@
-from tree import tree
+from gridmas import *
 import random
 
 
@@ -10,5 +10,5 @@ def fizzle():
     a = list(range(num_pixels()))
     random.shuffle(a)
     for i in a:
-        pixels()[i].set_rgb(0, 0, 0)
+        set_pixel(i, Color(0, 0, 0))
         yield

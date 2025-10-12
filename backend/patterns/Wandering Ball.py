@@ -7,7 +7,7 @@ name = "Wandering Ball"
 author = "Ciaran"
 
 
-height = 0.5
+cur_height = 0.5
 angle = random.randrange(0, 627) / 100
 angle2 = random.randrange(0, 627) / 100
 
@@ -17,13 +17,13 @@ color = ColorAttr("ball color", Color.white())
 trailLength = RangeAttr("Trail Length", 100, 5, 200, 5)
 
 def draw():
-    global angle, height, angle2, dist
-    tree.lerp(Color.black(), int(trailLength.get()))
+    global angle, cur_height, angle2, dist
+    lerp(Color.black(), int(trailLength.get()))
 
     angle = (angle + 0.1) % 6.28
     angle2 = (angle2 + 0.034) % 6.28
 
-    center = [dist * math.sin(angle), dist * math.cos(angle), height]
-    height = abs(math.sin(angle2)) * (tree.height - radius.get() * 2) + radius.get()
-    Sphere((center[0], center[1], height), radius.get(), color.get())
+    center = [dist * math.sin(angle), dist * math.cos(angle), cur_height]
+    cur_height = abs(math.sin(angle2)) * (height() - radius.get() * 2) + radius.get()
+    Sphere((center[0], center[1], cur_height), radius.get(), color.get())
 

@@ -1,7 +1,6 @@
-from particle_system import ParticleSystem, SphereParticle
+from gridmas import *
 import random
-from colors import Color
-from tree import tree
+
 
 
 name = "Jumpy Balls"
@@ -13,7 +12,7 @@ class Ball:
         self.c = Color.random()
         self.x = random.random() - 0.5
         self.y = random.random() - 0.5
-        self.z = tree.height
+        self.z = height()
         self.xVel = (random.random() - 0.5) * 0.3
         self.yVel = (random.random() - 0.5) * 0.3
         self.zVel = (1 - random.random()) * 0.03
@@ -31,7 +30,7 @@ def draw():
         if len(balls) > 5:
             balls.pop(0)
         for _ in range(random.randrange(50, 100)):
-            tree.lerp(Color(0, 0, 0), 5)
+            lerp(Color(0, 0, 0), 5)
             for ball in balls:
                 Sphere((ball.x, ball.y, ball.z), 0.2, ball.c)
 

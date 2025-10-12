@@ -13,9 +13,9 @@ def draw():
 
     time = 0
     while True:
-        for i, pixel in enumerate(tree.pixels):
+        for i, pixel in enumerate(pixels()):
             # Calculate the wave based on height (z-coordinate) and time
-            wave = math.sin(wave_frequency.get() * (pixel.z / tree.height * 2 * math.pi + time))
+            wave = math.sin(wave_frequency.get() * (pixel.z / height() * 2 * math.pi + time))
 
             # Map the wave to a value between 0 and 1
             wave_mapped = (wave + 1) / 2
@@ -33,11 +33,11 @@ def draw():
             combined_factor = (wave_mapped + radial_factor) / 2
 
             # Set the final color
-            tree.set_light(i, Color(
+            pixel.set_rgb(
                 int(r * combined_factor),
                 int(g * combined_factor),
                 int(b * combined_factor)
-            ))
+            )
 
         yield
         time += wave_speed.get()

@@ -25,7 +25,7 @@ def draw():
     while True:
         snowflakes = list(filter(lambda x: x.z > -0.2, snowflakes))
 
-        tree.fade(10)
+        fade(10)
         for _ in range(random.randint(2, 3)):
 
             for flake in snowflakes:

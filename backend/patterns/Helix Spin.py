@@ -20,17 +20,18 @@ def draw():
     global angle_offset, vertical_offset, HELIX_STRANDS, SPIN_SPEED, twist
 
 
+
     # Each frame, calculate the color based on a simple cycling pattern
     r = int((math.sin(COLOR_CYCLE_SPEED * seconds()) + 1) / 2 * 255)
     g = int((math.sin(COLOR_CYCLE_SPEED * seconds() + 2 * math.pi / 3) + 1) / 2 * 255)
     b = int((math.sin(COLOR_CYCLE_SPEED * seconds() + 4 * math.pi / 3) + 1) / 2 * 255)
 
-    for pixel in tree.pixels:
+    for pixel in pixels():
 
         # Calculate the angle of this point around the center of the tree
         angle = math.atan2(pixel.y, pixel.x)
         # Determine the strand by position along the z-axis and the number of strands
-        strand = int((HELIX_STRANDS.get() * (pixel.z / tree.height + vertical_offset)) % HELIX_STRANDS.get())
+        strand = int((HELIX_STRANDS.get() * (pixel.z / height() + vertical_offset)) % HELIX_STRANDS.get())
 
         # Check if the light is close to the helix for this strand
         if abs((angle - angle_offset - 2 * math.pi * strand / HELIX_STRANDS.get() + pixel.z * twist.get()) % (2 * math.pi) < 0.2 or (angle - angle_offset - 2 * math.pi * strand / HELIX_STRANDS.get() + pixel.z * twist.get()) % (2 * math.pi) > 2 * math.pi - 0.2):

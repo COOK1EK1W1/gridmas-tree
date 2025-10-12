@@ -8,10 +8,10 @@ color = ColorAttr("Color", Color.white())
 
 def draw():
 
-    for pixel in tree.pixels:
+    for pixel in pixels():
         pixel.set_color(color.get())
 
-        for pixel in tree.pixels:
+        for pixel in pixels():
             pixel.fade(n=fade.get())
 
         yield

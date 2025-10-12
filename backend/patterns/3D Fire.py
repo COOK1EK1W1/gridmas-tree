@@ -84,6 +84,7 @@ class matrix():
         localZ = int(localZ * (self._wZ - 1))
         return self.get(localX, localY, localZ)
 
+coords = coords()
 
 def draw():
     # Color are G R B
@@ -108,7 +109,7 @@ def draw():
         palette.append((255, 255, int((i - (palR2Y)) / (256 - palR2Y) * maxBrightness)))
 
     treeBB = boundingBox()
-    for i in tree.coords:
+    for i in coords:
         treeBB.update(i[0], i[1], i[2])
 
     treeBB.finalize()
@@ -120,8 +121,8 @@ def draw():
 
     while True:
 
-        for LED, pixel in enumerate(tree.pixels):
-            v = workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])
+        for LED, pixel in enumerate(pixels()):
+            v = workMat.getTree(coords[LED][0], coords[LED][1], coords[LED][2])
             pixel.set_rgb(*palette[v])
 
         yield
