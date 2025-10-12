@@ -218,41 +218,37 @@ if 'pattern_generator' in globals():
   const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
   return (
-    <div className="h-full flex flex-row">
-      <div className="w-1/2 bg-slate-200 h-100dvh flex flex-col">
-        <TopBar user={userData} />
-        <CodeEditor />
-        <Attributes />
+    <div className="h-full grid grid-cols-1 md:grid-cols-2">
+      <TopBar user={userData} />
+      <div className="row-span-2 flex-grow">
+        <TreeVis
+          pyodide={pyodide}
+          running={running}
+          onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
+        />
       </div>
-      <div className="w-1/2 h-screen flex flex-col">
-        <div className="flex-grow">
-          <TreeVis
-            pyodide={pyodide}
-            running={running}
-            onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
-          />
+      <CodeEditor />
+      <Attributes />
+      <div className="h-52">
+        <div className="h-12 flex items-center">
+          <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
+            {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
+          </Button>
         </div>
-        <div className="h-52">
-          <div className="h-12 flex items-center">
-            <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
-              {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
-            </Button>
-          </div>
-          <div className="h-40 overflow-auto">
-            {output.map((x, i) => (
-              <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-                <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
-                  {x.content}
-                </p>
-                {x.frame !== 0 && (
-                  <span className="text-slate-600 text-xs">frame {x.frame}</span>
-                )}
-              </div>
+        <div className="h-40 overflow-auto">
+          {output.map((x, i) => (
+            <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+              <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
+                {x.content}
+              </p>
+              {x.frame !== 0 && (
+                <span className="text-slate-600 text-xs">frame {x.frame}</span>
+              )}
+            </div>
 
 
-            ))}
-            <div ref={bottomRef} />
-          </div>
+          ))}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div >

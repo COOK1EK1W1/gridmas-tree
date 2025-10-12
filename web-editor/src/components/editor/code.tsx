@@ -10,7 +10,7 @@ export default function CodeEditor() {
   }
 
   return (
-    <div className="flex-grow">
+    <div className="hidden md:block flex-grow">
       {/* use default wave pattern if no cloud pattern */}
       <Editor onMount={handleEditorDidMount} height="100%" defaultLanguage="python" defaultValue={pattern === "" ? `import time
 import math
