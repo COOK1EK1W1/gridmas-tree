@@ -81,7 +81,7 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
 
   return (
     <>
-      {patterns.map((pattern, i) => (
+      {patterns.sort((x, y) => y.modifiedAt.getTime() - x.modifiedAt.getTime()).map((pattern, i) => (
         <div key={pattern.id} className="relative w-[210px]">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

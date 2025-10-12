@@ -127,7 +127,7 @@ class JSWriter:
 sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
 
-          // initialize the tree so that tree.pixels etc. are available
+          // initialize the tree so that pixels() etc. are available
           pyodide.runPython(`
 from gridmas import *
 Store.instance = None

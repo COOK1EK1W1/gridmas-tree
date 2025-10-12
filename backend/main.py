@@ -45,7 +45,7 @@ if __name__ == '__main__':
     tree.init(args.tree_file or "tree.csv")
 
     # Initialise the rendering pipeline
-    renderer = Renderer(tree.coords)
+    renderer = Renderer(tree._coords)
 
     # Web server
     is_rate_limit = False
@@ -80,7 +80,7 @@ if __name__ == '__main__':
                         patternManager.unload_pattern()
                         for i, pixel in enumerate(frame):
                             if (pixel != None):
-                                tree.pixels[i].set_rgb(pixel[0], pixel[1], pixel[2])
+                                tree._pixels[i].set_rgb(pixel[0], pixel[1], pixel[2])
 
                     case _: 
                         pass
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             patternManager.draw_current()
 
             # 3. get pixels from tree instance
-            frame = tree.request_frame()
+            frame = tree._request_frame()
 
             # 4. send to pixel driver | blocks until space
             renderer.add_to_queue(frame)

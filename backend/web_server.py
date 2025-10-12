@@ -47,33 +47,33 @@ class WebServer:
 
         @app.route('/lighton')
         def lighton():
-            frame = DrawFrame([(255, 255, 255) for _ in range(tree.num_pixels)])
+            frame = DrawFrame([(255, 255, 255) for _ in range(num_pixels())])
             self.request_queue.put(frame)
             return "All On"
 
         @app.route('/lighton/<int:number>')
         def lightonN(number: int):
-            frame = DrawFrame([(255, 255, 255) if i == number else None for i in range(tree.num_pixels)])
+            frame = DrawFrame([(255, 255, 255) if i == number else None for i in range(num_pixels())])
             self.request_queue.put(frame)
             return "on"
 
         @app.route('/lightoff')
         def lightoff():
-            frame = DrawFrame([(0, 0, 0) for _ in range(tree.num_pixels)])
+            frame = DrawFrame([(0, 0, 0) for _ in range(num_pixels())])
             self.request_queue.put(frame)
             return "all off"
 
         @app.route('/setalllight', methods=['POST'])
         def setLightColor():
             data = json.loads(request.data)
-            for color, pixel in zip(data, tree.pixels):
+            for color, pixel in zip(data, pixels()):
                 pixel.set_rgb(color[0], color[1], color[2])
             tree.update()
             return "done"
 
         @app.route('/lightoff/<int:number>')
         def lightoffN(number: int):
-            frame = DrawFrame([(0, 0, 0) if i == number else None for i in range(tree.num_pixels)])
+            frame = DrawFrame([(0, 0, 0) if i == number else None for i in range(num_pixels())])
             self.request_queue.put(frame)
             return "off"
 
@@ -116,7 +116,7 @@ class WebServer:
 
             value = data["color"]
             color = Color.hex(value)
-            for i in range(tree.num_pixels):
+            for i in range(num_pixels()):
                 tree.set_light(i, color)
             tree.update()
             return "bruh"

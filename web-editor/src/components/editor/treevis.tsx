@@ -165,7 +165,7 @@ except Exception as e:
     pattern_generator = None
 
 # Get the current tree state after pattern execution
-tree.request_frame()
+tree._request_frame()
 `)
 
             // Extract the lights data from the tree state

@@ -519,7 +519,7 @@ class Pixel(Color):
     def within(self, d: float) -> list["Pixel"]:
         """Find all pixels that are within a certain radius"""
         left = 0
-        right = len(self._tree.pixels) - 1
+        right = len(self._pixels()) - 1
         while left < right:
             mid = (left + right) // 2
             if self._tree.pixel_distance_matrix[self._id][mid][1] < d:

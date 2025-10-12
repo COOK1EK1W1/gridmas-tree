@@ -50,7 +50,7 @@ class CubeParticle(Particle):
         self.color = color
 
     def draw(self, tree: Tree):
-        for pixel in tree.pixels:
+        for pixel in pixels():
             # Check if the pixel is within the outer bounding box
             if self.z - self.length < pixel.z < self.z + self.length and \
                self.x - self.length < pixel.x < self.x + self.length and \
@@ -96,7 +96,7 @@ class SphereParticle(Particle):
 
     def draw(self, tree: Tree):
         inner_radius = 0.866  # sqrt(3) / 2, side length of box inscribed by sphere
-        for pixel in tree.pixels:
+        for pixel in pixels():
             # Check if the pixel is within the outer bounding box
             if self.z - self.radius < pixel.z < self.z + self.radius and \
                self.x - self.radius < pixel.x < self.x + self.radius and \
@@ -176,7 +176,7 @@ class ParticleSystem:
            lead to unpredictable overlap coloring
         """
         skip_amount = 0
-        for pixel in self.tree.pixels:
+        for pixel in self.pixels():
             for i, particle in enumerate(self._particles):
                 a = particle.fast_draw(pixel)
                 if a is not None:
@@ -184,4 +184,4 @@ class ParticleSystem:
                     skip_amount += len(self._particles) - i
                     break
         # if len(self._particles) != 0:
-            # print(skip_amount / (len(self.tree.pixels) * len(self._particles)))
+            # print(skip_amount / (len(self.pixels()) * len(self._particles)))
