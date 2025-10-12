@@ -210,7 +210,7 @@ def sleep(n: int):
 
 def frame() -> int:
     """The current frame number since the start of the pattern"""
-    return tree.frame
+    return tree._frame
 
 def seconds():
     """The number of seconds since the start of the pattern"""

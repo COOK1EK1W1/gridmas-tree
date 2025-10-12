@@ -4,20 +4,22 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  
+
+  //console.log(await prisma.pattern.findMany({ select: { id: true, title: true } }))
+
   // Get pattern IDs from query parameter
   const idsParam = searchParams.get('ids');
-  
+
   if (!idsParam) {
     return NextResponse.json({ error: 'Missing ids parameter' }, { status: 400 });
   }
-  
+
   const patternIds = idsParam.split(',').map(id => id.trim()).filter(id => id.length > 0);
-  
+
   if (patternIds.length === 0) {
     return NextResponse.json({ error: 'No valid pattern IDs provided' }, { status: 400 });
   }
-  
+
   if (patternIds.length === 1) {
     // Single pattern ID - return single object
     const res = await prisma.pattern.findFirst({

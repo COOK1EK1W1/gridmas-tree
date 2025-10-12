@@ -212,7 +212,7 @@ tree._request_frame()
 
   return (
     <div className={`h-full `}>
-      <div className="fixed bottom-2 right-2 hidden">
+      <div className="fixed bottom-2 right-2">
         <Button onClick={handlePhoto} className="cursor-pointer z-1000">
           <Camera />
         </Button>

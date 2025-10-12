@@ -1,7 +1,7 @@
 
 "use client";
 import { useRef, useState } from 'react';
-import { syncStatusKeys, editorContext } from '@/util/context/editorContext';
+import { syncStatusKeys, editorContext, RangeAttr, ColorAttr } from '@/util/context/editorContext';
 import { Pattern } from '@prisma/client';
 import { OnMount } from '@monaco-editor/react';
 
@@ -20,7 +20,7 @@ export default function CloudEditorProvider({ children, cloudPattern }: Props) {
 
   const attributeRefs = useRef([])
 
-  const [attributes, setAttributes] = useState<string[]>([])
+  const [attributes, setAttributes] = useState<(RangeAttr | ColorAttr)[]>([])
 
   return (
     <editorContext.Provider value={{

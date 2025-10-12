@@ -84,9 +84,9 @@ export default function Attributes() {
         <div>
           Attributes allow you to change parameters while the pattern is running.
         </div>
-        <code>variable = RangeAttr("myVariable", 0, -1, 1, 0.01)</code>
+        <code>{`variable = RangeAttr("myVariable", 0, -1, 1, 0.01)`}</code>
         <div>or</div>
-        <code>color = ColorAttr("myColor", Color(255, 255, 255))</code>
+        <code>{`color = ColorAttr("myColor", Color(255, 255, 255))`}</code>
       </div>
       }
     </div >
