@@ -32,8 +32,7 @@ export default async function PersonalPatterns({ userData, patterns }: { userDat
   if (patterns.length == 0) {
     return (
       <>
-        <p className="text-black w-full">You have no patterns yet!</p>
-        <Login />
+        <p className="text-black text-center w-full">You have no patterns yet!</p>
       </>
     )
   }
