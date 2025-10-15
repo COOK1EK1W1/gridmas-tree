@@ -34,9 +34,6 @@ An example of this is shown below:
 from gridmas import *
 from random import randint
 
-name = "Example Pattern"
-author = "Owen Plimer"
-
 def draw():
     # For every frame, loop through each pixel on the tree
     for pixel in tree.pixels:

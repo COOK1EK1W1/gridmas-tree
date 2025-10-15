@@ -15,7 +15,7 @@ import { Pattern } from "@prisma/client";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] }) {
+export function PersonalPattern({ patterns }: { patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] }) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -58,7 +58,6 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
     }
   }
 
-
   const handleDuplicate = (id: string) => {
     const name = window.prompt("Enter the new name")
     if (name !== null && name !== "") {
@@ -71,12 +70,6 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
         }
       })
     }
-  }
-
-
-  const onAction = (action: string, id: string) => {
-    // Stub implementations
-    console.log(`${action} clicked for`, id)
   }
 
   return (
@@ -111,7 +104,42 @@ export default function PersonalPattern({ patterns }: { patterns: Pick<Pattern, 
         </div>
       ))}
 
-      < div className="relative w-[210px]" onClick={handleCreateNew} >
+      <div className="relative w-[210px]" onClick={handleCreateNew} >
+        <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+          <div className="h-full p-2 text-red-800 flex flex-col items-center justify-around">
+            <CirclePlus className={isPending ? "animate-spin" : ""} />
+            <h4 className="text-center font-semibold text-sm leading-tight">New Pattern</h4>
+          </div>
+        </div>
+      </div >
+    </>
+  )
+}
+
+
+export function NoPatterns() {
+  const [isPending, startTransition] = useTransition()
+  const router = useRouter()
+
+  const handleCreateNew = () => {
+    const name = window.prompt("Enter the pattern name")
+    if (name !== null && name !== "") {
+      startTransition(async () => {
+        const a = await createNew(name)
+        if (a.error === null) {
+          router.push(`/p/${a.data.id}`)
+        } else {
+          window.alert("there was an issue creating the pattern")
+        }
+      })
+    }
+  }
+
+  return (
+    <>
+      <p className="text-black text-center w-full">You have no patterns yet!</p>
+
+      <div className="relative w-[210px] pt-4" onClick={handleCreateNew} >
         <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
           <div className="h-full p-2 text-red-800 flex flex-col items-center justify-around">
             <CirclePlus className={isPending ? "animate-spin" : ""} />
