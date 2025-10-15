@@ -8,7 +8,7 @@ portion = RangeAttr("position", 0, -1, 1, 0.01)
 def draw():
     global portion
 
-    for pixel in tree.pixels:
+    for pixel in pixels():
         if pixel.y > portion.get():
             pixel.set_rgb(200, 0, 0)
         else:

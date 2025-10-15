@@ -8,7 +8,7 @@ def draw():
     if frame() % 100 == 0:
         color1 = Color.random()
         color2 = Color.different_from(color1)
-        for pixel in tree.pixels:
+        for pixel in pixels():
             x = 0
             if pixel.x % 2 > 1:
                 x ^= 1
@@ -17,6 +17,6 @@ def draw():
             if pixel.z % 2 > 1:
                 x ^= 1
             if x == 0:
-                pixel.set_color(color1)
+                pixel.lerp(color1, 10)
             else:
-                pixel.set_color(color2)
+                pixel.lerp(color2, 10)

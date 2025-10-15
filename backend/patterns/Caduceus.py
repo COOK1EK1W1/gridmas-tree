@@ -21,7 +21,7 @@ particles = []
 
 def draw():
     global particles
-    particles = list(filter(lambda x: x.z < tree.height, particles))
+    particles = list(filter(lambda x: x.z < height(), particles))
 
     for p in particles:
         p.z += p.speed
@@ -30,7 +30,7 @@ def draw():
         p.y = p.dist * math.cos(p.angle)
         Sphere([p.x, p.y, p.z], radius, p.col)
         
-    tree.lerp(Color.black(), 10)
+    lerp(Color.black(), 10)
 
     if frame() % 20 == 0:
         particles.append(Particle())

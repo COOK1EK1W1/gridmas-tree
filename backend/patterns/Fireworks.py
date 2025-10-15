@@ -21,8 +21,8 @@ def draw():
     interval = 50
     while True:
         if i == 0:
-            randomid = random.randrange(0, tree.num_pixels - 1)
-            center_light = tree.get_light(randomid)
+            randomid = random.randrange(0, num_pixels() - 1)
+            center_light = pixels(randomid)
             explosions.append(Explosion(center_light.x, center_light.y, center_light.z, 5))
             interval = random.randrange(50, 140)
         i = (i + 1) % interval
@@ -30,7 +30,7 @@ def draw():
         for exp in explosions:
             exp.tick += 1
 
-        for pixel in tree.pixels:
+        for pixel in pixels():
             a = random.random()
             if a > 0.8:
                 pixel.fade(random.randrange(100, 120, 1) / 100)

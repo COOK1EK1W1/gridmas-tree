@@ -7,6 +7,7 @@ import TopBar from "./topBar";
 import { Button } from "../ui/button";
 import { usePyodide } from "@/util/usePyodide";
 import JSZip from "jszip";
+import Attributes from "./attributes";
 
 // Global variable to store preloaded zip data
 declare global {
@@ -25,7 +26,6 @@ export default function PatternEditor({ userData }: { userData: any }) {
 
   const [output, setOutput] = useState<Message[]>([]);
   const [running, setRunning] = useState(false);
-  const [loopTimes, setLoopTimes] = useState<number[]>([])
   const [libsReady, setLibsReady] = useState(false)
   const [zipPreloaded, setZipPreloaded] = useState(false)
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -127,9 +127,10 @@ class JSWriter:
 sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
 
-          // initialize the tree so that tree.pixels etc. are available
+          // initialize the tree so that pixels() etc. are available
           pyodide.runPython(`
-from tree import tree
+from gridmas import *
+Store.instance = None
 tree.init("tree.csv")
 `)
           setLibsReady(true)
@@ -164,6 +165,7 @@ tree.init("tree.csv")
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
       pyodide.runPython(`import curPattern
 import importlib
+Store.instance = None
 importlib.reload(curPattern)
 tree._pattern_reset()
 `)
@@ -203,7 +205,6 @@ if 'pattern_generator' in globals():
     if (updatePattern()) {
       setRunning(true)
       setOutput([])
-      setLoopTimes([])
       // Reset the generator when starting
       if (pyodide) {
         pyodide.runPython(`
@@ -214,53 +215,40 @@ if 'pattern_generator' in globals():
     }
   }
 
-  const avgMs = loopTimes.length > 0
-    ? (loopTimes.reduce((a, b) => a + b, 0) / loopTimes.length)
-    : 0
-  const fps = avgMs > 0 ? (1000 / avgMs) : 0
-
   const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
   return (
-    <div className="h-full flex flex-row">
-      <div className="w-1/2 bg-slate-200 h-full">
-        <TopBar user={userData} />
-        <CodeEditor />
+    <div className="h-full grid grid-cols-1 md:grid-cols-2">
+      <TopBar user={userData} />
+      <div className="row-span-2 flex-grow">
+        <TreeVis
+          pyodide={pyodide}
+          running={running}
+          onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
+        />
       </div>
-      <div className="w-1/2 h-screen flex flex-col">
-        <div className="flex-grow">
-          <TreeVis
-            pyodide={pyodide}
-            running={running}
-            onFrameMs={(ms) => setLoopTimes((prev) => [...prev.slice(-199), ms])}
-            onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
-          />
+      <CodeEditor />
+      <Attributes />
+      <div className="h-52">
+        <div className="h-12 flex items-center">
+          <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
+            {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
+          </Button>
         </div>
-        <div className="h-52">
-          <div className="h-12 flex items-center">
-            <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
-              {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
-            </Button>
-            <Button className="w-28 m-2" variant="red" onClick={handleUpdate} disabled={!isReady}>Update</Button>
-            <span className="w-28 m-2">
-              {avgMs.toFixed(2)}ms ({fps.toFixed(1)} fps) / 22ms
-            </span>
-          </div>
-          <div className="h-40 overflow-auto">
-            {output.map((x, i) => (
-              <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-                <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
-                  {x.content}
-                </p>
-                {x.frame !== 0 && (
-                  <span className="text-slate-600 text-xs">frame {x.frame}</span>
-                )}
-              </div>
+        <div className="h-40 overflow-auto">
+          {output.map((x, i) => (
+            <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+              <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
+                {x.content}
+              </p>
+              {x.frame !== 0 && (
+                <span className="text-slate-600 text-xs">frame {x.frame}</span>
+              )}
+            </div>
 
 
-            ))}
-            <div ref={bottomRef} />
-          </div>
+          ))}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div >

@@ -7,4 +7,4 @@ author = "Ciaran"
 def draw():
     yield from fizzle()
 
-    tree.set_fps(1)
+    set_fps(1)

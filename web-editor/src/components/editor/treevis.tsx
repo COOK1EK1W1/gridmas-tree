@@ -6,22 +6,33 @@ import { Camera } from "lucide-react";
 import { useEffect, useMemo, useRef, createRef } from "react";
 import { Button } from "../ui/button";
 import type { MeshStandardMaterial } from "three";
+import { useEditor, adaptPythonAttributes } from "@/util/context/editorContext";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
 export default function TreeVis({
   pyodide,
   running,
-  onFrameMs,
   onLog,
 }: {
   pyodide: any,
   running: boolean,
-  onFrameMs?: (ms: number) => void,
   onLog?: (message: string, frame: number, isError?: boolean) => void,
 }) {
 
+  const { attributes, setAttributes, attributeRefs } = useEditor()
+  const loopTimes = useRef<number[]>([])
+  const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
   const frameRef = useRef<number>(0)
+
+  const addLoopTime = (t: number) => {
+    loopTimes.current.push(t)
+    if (loopTimes.current.length > 199) {
+      loopTimes.current.shift()
+    }
+    const avgLoopTime = loopTimes.current.reduce((x, y) => x + y, 0) / loopTimes.current.length
+    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(1)}ms/22ms`
+  }
 
   // Create stable refs for each material without calling hooks in a loop
   const matRefs = useMemo(() => (
@@ -65,7 +76,7 @@ export default function TreeVis({
         return
       }
       frameRef.current = 0
-      
+
       let animationFrameId: number;
       let lastFrameTime = 0;
       const targetFrameTime = 1000 / 45; // 45 FPS = ~22.22ms per frame
@@ -78,6 +89,56 @@ export default function TreeVis({
         if (deltaTime >= targetFrameTime) {
           const start = performance.now()
           try {
+
+            // Read current values from attribute refs and update Python Store
+            if (attributeRefs.current && attributes.length > 0) {
+              const attributeUpdates = []
+
+              for (let i = 0; i < attributes.length; i++) {
+                const attr = attributes[i]
+                const ref = attributeRefs.current[i]
+
+                if (ref && ref.currentValue !== undefined) {
+                  if ('min' in attr && 'max' in attr && 'step' in attr) {
+                    // RangeAttr - get value from stored currentValue
+                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(${ref.currentValue})`)
+                  } else {
+                    // ColorAttr - get value from stored currentValue
+                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color.hex("${ref.currentValue}"))`)
+                  }
+                }
+              }
+
+
+              // Execute all attribute updates
+              if (attributeUpdates.length > 0) {
+                pyodide.runPython(attributeUpdates.join('\n'))
+              }
+            }
+
+            // get all the attributes
+            const res1 = pyodide.runPython(`
+list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
+`)
+
+            const attributeData = res1.toJs()
+            const adaptedAttributes = adaptPythonAttributes(attributeData)
+
+            // Check if attributes have changed
+            if (attributes.length !== adaptedAttributes.length ||
+              !attributes.every((attr, i) =>
+                adaptedAttributes[i] &&
+                attr.name === adaptedAttributes[i].name
+              )) {
+              setAttributes(adaptedAttributes)
+            }
+
+            // prevent PyProxy leaks on older pyodide versions
+            if (typeof res1?.destroy === 'function') {
+              res1.destroy()
+            }
+
+
             // Use the new generator-based system
             const res: any = pyodide.runPython(`
 try:
@@ -104,12 +165,12 @@ except Exception as e:
     pattern_generator = None
 
 # Get the current tree state after pattern execution
-tree.request_frame()
+tree._request_frame()
 `)
-            
+
             // Extract the lights data from the tree state
             const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
-            
+
             // Update the material colors for each tree node
             for (let i = 0; i < tree.length; i++) {
               const mat = matRefs[i].current
@@ -118,7 +179,7 @@ tree.request_frame()
                 mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
               }
             }
-            
+
             // prevent PyProxy leaks on older pyodide versions
             if (typeof res?.destroy === 'function') {
               res.destroy()
@@ -128,10 +189,10 @@ tree.request_frame()
             onLog?.(String(error), frameRef.current, true)
           } finally {
             const end = performance.now()
-            onFrameMs?.(end - start)
+            addLoopTime(end - start)
             frameRef.current += 1
           }
-          
+
           lastFrameTime = currentTime;
         }
 
@@ -146,16 +207,17 @@ tree.request_frame()
         }
       }
     }
-  }, [running, pyodide, matRefs, onFrameMs, onLog])
+  }, [running, pyodide, matRefs, onLog])
 
 
   return (
     <div className={`h-full `}>
-      <div className="fixed bottom-2 right-2 hidden">
-        <Button onClick={handlePhoto} className="cursor-pointer z-1000">
+      <div className="fixed bottom-2 right-2">
+        <Button onClick={handlePhoto} className="hidden cursor-pointer z-1000">
           <Camera />
         </Button>
       </div>
+
 
 
       {/* tree visualiser */}
@@ -206,6 +268,7 @@ tree.request_frame()
         <OrbitControls maxPolarAngle={Math.PI - 1} enablePan={false} target={[0, treeHeight / 2, 0]} />
       </Canvas>
 
+      <div className="hidden md:block fixed text-white top-2 right-2" ref={fpsRef}></div>
     </div >
   )
 

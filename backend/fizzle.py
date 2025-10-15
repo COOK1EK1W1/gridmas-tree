@@ -1,4 +1,4 @@
-from tree import tree
+from gridmas import *
 import random
 
 
@@ -7,8 +7,8 @@ def fizzle():
 
     Randomly select a light on the tree and turn it off each time the function is called
     """
-    a = list(range(tree.num_pixels))
+    a = list(range(num_pixels()))
     random.shuffle(a)
     for i in a:
-        tree.pixels[i].set_rgb(0, 0, 0)
+        set_pixel(i, Color(0, 0, 0))
         yield

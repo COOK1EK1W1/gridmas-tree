@@ -1,5 +1,5 @@
-from gridmas import *
 import math
+from gridmas import *
 
 # derived from https://github.com/standupmaths/xmastree2020/blob/main/examples/3dplasma.py
 
@@ -81,12 +81,14 @@ class matrix():
         return self.get(localX, localY, localZ)
 
 
-def dist2(x, y, z, wx, wy, wz):
+def dist(x, y, z, wx, wy, wz):
     return math.sqrt((x - wx) * (x - wx) + (y - wy) * (y - wy) + (z - wz) * (z - wz))
+
+coords = coords()
 
 
 treeBB = boundingBox()
-for i in tree.coords:
+for i in coords:
     treeBB.update(i[0], i[1], i[2])
 
 treeBB.finalize()
@@ -95,21 +97,22 @@ workMat = matrix(MATWX, MATWY, MATWZ, treeBB)
 
 t = 0
 
+
 def draw():
     global t
 
-    for LED, pixel in enumerate(tree.pixels):
-        pixel.set_rgb(*map(lambda x: int(x), workMat.getTree(tree.coords[LED][0], tree.coords[LED][1], tree.coords[LED][2])))
+    for LED, pixel in enumerate(pixels()):
+        pixel.set_rgb(*map(lambda x: int(x), workMat.getTree(coords[LED][0], coords[LED][1], coords[LED][2])))
 
 
     # Update the matrix
     for x in range(0, MATWX):
         for y in range(0, MATWY):
             for z in range(0, MATWZ):
-                d1 = dist2(x + t, y, z, MATWX, MATWY, MATWZ)
-                d2 = dist2(x, y, z, MATWX / 2, MATWY / 2, MATWZ)
-                d3 = dist2(x, y + t / 7, z, MATWX * 0.75, MATWY / 2, MATWZ)
-                d4 = dist2(x, y, z, MATWX * 0.75, MATWY, MATWZ)
+                d1 = dist(x + t, y, z, MATWX, MATWY, MATWZ)
+                d2 = dist(x, y, z, MATWX / 2, MATWY / 2, MATWZ)
+                d3 = dist(x, y + t / 7, z, MATWX * 0.75, MATWY / 2, MATWZ)
+                d4 = dist(x, y, z, MATWX * 0.75, MATWY, MATWZ)
 
                 value = math.sin(d1 / 8) + math.sin(d2 / 8.0) + math.sin(d3 / 7.0) + math.sin(d4 / 8.0)
 

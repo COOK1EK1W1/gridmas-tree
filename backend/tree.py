@@ -10,24 +10,7 @@ if TYPE_CHECKING:
 
 
 class Tree():
-    """This is the main way to modify the pixels on the tree.
-
-
-       To use in your file, import as follows:
-         from tree import tree
-
-       After this, you can modify the pixels on the tree as such:
-         def main():
-           for pixel in tree.pixels:
-             pixel.set_rgb(0, 0, 0)
-
-       Attributes:
-         pixels (list[Pixel]): Pixel buffer held by the tree. Gets pushed to pixel driver on every update. The arry is in the same order as the lights on the strip
-         coords (list[tuple[float, float, float]]): A list of 3d coordinates (x,y,z) which is in ordeer of pixels on the strip i.e. parrallel with tree.pixels
-         num_pixels (int): The number of pixels on the tree. Same as doing len(tree.pixels)
-         height (float): Height of the tree
-         distances (list[list[float]]): A 2d array which holds pre-computed 3D euclidean distances between all pairs of pixels. The index of each array is parrallel with tree.pixels
-    """
+    """This is a class which holds the tree data, it shouldn't be used directly """
 
     def __init__(self):
         pass
@@ -37,34 +20,34 @@ class Tree():
         """For internal use
         Initialise / reset the tree"""
         
-        self.coords = read_tree_csv(tree_file)
+        self._coords = read_tree_csv(tree_file)
         """The coordinates of all lights on the tree"""
 
-        self.num_pixels = int(len(self.coords))
+        self._num_pixels = int(len(self._coords))
         """The number of pixels on the tree"""
 
-        self.height = max([x[2] for x in self.coords])
+        self._height = max([x[2] for x in self._coords])
         """The height of the tree"""
 
-        self.pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self.coords)]
+        self._pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self._coords)]
         """The list of all pixels on the tree"""
 
         # 2d array, cols from, rows to -> dist
-        self.distances = self._generate_distance_map()
+        self._distances = self._generate_distance_map()
         """2d array, cols from, rows to -> dist"""
 
         # 2d array, cols from id, rows sorted array of distance
-        self.pixel_distance_matrix = self._generate_pixel_distances()
+        self._pixel_distance_matrix = self._generate_pixel_distances()
         """2d array, cols from id, rows sorted array of distance"""
 
-        self.last_update = time.perf_counter()
+        self._last_update = time.perf_counter()
         """When the last update took place"""
         
-        self.render_times: list[float] = []
+        self._render_times: list[float] = []
         """A list of the render times for frames"""
 
-        self.pattern_started_at = time.time()
-        self.frame = 0
+        self._pattern_started_at = time.time()
+        self._frame = 0
         """The current frame that the animation is on"""
 
         self._shapes: list[Shape] = []
@@ -73,31 +56,31 @@ class Tree():
         self._background = None
 
     def _pattern_reset(self):
-        self.pattern_started_at = time.time()
-        self.frame = 0
+        self._pattern_started_at = time.time()
+        self._frame = 0
         self._background = None
 
-    def request_frame(self):
+    def _request_frame(self):
         """For internal use
         return the current pixel buffer"""
         colors: list[int] = []
 
         # loop for every pixel and determine what color it should be
-        for i in range(self.num_pixels):
+        for i in range(self._num_pixels):
 
             # 1. check if the pixel has been directly changed
-            if self.pixels[i]._changed:
-                colors.append(self.pixels[i].to_bit_string())
-                self.pixels[i].changed = False
+            if self._pixels[i]._changed:
+                colors.append(self._pixels[i].to_bit_string())
+                self._pixels[i].changed = False
                 continue
 
             # 2. check for objects
             changed = False
             for shape in reversed(self._shapes):
-                c = shape.does_draw(self.pixels[i])
+                c = shape.does_draw(self._pixels[i])
                 if c is not None:
                     colors.append(c.to_bit_string())
-                    self.pixels[i].set(c)
+                    self._pixels[i].set(c)
                     changed = True
                     break
             if changed:
@@ -109,90 +92,31 @@ class Tree():
                 continue
 
             # default last color used.
-            colors.append(self.pixels[i].to_bit_string())
+            colors.append(self._pixels[i].to_bit_string())
 
-        for i in range(self.num_pixels):
-            self.pixels[i].cont_lerp()
+        for i in range(self._num_pixels):
+            self._pixels[i].cont_lerp()
 
         self._shapes = []
-        self.frame += 1
+        self._frame += 1
 
         return colors
 
-    def set_light(self, n: int, color: Color):
-        """Set the Nth light in the strip to the specified color
-
-        Args:
-            n (int): The light you want to set
-            color (Color): The color that you want to set the light to
-        """
-        self.pixels[n].set(color)
-
-    def get_light(self, n: int) -> Pixel:
-        """Get the Nth light on the strip
-
-        Args:
-            n (int): The light you want to retrieve
-
-        Returns:
-            Pixel: The light that you have requested. You can then set the color of it directly
-        """
-        return self.pixels[n]
-
-    def set_fps(self, fps: int):
-        """Allows you to change the speed that you want the animation to run at.
-           If unset, the default fps is 45
-
-        Args:
-            fps (int): target fps for the animation.
-        """
-        self.fps = fps
-
-    def fade(self, n: int = 10):
-        """Fade the entire tree.
-            fades the tree to black over n frames
-        Args:
-            n (int, optional): Unknown. Defaults to 10
-        """
-        c = Color.black()
-        for pixel in self.pixels:
-            pixel.lerp(c, n)
-
-    def fill(self, color: Color):
-        """Set all lights on the tree to one color
-
-        Args:
-            color (Color): The color you want to set the tree to
-        """
-        for pixel in self.pixels:
-            pixel.set(color)
-
-    def lerp(self, color: Color, frames: int, fn: Callable[[float], float] = linear):
-        """Lerp the entire tree from its current color to the target color over the specified amount of frames
-
-        Args:
-            color (Color): Target color
-            frames (int): The number of frames to perform the lerp over
-            fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
-        """
-        for pixel in self.pixels:
-            pixel.lerp(color, frames, fn=fn)
-
     def _generate_distance_map(self) -> list[list[float]]:
         ret: list[list[float]] = []
-        for fr in self.coords:
+        for fr in self._coords:
             inter: list[float] = []
-            for to in self.coords:
+            for to in self._coords:
                 inter.append(dist([x for x in fr], [x for x in to]))
             ret.append(inter)
         return ret
 
     def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
         ret: list[list[tuple[Pixel, float]]] = []
-        for i in range(len(self.coords)):
+        for i in range(len(self._coords)):
             distances: list[tuple[Pixel, float]] = []
-            for j in range(len(self.coords)):
-                distances.append((self.pixels[j], self.distances[i][j]))
+            for j in range(len(self._coords)):
+                distances.append((self._pixels[j], self._distances[i][j]))
 
             ret.append(sorted(distances, key=lambda x: x[1]))
             pass
@@ -200,14 +124,14 @@ class Tree():
         return ret
 
 
-def tree_height():
-    return tree.height
+def height():
+    return tree._height
 
 def num_pixels():
-    return tree.num_pixels
+    return tree._num_pixels
 
 def pixel_coords():
-    return tree.coords
+    return tree._coords
 
 @overload
 def pixels() -> list["Pixel"]: ...
@@ -217,9 +141,9 @@ def pixels(a: int) -> "Pixel": ...
 def pixels(a: Optional[int] = None) -> Union["Pixel", list["Pixel"]]:
     global tree
     if a is None:
-        return tree.pixels
+        return tree._pixels
     else:
-        return tree.pixels[a]
+        return tree._pixels[a]
 
 def set_pixel(n: int, color: Color):
     """Set the Nth light in the strip to the specified color
@@ -237,7 +161,7 @@ def set_fps(fps: int):
     Args:
         fps (int): target fps for the animation.
     """
-    tree.fps = fps
+    tree._fps = fps
 
 def fade(n: int = 10):
     """Fade the entire tree.
@@ -246,7 +170,7 @@ def fade(n: int = 10):
         n (int, optional): Unknown. Defaults to 10
     """
     c = Color.black()
-    for pixel in tree.pixels:
+    for pixel in tree._pixels:
         pixel.lerp(c, n)
 
 def fill(color: Color):
@@ -255,7 +179,7 @@ def fill(color: Color):
     Args:
         color (Color): The color you want to set the tree to
     """
-    for pixel in tree.pixels:
+    for pixel in tree._pixels:
         pixel.set(color)
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
@@ -266,8 +190,16 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
         frames (int): The number of frames to perform the lerp over
         fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
     """
-    for pixel in tree.pixels:
+    for pixel in tree._pixels:
         pixel.lerp(color, frames, fn=fn)
+
+def coords():
+    """TODO"""
+    return tree._coords
+
+def num_pixels():
+    """TODO"""
+    return tree._num_pixels
 
 
 
@@ -278,7 +210,7 @@ def sleep(n: int):
 
 def frame() -> int:
     """The current frame number since the start of the pattern"""
-    return tree.frame
+    return tree._frame
 
 def seconds():
     """The number of seconds since the start of the pattern"""

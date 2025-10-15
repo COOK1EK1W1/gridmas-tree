@@ -215,10 +215,10 @@ def run():
     color = Color(255, 255, 0)
     speed = RangeAttr("speed", 10, 1, 20, 1)
     while True:
-        coords2 = [[x, y, z] for [x, y, z] in tree.coords]
+        coords2 = [[x, y, z] for [x, y, z] in coords()]
         theta = random.uniform(0, 6.28)
         alpha = random.uniform(0, 6.28)
-        for i, coord in enumerate(tree.coords):
+        for i, coord in enumerate(coords()):
             coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) + coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
 
         minZ = min([x[2] for x in coords2])

@@ -16,7 +16,7 @@ color_offset = random.random()
 def draw():
     global twist_amount,twist_dir, offset, color_offset
 
-    for pixel in tree.pixels:
+    for pixel in pixels():
 
         modified_angle = (pixel.a + pixel.z * twist_amount + offset * speed) % (math.pi * 2)
 
