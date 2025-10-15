@@ -57,7 +57,7 @@ export default async function Home() {
         <Link href="/playground">
           <Button variant="red">Playground</Button>
         </Link>
-        <Link href="https://owen7000.github.io/gridmas-tree/">
+        <Link target="_blank" href="https://owen7000.github.io/gridmas-tree/">
           <Button variant="green">Reference</Button>
         </Link>
       </div>
