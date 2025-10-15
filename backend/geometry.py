@@ -15,7 +15,7 @@ class Shape(ABC):
     def does_draw(self, pixel: Pixel) -> Optional[Color]:
         """does_draw T.B.D
 
-        Possibly to return if the shape can be drawn, although unsure, further clarification is required
+        
 
         Args:
             pixel (Pixel): T.B.D
