@@ -1,4 +1,4 @@
-# Spin
+# Sphere Fill
 ```py linenums="1"
 import math
 from gridmas import *

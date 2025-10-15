@@ -1,24 +1,20 @@
-# Lerpy
-
-By _Ciaran_
-
+# Ler
 ```py linenums="1"
-from util import ease_in_out_expo
-from colors import Color
-from tree import tree
+from gridmas import *
 
 name = "Lerpy"
 author = "Ciaran"
 
 
-def run():
+def draw():
     color = Color.random()
     while True:
-        for pixel in tree.pixels:
-            pixel.lerp(color.to_tuple(), 50, fn=ease_in_out_expo)
+        for pixel in pixels():
+            pixel.lerp(color, 50, fn=ease_in_out_expo)
 
-        tree.sleep(100, allow_lerp=True)
-
+        for _ in range(100):
+            yield
+            
         color = Color.different_from(color)
 
 ```

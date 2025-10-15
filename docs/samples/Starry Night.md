@@ -1,13 +1,8 @@
 # Starry Night
-
-By _Claude V3.5_
-
 ```py linenums="1"
 import random
 import math
-from attribute import RangeAttr, ColorAttr
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Starry Night"
 author = "Claude 3.5"
@@ -29,26 +24,28 @@ class ShootingStar:
         self.life = 1.0
 
 
-def run():
-    star_density = RangeAttr("Star Density", 0.1, 0.05, 0.3, 0.01)
-    shooting_star_chance = RangeAttr("Shooting Star Chance", 0.01, 0.001, 0.05, 0.001)
+star_density = RangeAttr("Star Density", 0.1, 0.05, 0.3, 0.01)
+shooting_star_chance = RangeAttr("Shooting Star Chance", 0.01, 0.001, 0.05, 0.001)
 
-    background_color = Color(0, 0, 0)  # Dark blue night sky
-    star_color = ColorAttr("Star Color", Color(255, 255, 200))  # Warm white
+background_color = Color(0, 0, 0)  # Dark blue night sky
+star_color = ColorAttr("Star Color", Color(255, 255, 200))  # Warm white
+
+def draw():
 
     stars = []
     shooting_stars = []
     time = 0
 
     # Initialize stars
-    for i in range(tree.num_pixels):
+    for i in range(num_pixels()):
         if random.random() < star_density.get():
             stars.append(Star(i, random.uniform(0.1, 1.0)))
 
     while True:
         # Clear the tree
-        for i in range(tree.num_pixels):
-            tree.set_light(i, background_color)
+        for pixel in pixels():
+            pixel.set_black()
+
 
         # Update and draw stars
         for star in stars:
@@ -58,7 +55,7 @@ def run():
                 int(star_color.get().g * brightness),
                 int(star_color.get().b * brightness)
             )
-            tree.set_light(star.index, color)
+            set_pixel(star.index, color)
 
         # Update and draw shooting stars
         for shooting_star in shooting_stars:
@@ -67,7 +64,7 @@ def run():
                 int(star_color.get().g * shooting_star.life),
                 int(star_color.get().b * shooting_star.life)
             )
-            tree.set_light(int(shooting_star.current_index % tree.num_pixels), color)
+            set_pixel(int(shooting_star.current_index % num_pixels()), color)
 
             # Move the shooting star
             shooting_star.current_index += shooting_star.speed * shooting_star.direction
@@ -78,20 +75,20 @@ def run():
 
         # Chance to add a new shooting star
         if random.random() < shooting_star_chance.get():
-            start_index = random.randint(0, tree.num_pixels - 1)
+            start_index = random.randint(0, num_pixels() - 1)
             direction = 1 if random.random() < 0.5 else -1
             speed = random.uniform(0.5, 2.0)
             shooting_stars.append(ShootingStar(start_index, direction, speed))
 
-        tree.update()
+        yield
         time += 0.1
 
         # Occasionally add or remove stars
         if random.random() < 0.01:
             if random.random() < 0.5 and len(stars) > 0:
                 stars.pop(random.randint(0, len(stars) - 1))
-            elif len(stars) < tree.num_pixels * star_density.get():
-                new_index = random.randint(0, tree.num_pixels - 1)
+            elif len(stars) < num_pixels() * star_density.get():
+                new_index = random.randint(0, num_pixels() - 1)
                 if new_index not in [star.index for star in stars]:
                     stars.append(Star(new_index, random.uniform(0.1, 1.0)))
 

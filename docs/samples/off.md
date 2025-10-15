@@ -1,17 +1,14 @@
-# Off
-
-By _Ciaran_
-
+# off
 ```py linenums="1"
-from animations import fizzle
-from tree import tree
+from gridmas import *
+
 name = "Off"
 author = "Ciaran"
 
 
-def run():
-    fizzle.fizzle()
+def draw():
+    yield from fizzle()
 
-    tree.set_fps(1)
+    set_fps(1)
 
 ```
