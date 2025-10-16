@@ -1,82 +1,79 @@
-# Harder Better Faster Stronger
-
-By _Ciaran_
-
+# harderstronger
 ```py linenums="1"
-from tree import tree
 from colors import Color
+from gridmas import *
 
 name = "Harder Better Faster Stronger"
 author = "Ciaran"
 
 
-def run():
+def draw():
     # each second is 40 frames, the song is 123 bpm which is 41 fps
-    tree.set_fps(41)
-    tree.sleep(50)
+    set_fps(41)
+    sleep(50)
 
     # count in, 4 white flashes then press play on red
     for _ in range(4):
-        tree.fill(Color.white())
-        tree.sleep(5)
-        tree.fill(Color.black())
-        tree.sleep(15)
+        fill(Color.white())
+        sleep(5)
+        fill(Color.black())
+        sleep(15)
 
-    tree.fill(Color.red())
-    tree.sleep(5)
-    tree.fill(Color.black())
-    tree.sleep(15)
+    fill(Color.red())
+    sleep(5)
+    fill(Color.black())
+    sleep(15)
 
     # 8 beat intro thing
-    tree.sleep(4 * 40 + 20)
+    sleep(4 * 40 + 20)
 
     for _ in range(8):
-        tree.fill(Color.white())
-        tree.sleep(5)
-        tree.fill(Color.black())
-        tree.sleep(15)
+        fill(Color.white())
+        sleep(5)
+        fill(Color.black())
+        sleep(15)
 
     for _ in range(8):
-        tree.fill(Color.red())
-        tree.sleep(10)
-        tree.fill(Color.green())
-        tree.sleep(10)
+        fill(Color.red())
+        sleep(10)
+        fill(Color.green())
+        sleep(10)
 
 
     for _ in range(8):
-        tree.fill(Color.white())
-        tree.sleep(5)
-        tree.fill(Color.black())
-        tree.sleep(15)
+        fill(Color.white())
+        sleep(5)
+        fill(Color.black())
+        sleep(15)
 
     for _ in range(6):
-        tree.fill(Color.red())
-        tree.sleep(10)
-        tree.fill(Color.green())
-        tree.sleep(10)
+        fill(Color.red())
+        sleep(10)
+        fill(Color.green())
+        sleep(10)
 
-    tree.fill(Color.black())
-    for pixel in tree.pixels:
+    fill(Color.black())
+    for pixel in pixels():
         if pixel.x < 0:
             pixel.set_color(Color.white())
-    tree.sleep(10)
+    sleep(10)
 
-    tree.fill(Color.black())
-    for pixel in tree.pixels:
+    fill(Color.black())
+    for pixel in pixels():
         if pixel.x > 0:
             pixel.set_color(Color.white())
-    tree.sleep(10)
+    sleep(10)
 
-    tree.fill(Color.black())
-    for pixel in tree.pixels:
-        if pixel.z < tree.height / 2:
+    fill(Color.black())
+    for pixel in pixels():
+        if pixel.z < height() / 2:
             pixel.set_color(Color.white())
-    tree.sleep(10)
+    sleep(10)
 
-    tree.fill(Color.black())
-    for pixel in tree.pixels:
-        if pixel.z > tree.height / 2:
+    fill(Color.black())
+    for pixel in pixels():
+        if pixel.z > height() / 2:
             pixel.set_color(Color.white())
-    tree.sleep(10)
+    sleep(10)
 
 ```

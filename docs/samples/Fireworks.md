@@ -1,12 +1,7 @@
 # Fireworks
-
-By _Ciaran_
-
 ```py linenums="1"
+from gridmas import *
 import random
-from colors import Color
-from util import euclidean_distance
-from tree import tree
 
 name = "Fire Works"
 author = "Ciaran"
@@ -22,14 +17,14 @@ class Explosion():
         self.color = Color.random()
 
 
-def run():
+def draw():
     explosions: list[Explosion] = []
     i = 0
     interval = 50
     while True:
         if i == 0:
-            randomid = random.randrange(0, tree.num_pixels - 1)
-            center_light = tree.get_light(randomid)
+            randomid = random.randrange(0, num_pixels() - 1)
+            center_light = pixels(randomid)
             explosions.append(Explosion(center_light.x, center_light.y, center_light.z, 5))
             interval = random.randrange(50, 140)
         i = (i + 1) % interval
@@ -37,7 +32,7 @@ def run():
         for exp in explosions:
             exp.tick += 1
 
-        for pixel in tree.pixels:
+        for pixel in pixels():
             a = random.random()
             if a > 0.8:
                 pixel.fade(random.randrange(100, 120, 1) / 100)
@@ -47,10 +42,10 @@ def run():
                 pixel.fade(0.5)
 
             for exp in explosions:
-                if exp.tick / 6 < euclidean_distance([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) < exp.tick / 5:
+                if exp.tick / 6 < dist([exp.x, exp.y, exp.z], [pixel.x, pixel.y, pixel.z]) < exp.tick / 5:
                     pixel.set_color(exp.color)
 
-        tree.update()
+        yield
         explosions = list(filter(lambda x: x.tick <= x.max_age, explosions))
 
 ```

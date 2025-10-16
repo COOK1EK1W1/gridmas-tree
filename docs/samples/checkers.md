@@ -1,21 +1,16 @@
 # Checkers
-
-Creates a checkerboard pattern on the tree. By _Ciaran_
-
 ```py linenums="1"
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Checkers"
 author = "Ciaran"
 
 
-def run():
-
-    while True:
+def draw():
+    if frame() % 100 == 0:
         color1 = Color.random()
         color2 = Color.different_from(color1)
-        for pixel in tree.pixels:
+        for pixel in pixels():
             x = 0
             if pixel.x % 2 > 1:
                 x ^= 1
@@ -24,10 +19,8 @@ def run():
             if pixel.z % 2 > 1:
                 x ^= 1
             if x == 0:
-                pixel.set_color(color1)
+                pixel.lerp(color1, 10)
             else:
-                pixel.set_color(color2)
-        tree.update()
-        tree.sleep(45)
+                pixel.lerp(color2, 10)
 
 ```
