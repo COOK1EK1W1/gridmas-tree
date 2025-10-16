@@ -1,9 +1,6 @@
 # Wave Flow
-
-By _Ciaran_
-
 ```py linenums="1"
-from prelude import *
+from gridmas import *
 import time
 import math
 
@@ -20,9 +17,9 @@ def draw():
     b = int((math.sin(color_change_rate * time.time() + 4 * math.pi / 3) + 1) / 2 * 255)
     wave_color = (r, g, b)
 
-    for pixel in tree.pixels:
+    for pixel in pixels():
         # a basic 3d wave function based on the z-coordinate and a changing 'wave_offset'
-        intensity = 0.5 * (math.cos(2 * math.pi * (pixel.z / tree.height + wave_offset) / wave_period) + 1)
+        intensity = 0.5 * (math.cos(2 * math.pi * (pixel.z / height() + wave_offset) / wave_period) + 1)
         # using intensity to modify the brightness of the color
         wave_intensity_color = Color(int(wave_color[0] * intensity), int(wave_color[1] * intensity), int(wave_color[2] * intensity))
 

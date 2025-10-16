@@ -1,29 +1,24 @@
 # RGB
-
-By _Ciaran_
-
 ```py linenums="1"
-from attribute import RangeAttr
-from tree import tree
-import time
+from gridmas import *
 
 name = "RGB"
 author = "Ciaran"
 
+sleep_time = RangeAttr("sleep time", 45, 20, 40, 1)
+offset = 0
 
-def run():
-    sleep_time = RangeAttr("sleep time", 1, 0.1, 3, 0.1)
+def draw():
+    global sleep_time, offset
 
-    offset = 0
-    while True:
+    
+    if frame() % sleep_time.get() == 0:
         offset = (offset + 1) % 3
 
-        for i, pixel in enumerate(tree.pixels):
-            r = 255 if (i + offset) % 3 == 0 else 0
-            g = 255 if (i + offset) % 3 == 1 else 0
-            b = 255 if (i + offset) % 3 == 2 else 0
-            pixel.set_rgb(r, g, b)
-        tree.update()
-        time.sleep(sleep_time.get())
+    for i, pixel in enumerate(pixels()):
+        r = 255 if (i + offset) % 3 == 0 else 0
+        g = 255 if (i + offset) % 3 == 1 else 0
+        b = 255 if (i + offset) % 3 == 2 else 0
+        pixel.set_rgb(r, g, b)
 
 ```

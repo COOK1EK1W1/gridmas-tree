@@ -1,10 +1,9 @@
 import prisma from "@/util/prisma";
 import { Pattern } from "@prisma/client";
 import Login from "./signin";
-import PersonalPattern from "./personalItems";
+import { PersonalPattern, NoPatterns} from "./personalItems";
 
 export default async function PersonalPatterns({ userData, patterns }: { userData: any, patterns: Pick<Pattern, "id" | "title" | "modifiedAt">[] }) {
-
 
   // if user exists, then grab their personal projects
   if (userData !== null) {
@@ -32,8 +31,12 @@ export default async function PersonalPatterns({ userData, patterns }: { userDat
   if (patterns.length == 0) {
     return (
       <>
-        <p className="text-black w-full">You have no patterns yet!</p>
-        <Login />
+        {/* <p className="text-black text-center w-full">You have no patterns yet!</p> */}
+        <div>
+          <div className="text-black w-full flex flex-col align-content justify-center items-center">
+            <NoPatterns  />
+          </div>
+        </div >
       </>
     )
   }

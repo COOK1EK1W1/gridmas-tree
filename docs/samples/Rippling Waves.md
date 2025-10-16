@@ -1,29 +1,23 @@
 # Rippling Waves
-
-By _Claude V3.5_
-
 ```py linenums="1"
-import math
-from attribute import RangeAttr, ColorAttr
-from tree import tree
-from colors import Color
+from gridmas import *
 
 name = "Rippling Waves"
 author = "Claude 3.5"
 
+wave_speed = RangeAttr("Wave Speed", 0.1, 0.01, 0.5, 0.01)
+wave_frequency = RangeAttr("Wave Frequency", 2.0, 0.5, 5.0, 0.1)
+color_speed = RangeAttr("Color Speed", 0.02, 0.01, 0.1, 0.01)
+primary_color = ColorAttr("Primary Color", Color(255, 0, 0))
+secondary_color = ColorAttr("Secondary Color", Color(0, 0, 255))
 
-def run():
-    wave_speed = RangeAttr("Wave Speed", 0.1, 0.01, 0.5, 0.01)
-    wave_frequency = RangeAttr("Wave Frequency", 2.0, 0.5, 5.0, 0.1)
-    color_speed = RangeAttr("Color Speed", 0.02, 0.01, 0.1, 0.01)
-    primary_color = ColorAttr("Primary Color", Color(255, 0, 0))
-    secondary_color = ColorAttr("Secondary Color", Color(0, 0, 255))
+def draw():
 
     time = 0
     while True:
-        for i, pixel in enumerate(tree.pixels):
+        for i, pixel in enumerate(pixels()):
             # Calculate the wave based on height (z-coordinate) and time
-            wave = math.sin(wave_frequency.get() * (pixel.z / tree.height * 2 * math.pi + time))
+            wave = math.sin(wave_frequency.get() * (pixel.z / height() * 2 * math.pi + time))
 
             # Map the wave to a value between 0 and 1
             wave_mapped = (wave + 1) / 2
@@ -41,18 +35,18 @@ def run():
             combined_factor = (wave_mapped + radial_factor) / 2
 
             # Set the final color
-            tree.set_light(i, Color(
+            pixel.set_rgb(
                 int(r * combined_factor),
                 int(g * combined_factor),
                 int(b * combined_factor)
-            ))
+            )
 
-        tree.update()
+        yield
         time += wave_speed.get()
 
         # Slowly shift the primary and secondary colors
         hue_shift = color_speed.get()
-        primary_color.set(Color.from_hsl((time * hue_shift) % 1, 1, 0.5))
-        secondary_color.set(Color.from_hsl(((time * hue_shift) + 0.5) % 1, 1, 0.5))
+        primary_color.set(Color.hsl((time * hue_shift) % 1, 1, 0.5))
+        secondary_color.set(Color.hsl(((time * hue_shift) + 0.5) % 1, 1, 0.5))
 
 ```
