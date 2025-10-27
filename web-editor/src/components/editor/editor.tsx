@@ -234,6 +234,10 @@ if 'pattern_generator' in globals():
           <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
             {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
           </Button>
+
+          <div className="block md:hidden p-5">
+            To edit code, please open the editor on a desktop or laptop device.
+          </div>
         </div>
         <div className="h-40 overflow-auto">
           {output.map((x, i) => (
