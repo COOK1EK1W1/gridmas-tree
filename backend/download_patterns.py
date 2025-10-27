@@ -11,7 +11,7 @@ with open("patterns/patterns.json") as file:
     ids_param = ','.join(pattern_ids)
     
     # Make single request to get all patterns
-    res = requests.get(f"http://localhost:3000/api/get-pattern?ids={ids_param}")
+    res = requests.get(f"${process.env.NEXT_PUBLIC_BASEURL}/api/get-pattern?ids={ids_param}")
     patterns_data = res.json()
     
     # Handle both single pattern (object) and multiple patterns (array) responses

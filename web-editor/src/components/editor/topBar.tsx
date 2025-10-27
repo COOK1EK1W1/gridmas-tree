@@ -52,9 +52,9 @@ export default function TopBar({ user }: { user: any }) {
             <span>Save Now</span>
           </Button>
         ) : (
-          <Link href="/" className="text-white text-sm">
-            <div className="text-right">Changes will not be saved </div>
-            <div className="text-right">Sign in to save</div>
+          <Link href="/" className="text-white text-sm pl-2">
+            <div className="text-right">Sign in to</div>
+            <div className="text-right">save changes </div>
           </Link>
         )}
       </div>

@@ -14,7 +14,7 @@ function FestiveLights({ position = "top" }: { position?: "top" | "bottom" }) {
   const bulbs = Array.from({ length: 40 });
   return (
     <div className="pointer-events-none relative w-full" aria-hidden>
-      <div className={`absolute inset-x-0 ${position === "top" ? "-top-2" : "-bottom-2"} flex justify-center`}>
+      <div className={`absolute inset-x-0 w-full overflow-hidden ${position === "top" ? "-top-2" : "-bottom-2"} flex justify-center`}>
         <div className="flex items-center justify-center gap-2">
           {bulbs.map((_, i) => {
             const color = bulbColors[i % bulbColors.length];

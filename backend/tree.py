@@ -124,26 +124,46 @@ class Tree():
         return ret
 
 
-def height():
+def height() -> float: 
+    """The height of the tree
+
+    Examples:
+        if pixel.z < height() / 2:
+            pixel.set_rgb(255, 255, 255)
+
+    """
     return tree._height
 
-def num_pixels():
+def num_pixels() -> int:
+    """The number of pixels, equivelant to len(pixels()) but faster"""
     return tree._num_pixels
 
-def pixel_coords():
+def pixel_coords() -> list[tuple[float, float, float]]:
     return tree._coords
 
 @overload
 def pixels() -> list["Pixel"]: ...
 @overload
-def pixels(a: int) -> "Pixel": ...
+def pixels(n: int) -> "Pixel": ...
 
-def pixels(a: Optional[int] = None) -> Union["Pixel", list["Pixel"]]:
+def pixels(n: Optional[int] = None) -> Union["Pixel", list["Pixel"]]:
+    """The main way of accessing pixels
+
+    Args:
+        n (Optional[int]): Grab only the nth pixel
+
+    Examples:
+        for pixel in pixels():
+            pixel.set_rgb(255, 255, 255)
+
+        for i in range(num_pixels()):
+            pixels(i).set_rgb(255, 255, 255)
+    """
     global tree
-    if a is None:
+    if n is None:
         return tree._pixels
     else:
-        return tree._pixels[a]
+        return tree._pixels[n]
 
 def set_pixel(n: int, color: Color):
     """Set the Nth light in the strip to the specified color
@@ -194,14 +214,11 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
         pixel.lerp(color, frames, fn=fn)
 
 def coords():
-    """TODO"""
+    """An array of 3d coordinates mapped directly to the pixels
+    coords()[10] gives the xyz tuple of the 10th pixel in the strip
+    equivelant to pixels(10).xyz
+    """
     return tree._coords
-
-def num_pixels():
-    """TODO"""
-    return tree._num_pixels
-
-
 
 def sleep(n: int):
     """sleep for n frames"""
@@ -212,13 +229,13 @@ def frame() -> int:
     """The current frame number since the start of the pattern"""
     return tree._frame
 
-def seconds():
+def seconds() -> int:
     """The number of seconds since the start of the pattern"""
-    return math.floor(time.time() - tree.pattern_started_at)
+    return math.floor(time.time() - tree._pattern_started_at)
 
-def millis():
-    """The number of milli seconds since the start of the pattern"""
-    return math.floor((time.time() - tree.pattern_started_at) * 1000)
+def millis() -> int:
+    """The number of milliseconds since the start of the pattern"""
+    return math.floor((time.time() - tree._pattern_started_at) * 1000)
 
 def background(c: Color):
     """Set the background color of the tree"""

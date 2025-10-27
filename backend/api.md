@@ -100,6 +100,8 @@ millis() - millis since start of pattern
 seconds() - seconds since start of pattern
 frames() - frames since start of pattern
 
+set_fps()
+
 
 
 
@@ -126,3 +128,17 @@ dist(point1, point2)
 sphere(pos, radius, color)
 box(pos, width, depth, height, color)
 line(posA, posB, color, width)
+
+# Tree functions
+
+pixels()
+set_pixel()
+height()
+coords()
+num_pixels()
+background()
+
+fade()
+fill()
+lerp()
+
