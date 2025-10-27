@@ -36,8 +36,8 @@ export default function Attributes() {
   }, [attributes?.length, currentValues])
 
   return (
-    <div className="hidden md:block h-52 bg-white">
-      {attributes.length > 0 ? (<div className="w-full candy-frame h-full bg-white rounded grid grid-cols-1 lg:grid-cols-2 xxl:grid-cols-3 gap-8">
+    <div className="bg-white md:w-1/2 h-40 md:h-52">
+      {attributes.length > 0 ? (<div className="overflow-auto w-full candy-frame h-full bg-white rounded grid grid-cols-1 lg:grid-cols-2 xxl:grid-cols-3 gap-8">
         {attributes.map((attr, i) => (
           <div key={i}>
             <div className="pb-2">{attr.name}</div>
@@ -85,8 +85,6 @@ export default function Attributes() {
           Attributes allow you to change parameters while the pattern is running.
         </div>
         <code>{`variable = RangeAttr("myVariable", 0, -1, 1, 0.01)`}</code>
-        <div>or</div>
-        <code>{`color = ColorAttr("myColor", Color(255, 255, 255))`}</code>
       </div>
       }
     </div >

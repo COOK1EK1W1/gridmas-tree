@@ -218,41 +218,45 @@ if 'pattern_generator' in globals():
   const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
   return (
-    <div className="h-full grid grid-cols-1 md:grid-cols-2">
-      <TopBar user={userData} />
-      <div className="row-span-2 flex-grow">
+    <div className="h-full w-full flex flex-col">
+      <div className="w-full flex md:flex-row flex-col flex-grow">
+        <div className="flex flex-col md:w-1/2">
+          <TopBar user={userData} />
+          <CodeEditor />
+        </div>
         <TreeVis
           pyodide={pyodide}
           running={running}
           onLog={(message, frame, isError) => appendOutput(message, frame, isError)}
         />
       </div>
-      <CodeEditor />
-      <Attributes />
-      <div className="h-52">
-        <div className="h-12 flex items-center">
-          <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
-            {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
-          </Button>
+      <div className="h-52 flex flex-col-reverse md:flex-row">
+        <Attributes />
+        <div className="md:w-1/2">
+          <div className="h-12 flex items-center">
+            <Button className="w-28 m-2" onClick={handleRun} variant="red" disabled={!isReady}>
+              {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
+            </Button>
 
-          <div className="block md:hidden p-5">
-            To edit code, please open the editor on a desktop or laptop device.
-          </div>
-        </div>
-        <div className="h-40 overflow-auto">
-          {output.map((x, i) => (
-            <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-              <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
-                {x.content}
-              </p>
-              {x.frame !== 0 && (
-                <span className="text-slate-600 text-xs">frame {x.frame}</span>
-              )}
+            <div className="block md:hidden text-sm">
+              To edit code, please open the editor on a desktop or laptop device.
             </div>
+          </div>
+          <div className="h-40 overflow-auto hidden md:block">
+            {output.map((x, i) => (
+              <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
+                <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
+                  {x.content}
+                </p>
+                {x.frame !== 0 && (
+                  <span className="text-slate-600 text-xs">frame {x.frame}</span>
+                )}
+              </div>
 
 
-          ))}
-          <div ref={bottomRef} />
+            ))}
+            <div ref={bottomRef} />
+          </div>
         </div>
       </div>
     </div >
