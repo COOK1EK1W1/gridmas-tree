@@ -12,7 +12,7 @@ export default function RootLayout({
         <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
         <link rel="preload" href="/api/send-scripts-zip" as="fetch" crossOrigin="anonymous" />
       </head>
-      <body className={"fixed overflow-hidden h-[100dvh] w-full select-none"}>
+      <body className={"bg-emerald-900 h-[100dvh] w-full select-none"}>
         {children}
       </body>
     </html>

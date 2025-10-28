@@ -37,7 +37,7 @@ export default async function Home() {
   const patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
 
   return (
-    <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
+    <div className="bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
       <Snow />
 
       {/* Background festive glows */}

@@ -218,7 +218,7 @@ if 'pattern_generator' in globals():
   const isReady = !!pyodide && libsReady && !loading && zipPreloaded
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="fixed h-full w-full flex flex-col">
       <div className="w-full flex md:flex-row flex-col flex-grow">
         <div className="flex flex-col md:w-1/2">
           <TopBar user={userData} />
@@ -238,7 +238,7 @@ if 'pattern_generator' in globals():
               {!running ? (isReady ? "Run" : (zipPreloaded ? "Loading…" : "Preloading…")) : "Stop"}
             </Button>
 
-            <div className="block md:hidden text-sm">
+            <div className="block md:hidden text-white text-sm">
               To edit code, please open the editor on a desktop or laptop device.
             </div>
           </div>
