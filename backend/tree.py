@@ -1,3 +1,5 @@
+"""Contains all the methods you need to change the tree. (Where the magic happens)"""
+
 from math import dist
 import math
 from typing import Callable, Optional, Union, overload
