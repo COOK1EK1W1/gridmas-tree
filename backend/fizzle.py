@@ -1,3 +1,5 @@
+"""Turns off a random LED"""
+
 from gridmas import *
 import random
 
