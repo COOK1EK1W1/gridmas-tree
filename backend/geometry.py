@@ -1,3 +1,5 @@
+"""Some helpful code for building Shapes for your patterns"""
+
 from abc import ABC, abstractmethod
 from typing import Optional
 from colors import Color, Pixel
