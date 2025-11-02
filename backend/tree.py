@@ -56,6 +56,7 @@ class Tree():
         """The list of shapes that the tree can draw"""
         
         self._background = None
+        self._fps = 45
 
     def _pattern_reset(self):
         self._pattern_started_at = time.time()

@@ -9,6 +9,7 @@ import attribute
 from util import tcolors
 import math
 import importlib
+from tree import tree
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
