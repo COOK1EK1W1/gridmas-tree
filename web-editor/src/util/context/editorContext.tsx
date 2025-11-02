@@ -42,7 +42,7 @@ export function adaptPythonAttributes(pyodideAttributeData: any[]): (RangeAttr |
     const name = attr[0];
     const value = attr[1];
     const type = attr[2]; // 'RangeAttr' or 'ColorAttr'
-    
+
     if (type === 'RangeAttr' && attr.length >= 6) {
       return {
         name,
@@ -52,7 +52,7 @@ export function adaptPythonAttributes(pyodideAttributeData: any[]): (RangeAttr |
         step: attr[5] || 0.01
       } as RangeAttr;
     }
-    
+
     // Otherwise, treat as ColorAttr - ensure value is a hex string
     let colorValue = value;
     if (typeof colorValue === 'string' && !colorValue.startsWith('#')) {
@@ -62,7 +62,7 @@ export function adaptPythonAttributes(pyodideAttributeData: any[]): (RangeAttr |
       // If it's not a string at all, convert to hex string
       colorValue = `#${colorValue.toString()}`;
     }
-    
+
     return {
       name,
       default: colorValue
@@ -74,7 +74,7 @@ export function useEditor() {
   const context = useContext(editorContext);
 
   if (context === undefined) {
-    throw new Error('No waypoint context provided');
+    throw new Error('No Editor context provided');
   }
 
   return context;

@@ -89,33 +89,6 @@ export default function TreeVis({
         if (deltaTime >= targetFrameTime) {
           const start = performance.now()
           try {
-
-            // Read current values from attribute refs and update Python Store
-            if (attributeRefs.current && attributes.length > 0) {
-              const attributeUpdates = []
-
-              for (let i = 0; i < attributes.length; i++) {
-                const attr = attributes[i]
-                const ref = attributeRefs.current[i]
-
-                if (ref && ref.currentValue !== undefined) {
-                  if ('min' in attr && 'max' in attr && 'step' in attr) {
-                    // RangeAttr - get value from stored currentValue
-                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(${ref.currentValue})`)
-                  } else {
-                    // ColorAttr - get value from stored currentValue
-                    attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color.hex("${ref.currentValue}"))`)
-                  }
-                }
-              }
-
-
-              // Execute all attribute updates
-              if (attributeUpdates.length > 0) {
-                pyodide.runPython(attributeUpdates.join('\n'))
-              }
-            }
-
             // get all the attributes
             const res1 = pyodide.runPython(`
 list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
@@ -123,6 +96,29 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
 
             const attributeData = res1.toJs()
             const adaptedAttributes = adaptPythonAttributes(attributeData)
+
+            // Read current values from attribute refs and update Python Store
+            // Use freshly adapted attributes to ensure we only set values that exist
+            if (attributeRefs.current && adaptedAttributes.length > 0) {
+              const attributeUpdates = []
+
+              for (let i = 0; i < adaptedAttributes.length; i++) {
+                const attr = adaptedAttributes[i]
+                const ref = attributeRefs.current[i]
+
+                if (!ref || ref.currentValue === undefined) continue
+
+                if ('min' in attr && 'max' in attr && 'step' in attr) {
+                  attributeUpdates.push(`Store.get_store().get("${attr.name}").set(${ref.currentValue})`)
+                } else {
+                  attributeUpdates.push(`Store.get_store().get("${attr.name}").set(Color.hex("${ref.currentValue}"))`)
+                }
+              }
+
+              if (attributeUpdates.length > 0) {
+                pyodide.runPython(attributeUpdates.join('\n'))
+              }
+            }
 
             // Check if attributes have changed
             if (attributes.length !== adaptedAttributes.length ||
