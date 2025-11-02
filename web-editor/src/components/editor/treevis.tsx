@@ -3,7 +3,7 @@ import { tree } from "@/util/trees/2025";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Camera } from "lucide-react";
-import { useEffect, useMemo, useRef, createRef } from "react";
+import { useEffect, useMemo, useRef, createRef, useState } from "react";
 import { Button } from "../ui/button";
 import type { MeshStandardMaterial } from "three";
 import { useEditor } from "@/util/context/editorContext";
@@ -24,14 +24,16 @@ export default function TreeVis({
   const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
   const frameRef = useRef<number>(0)
+  const [currentFps, setCurrentFps] = useState<number>(45) // Default to 45 FPS
 
-  const addLoopTime = (t: number) => {
+  const addLoopTime = (t: number, targetFps: number) => {
     loopTimes.current.push(t)
     if (loopTimes.current.length > 199) {
       loopTimes.current.shift()
     }
     const avgLoopTime = loopTimes.current.reduce((x, y) => x + y, 0) / loopTimes.current.length
-    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(1)}ms/22ms`
+    const targetMs = 1000 / targetFps
+    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(1)}ms/${targetMs.toFixed(1)}ms`
   }
 
   // Create stable refs for each material without calling hooks in a loop
@@ -79,11 +81,26 @@ export default function TreeVis({
 
       let animationFrameId: number;
       let lastFrameTime = 0;
-      const targetFrameTime = 1000 / 45; // 45 FPS = ~22.22ms per frame
 
       function animate(currentTime: number) {
         if (!running) return;
 
+        // Query FPS from Python tree every frame (it can change dynamically)
+        let targetFps = currentFps; // Default fallback
+        try {
+          const fpsValue = pyodide.runPython(`tree._fps`)
+          if (typeof fpsValue === 'number' && fpsValue > 0) {
+            targetFps = fpsValue
+            if (targetFps !== currentFps) {
+              setCurrentFps(targetFps)
+            }
+          }
+        } catch (error) {
+          // Use previous FPS if query fails
+          targetFps = currentFps
+        }
+
+        const targetFrameTime = 1000 / targetFps;
         const deltaTime = currentTime - lastFrameTime;
 
         if (deltaTime >= targetFrameTime) {
@@ -163,7 +180,7 @@ tree._request_frame()
             onLog?.(String(error), frameRef.current, true)
           } finally {
             const end = performance.now()
-            addLoopTime(end - start)
+            addLoopTime(end - start, targetFps)
             frameRef.current += 1
           }
 
@@ -181,7 +198,7 @@ tree._request_frame()
         }
       }
     }
-  }, [running, pyodide, matRefs, onLog, attributes, attributeRefs])
+  }, [running, pyodide, matRefs, onLog, attributes, attributeRefs, currentFps])
 
 
   return (

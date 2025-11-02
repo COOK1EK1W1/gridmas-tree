@@ -189,11 +189,9 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
       pyodide.runPython(`import curPattern
 import importlib
 Store.instance = None
-importlib.reload(curPattern)
 tree._pattern_reset()
-`)
-      // Reset the generator when pattern is updated
-      pyodide.runPython(`
+importlib.reload(curPattern)
+
 if 'pattern_generator' in globals():
     pattern_generator = None
 `)

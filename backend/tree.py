@@ -61,6 +61,7 @@ class Tree():
         self._pattern_started_at = time.time()
         self._frame = 0
         self._background = None
+        self._fps = 45
 
     def _request_frame(self):
         """For internal use
@@ -139,9 +140,6 @@ def height() -> float:
 def num_pixels() -> int:
     """The number of pixels, equivelant to len(pixels()) but faster"""
     return tree._num_pixels
-
-def pixel_coords() -> list[tuple[float, float, float]]:
-    return tree._coords
 
 @overload
 def pixels() -> list["Pixel"]: ...
