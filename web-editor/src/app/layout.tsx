@@ -1,3 +1,4 @@
+import StartModal from "@/components/startModal";
 import "./globals.css";
 
 export default function RootLayout({

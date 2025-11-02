@@ -2,6 +2,7 @@ import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
 import SignoutBit from "@/components/landing/signout";
 import Snow from "@/components/landing/snowLayer";
+import StartModal from "@/components/startModal";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";
 import { Pattern } from "@prisma/client";
@@ -38,6 +39,7 @@ export default async function Home() {
 
   return (
     <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
+      <StartModal />
       <Snow />
 
       {/* Background festive glows */}
