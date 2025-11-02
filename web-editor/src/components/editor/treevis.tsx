@@ -6,7 +6,7 @@ import { Camera } from "lucide-react";
 import { useEffect, useMemo, useRef, createRef } from "react";
 import { Button } from "../ui/button";
 import type { MeshStandardMaterial } from "three";
-import { useEditor, adaptPythonAttributes } from "@/util/context/editorContext";
+import { useEditor } from "@/util/context/editorContext";
 
 const treeHeight = Math.max(...tree.map((x) => x[2]))
 export default function TreeVis({
@@ -19,7 +19,7 @@ export default function TreeVis({
   onLog?: (message: string, frame: number, isError?: boolean) => void,
 }) {
 
-  const { attributes, setAttributes, attributeRefs } = useEditor()
+  const { attributes, attributeRefs } = useEditor()
   const loopTimes = useRef<number[]>([])
   const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
@@ -89,21 +89,13 @@ export default function TreeVis({
         if (deltaTime >= targetFrameTime) {
           const start = performance.now()
           try {
-            // get all the attributes
-            const res1 = pyodide.runPython(`
-list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
-`)
-
-            const attributeData = res1.toJs()
-            const adaptedAttributes = adaptPythonAttributes(attributeData)
-
             // Read current values from attribute refs and update Python Store
-            // Use freshly adapted attributes to ensure we only set values that exist
-            if (attributeRefs.current && adaptedAttributes.length > 0) {
+            // Attributes are already in state and won't change during pattern execution
+            if (attributeRefs.current && attributes.length > 0) {
               const attributeUpdates = []
 
-              for (let i = 0; i < adaptedAttributes.length; i++) {
-                const attr = adaptedAttributes[i]
+              for (let i = 0; i < attributes.length; i++) {
+                const attr = attributes[i]
                 const ref = attributeRefs.current[i]
 
                 if (!ref || ref.currentValue === undefined) continue
@@ -118,20 +110,6 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
               if (attributeUpdates.length > 0) {
                 pyodide.runPython(attributeUpdates.join('\n'))
               }
-            }
-
-            // Check if attributes have changed
-            if (attributes.length !== adaptedAttributes.length ||
-              !attributes.every((attr, i) =>
-                adaptedAttributes[i] &&
-                attr.name === adaptedAttributes[i].name
-              )) {
-              setAttributes(adaptedAttributes)
-            }
-
-            // prevent PyProxy leaks on older pyodide versions
-            if (typeof res1?.destroy === 'function') {
-              res1.destroy()
             }
 
 
@@ -203,7 +181,7 @@ tree._request_frame()
         }
       }
     }
-  }, [running, pyodide, matRefs, onLog])
+  }, [running, pyodide, matRefs, onLog, attributes, attributeRefs])
 
 
   return (
