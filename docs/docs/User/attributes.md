@@ -1,3 +1,0 @@
-# Attributes
-
-::: backend.attribute

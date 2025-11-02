@@ -19,7 +19,7 @@ from util import linear, clamp
 
 
 class Color:
-    """A class representing a color """
+    """A class representing a color"""
 
     def __init__(self, r: int, g: int, b: int):
         self._changed = False
@@ -47,7 +47,16 @@ class Color:
 
     @property
     def b(self):
-        """Blue component 0-255"""
+        """Blue component 0-255
+
+            example:
+                ```
+                myColor = Color(255, 100, 120)
+                print(myColor.r) # 255
+                print(myColor.g) # 100
+                print(myColor.b) # 120
+                ```
+        """
         return self._b
 
     """
@@ -56,7 +65,15 @@ class Color:
 
     @staticmethod
     def rgb(r: int, g: int, b: int) -> 'Color':
-        """An alias for the constructor, values between 0 and 255"""
+        """An alias for the constructor, values between 0 and 255
+
+        example:
+            ```
+            red = Color.rgb(255, 0, 0)
+            blue = Color.rgb(0, 255, 0)
+            green = Color.rgb(0, 0, 255)
+            ```
+        """
         return Color(r, g, b)
 
     @staticmethod
@@ -72,7 +89,8 @@ class Color:
 
     @staticmethod
     def bit_string(i: int) -> 'Color':
-        """Get a color from a string hex code, in format "#FFFFFF" """
+        """conver the 24bit encoded int to tuple of R, G, and B.
+           int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB"""
         r, g, b = int2tuple(i)
         return Color(r, g, b)
 
@@ -92,103 +110,108 @@ class Color:
 
     @staticmethod
     def black() -> "Color":
+        """The color black / off"""
         return Color(0, 0, 0)
 
     @staticmethod
     def red() -> "Color":
+        """The color red"""
         return Color(255, 0, 0)
 
     @staticmethod
     def orange() -> "Color":
+        """The color orange"""
         return Color(252, 81, 8)
 
     @staticmethod
     def amber() -> "Color":
+        """The color amber"""
         return Color(251, 136, 10)
 
     @staticmethod
     def yellow() -> "Color":
+        """The color yellow"""
         return Color(234, 163, 8)
 
     @staticmethod
     def lime() -> "Color":
+        """The color lime"""
         return Color(107, 202, 3)
 
     @staticmethod
     def green() -> "Color":
+        """The color green"""
         return Color(0, 255, 0)
 
     @staticmethod
     def emerald() -> "Color":
+        """The color emeral"""
         return Color(23, 178, 106)
 
     @staticmethod
     def teal() -> "Color":
+        """The color teal"""
         return Color(23, 175, 150)
 
     @staticmethod
     def cyan() -> "Color":
+        """The color cyan"""
         return Color(21, 170, 210)
 
     @staticmethod
     def sky() -> "Color":
+        """The color sky"""
         return Color(20, 146, 241)
 
     @staticmethod
     def blue() -> "Color":
+        """The color blue"""
         return Color(0, 0, 255)
 
     @staticmethod
     def indigo() -> "Color":
+        """The color indigo"""
         return Color(78, 64, 255)
 
     @staticmethod
     def violet() -> "Color":
+        """The color violet"""
         return Color(122, 47, 255)
 
     @staticmethod
     def purple() -> "Color":
+        """The color purple"""
         return Color(155, 30, 255)
 
     @staticmethod
     def fuchsia() -> "Color":
+        """The color fuchia"""
         return Color(215, 0, 250)
 
     @staticmethod
     def pink() -> "Color":
-        """pink Get the color pink
-
-        Get the color value of Pink
-
-        Returns:
-            Color: The color pink (240,15,137)
-        """
+        """The color pink"""
         return Color(240, 15, 137)
 
     @staticmethod
     def rose() -> "Color":
-        """rose Get the color rose
-
-        Get the color value of Rose
-
-        Returns:
-            Color: The color rose (251,0,69)
-        """
+        """The color rose"""
         return Color(251, 0, 69)
 
     @staticmethod
     def white() -> "Color":
-        """white Get the color white
-
-        Get the color value of White
-
-        Returns:
-            Color: The color white (255,255,255)
-        """
+        """The color white"""
         return Color(255, 255, 255)
 
     @staticmethod
     def mix(a: "Color", b: "Color", x: float):
+        """Mix two colors together
+        
+        args:
+            a: The first color
+            b: The second color
+            x: the amount to mix by, 0.5 is average, 0 gives a, 1 gives b
+        """
         return Color(
             int(a.r + (b.r - a.r) * x),
             int(a.g + (b.g - a.g) * x),

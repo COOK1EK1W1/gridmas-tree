@@ -1,5 +1,7 @@
 """Attributes allow you to change parameters of your pattern while the pattern is running from
    the web interface, this helps create more dynamic and customizable patterns
+
+    Attributes should be initiallised before/outside of the draw() function
 """
 from abc import ABC, abstractmethod
 from colors import Color
@@ -15,6 +17,8 @@ T = TypeVar("T")
 
 class Attribute(Generic[T], ABC):
     """Only initialise attributes once in the run function
+
+    This class should not be instantiated, it is a base class
     """
 
     def __init__(self, name: str, value: T):
@@ -32,7 +36,7 @@ class Attribute(Generic[T], ABC):
     def set(self, value: T):
         """Set the value of the range.
 
-           The use of this is discouraged in a pattern
+           The use of this is discouraged in a pattern, it is primarily an internal function
 
         Args:
             value (T): The value to set the attribute to
@@ -58,6 +62,13 @@ class RangeAttr(Attribute[float]):
             min (float): The minimum value accepted
             max (float): The maximum value accepted
             step (float): The resolution for the range
+
+        Example:
+            ```
+            speed = RangeAttr("speed", 0.2, -1, 1, 0.2)
+            def draw()
+                print(speed.get())
+            ```
         """
         self.min = min
         self.max = max
@@ -75,7 +86,14 @@ class ColorAttr(Attribute[Color]):
 
         Args:
             name (str): The name displayed on the interface
-            value (Color): The initial starting color
+            value (Color): The initial color
+
+        Example:
+            ```
+            color1 = ColorAttr("color1", Color.red())
+            def draw()
+                fill(color1.get())
+            ```
         """
         super().__init__(name, value)
         Store.get_store().add(self)

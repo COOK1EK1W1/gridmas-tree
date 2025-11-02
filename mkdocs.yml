@@ -2,7 +2,14 @@ site_name: GRIDmas Tree Docs
 repo_url: https://github.com/COOK1EK1W1/gridmas-tree
 
 plugins:
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            members_order: source
+            docstring_section_labels: true
+            show_source: false
+            merge_init_into_class: true
   - search
 
 markdown_extensions: 
