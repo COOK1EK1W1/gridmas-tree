@@ -1,4 +1,6 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default function RootLayout({
   children,
@@ -13,6 +15,8 @@ export default function RootLayout({
         <link rel="preload" href="/api/send-scripts-zip" as="fetch" crossOrigin="anonymous" />
       </head>
       <body className={"bg-emerald-900 h-[100dvh] w-full select-none"}>
+        <Analytics />
+        <SpeedInsights />
         {children}
       </body>
     </html>
