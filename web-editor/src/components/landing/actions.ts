@@ -35,14 +35,20 @@ export async function createNew(title: string, data?: string) {
   const missionLimitResult = await checkUserPatternLimit(userID)
   if (missionLimitResult.error !== null) return missionLimitResult
 
-  const res = await tryCatch(prisma.pattern.create({
-    data: {
-      title: title,
-      data: data ?? `from gridmas import *
+  const patternData = data ?? `from gridmas import *
 def draw():
-    pass`,
-      userId: userID,
-    }
+    pass`
+  
+  if (patternData.length >= 30000) {
+    return { error: "Pattern size exceeds maximum limit of 30,000 characters", data: null }
+  }
+
+  const res = await tryCatch(prisma.pattern.create({
+      data: {
+        title: title,
+        data: patternData,
+        userId: userID,
+      }
   }))
 
   if (res.error !== null) {
@@ -61,6 +67,10 @@ export async function savePattern(id: string, data: string): Promise<Result<bool
   const userID = userData.data?.user.id
   if (!userID) {
     return { error: "User not authenticated", data: null }
+  }
+
+  if (data.length >= 30000) {
+    return { error: "Pattern size exceeds maximum limit of 30,000 characters", data: null }
   }
 
   const res = await tryCatch(prisma.pattern.update({
@@ -132,6 +142,11 @@ export async function duplicatePattern(id: string, new_name: string): Promise<Re
   }))
   if (res.error !== null || res.data === null) {
     return { error: "Could not update pattern", data: null }
+  }
+
+  const patternData = res.data?.data
+  if (patternData && patternData.length >= 30000) {
+    return { error: "Pattern size exceeds maximum limit of 30,000 characters", data: null }
   }
 
   const res2 = await tryCatch(prisma.pattern.create({
