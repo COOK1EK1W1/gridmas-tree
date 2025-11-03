@@ -51,8 +51,7 @@ Here are some shots from the live tree during the showcase event:
 
 | |
 |:--:|
-| ![Display Photo 1](#) |
-| ![Display Photo 2](#) |
-| ![Display Photo 3](#) |
+| ![Display Photo 1](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/lightdisplay1.JPG?raw=true) |
+| ![Display Photo 2](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/lightdisplay2.jpg?raw=true) |
 
 ---

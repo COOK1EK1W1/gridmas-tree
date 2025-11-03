@@ -8,11 +8,13 @@ Make the best light display, making use of the 3D aspect of the tree. Patterns o
 
 Prizes have been gaciously donated by Heriot-Watt MACS department.
 
-- Technical award - Use of advanced tecniques and pushes the hardware
+- Technical award - **£50** - Use of advanced tecniques and pushes the hardware
 
-- 3D award - Fully ustilises 3D space of the tree
+- 3D Award - **£50** - Fully ustilises 3D aspect of the tree
 
-- Christmassy Award - The most festive pattern
+- Christmassy Award - **£50** - The most festive pattern
+
+- Meme Award - Mystery Prize :eyes:
 
 ## How to participate
 
