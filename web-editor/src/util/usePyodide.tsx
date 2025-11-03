@@ -15,6 +15,7 @@ export function usePyodide() {
       });
       if (isMounted) {
         setPyodide(pyodideInstance);
+        await pyodideInstance?.loadPackage("numpy")
         setLoading(false);
       }
     }

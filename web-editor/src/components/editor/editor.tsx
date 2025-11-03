@@ -227,9 +227,10 @@ if 'pattern_generator' in globals():
     }
 
     // we want to start running
+    // Clear console BEFORE loading the pattern so load-time prints are preserved
+    setOutput([])
     if (updatePattern()) {
       setRunning(true)
-      setOutput([])
       // Reset the generator when starting
       if (pyodide) {
         pyodide.runPython(`

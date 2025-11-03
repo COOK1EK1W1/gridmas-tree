@@ -4,10 +4,13 @@ hide:
   - toc
 ---
 
+![GRIDmas Tree](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/tree2.png?raw=true){width=400 loading=lazy align=right}
+
 # GRIDmas Tree
 The GRIDmas Tree is a fully programmable christmas tree with 1000 RGB LEDs. Each LED has a 3D coordinate and can be individually addressed which allows you to create patterns or animations which run in 3D space.
 
 The GRIDmas Tree was originally based on Standup Maths' 500 LED christmas tree. [Watch his video here](https://www.youtube.com/watch?v=TvlpIojusBE). This project builds upon this foundation with a fully featured API and web-editor to allow for easy modification and testing of patterns.
+
 
 ![Ciaran](https://avatars.githubusercontent.com/u/61564769?v=4){ loading=lazy align=left }
 
