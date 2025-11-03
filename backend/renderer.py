@@ -36,10 +36,10 @@ class Renderer:
         process = multiprocessing.Process(target=self.pixel_driver.run, args=())
         process.start()
 
-    def add_to_queue(self, frame: list[int]):
+    def add_to_queue(self, frame: list[int], fps: int):
         """Add a frame to the queue to be rendered
         This function blocks until there is space in the queue"""
-        self.frame_queue.put((self.fps, frame))
+        self.frame_queue.put((fps, frame))
         pass
 
     def _pick_driver(self, num_leds: int):

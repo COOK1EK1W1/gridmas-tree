@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Terms() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 h-full overflow-auto">
+    <div className="bg-white max-w-4xl mx-auto px-4 py-8 h-full overflow-auto">
       <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
       <p className="text-gray-600 mb-8">Last Updated: Oct 31, 2025</p>
 
@@ -31,7 +31,7 @@ export default function Terms() {
 
         <h3 className="text-xl font-semibold mb-3">User Limitations</h3>
         <p className="mb-4">
-          We may impose limits on the number of patterns you can create based on your account type. As indicated in our system configuration, there may be a maximum number of patterns per user. Once you reach this limit, you will not be able to create additional missions until you delete existing ones or upgrade your account (if applicable).
+          We may impose limits on the number of patterns you can create based on your account type. As indicated in our system configuration, there may be a maximum number of patterns per user. Once you reach this limit, you will not be able to create additional patterns until you delete existing ones or upgrade your account (if applicable).
         </p>
       </section>
 

@@ -2,7 +2,7 @@
 import CodeEditor from "./code";
 import TreeVis from "./treevis";
 import { useEffect, useRef, useState } from "react";
-import { useEditor } from "@/util/context/editorContext";
+import { useEditor, adaptPythonAttributes } from "@/util/context/editorContext";
 import TopBar from "./topBar";
 import { Button } from "../ui/button";
 import { usePyodide } from "@/util/usePyodide";
@@ -21,7 +21,7 @@ type Message = {
 }
 
 export default function PatternEditor({ userData }: { userData: any }) {
-  const { codeRef } = useEditor()
+  const { codeRef, setAttributes } = useEditor()
   const { pyodide, loading } = usePyodide();
 
   const [output, setOutput] = useState<Message[]>([]);
@@ -148,6 +148,29 @@ tree.init("tree.csv")
 
 
 
+  // Helper function to query attributes from Python Store
+  function queryAttributes() {
+    if (!pyodide) return;
+
+    try {
+      const res1 = pyodide.runPython(`
+list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else x.value, x.__class__.__name__, getattr(x, 'min', None), getattr(x, 'max', None), getattr(x, 'step', None)), Store.get_store().get_all()))
+`)
+
+      const attributeData = res1.toJs()
+      const adaptedAttributes = adaptPythonAttributes(attributeData)
+      setAttributes(adaptedAttributes)
+
+      // prevent PyProxy leaks on older pyodide versions
+      if (typeof res1?.destroy === 'function') {
+        res1.destroy()
+      }
+    } catch (error: any) {
+      // If there's an error querying attributes, just set empty array
+      setAttributes([])
+    }
+  }
+
   // Helper function to update the pattern
   function updatePattern() {
 
@@ -166,14 +189,16 @@ tree.init("tree.csv")
       pyodide.runPython(`import curPattern
 import importlib
 Store.instance = None
-importlib.reload(curPattern)
 tree._pattern_reset()
-`)
-      // Reset the generator when pattern is updated
-      pyodide.runPython(`
+importlib.reload(curPattern)
+
 if 'pattern_generator' in globals():
     pattern_generator = None
 `)
+      
+      // Query attributes after pattern is loaded
+      queryAttributes()
+      
       return true;
     } catch (error: any) {
       setRunning(false)
@@ -202,9 +227,10 @@ if 'pattern_generator' in globals():
     }
 
     // we want to start running
+    // Clear console BEFORE loading the pattern so load-time prints are preserved
+    setOutput([])
     if (updatePattern()) {
       setRunning(true)
-      setOutput([])
       // Reset the generator when starting
       if (pyodide) {
         pyodide.runPython(`

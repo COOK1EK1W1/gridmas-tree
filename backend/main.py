@@ -74,6 +74,7 @@ if __name__ == '__main__':
                         patternManager.unload_pattern()
 
                     case StartPattern(name=name):
+                        tree._pattern_reset()
                         patternManager.load_pattern(name)
 
                     case DrawFrame(frame=frame):
@@ -91,9 +92,10 @@ if __name__ == '__main__':
 
             # 3. get pixels from tree instance
             frame = tree._request_frame()
+            fps = tree._fps
 
             # 4. send to pixel driver | blocks until space
-            renderer.add_to_queue(frame)
+            renderer.add_to_queue(frame, fps)
 
     except KeyboardInterrupt:
         print("\nShutting down gracefully...")
