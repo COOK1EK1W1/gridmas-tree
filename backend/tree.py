@@ -75,7 +75,7 @@ class Tree():
             # 1. check if the pixel has been directly changed
             if self._pixels[i]._changed:
                 colors.append(self._pixels[i].to_bit_string())
-                self._pixels[i].changed = False
+                self._pixels[i]._changed = False
                 continue
 
             # 2. check for objects
@@ -222,12 +222,27 @@ def coords():
     return tree._coords
 
 def sleep(n: int):
-    """sleep for n frames"""
+    """sleep for n frames
+
+    example:
+        ```
+        def draw():
+            lerp(Color.black(), 10)
+            yield from sleep(10)
+        ```
+    """
     for _ in range(n):
         yield
 
 def frame() -> int:
-    """The current frame number since the start of the pattern"""
+    """The current frame number since the start of the pattern
+            example:
+            ```
+            def draw():
+                f = frame() # 1, 2, 3
+                print(f"{f} frames since the pattern started")
+            ```
+"""
     return tree._frame
 
 def seconds() -> int:
@@ -235,11 +250,22 @@ def seconds() -> int:
     return math.floor(time.time() - tree._pattern_started_at)
 
 def millis() -> int:
-    """The number of milliseconds since the start of the pattern"""
+    """The number of milliseconds since the start of the pattern
+
+        example:
+            ```
+            def draw():
+                s = seconds()
+                m = millis()
+                print(f"{s}:{m} since the pattern started")
+            ```
+    """
     return math.floor((time.time() - tree._pattern_started_at) * 1000)
 
 def background(c: Color):
-    """Set the background color of the tree"""
+    """Set the background color of the tree
+
+    """
     tree._background = c
 
 tree = Tree()

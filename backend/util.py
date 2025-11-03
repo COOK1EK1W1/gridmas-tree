@@ -7,13 +7,6 @@ from typing import Iterable, Union
 
 
 def save_lights(light_locs: list[list[int]]) -> None:
-    """save_lights Save the loaded tree lights
-
-    Writes the locations of all lights passed into the file tree.csv
-
-    Args:
-        light_locs (list[list[int]]): The list of tree light positions
-    """
     with open('tree.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(light_locs)
@@ -31,16 +24,28 @@ class tcolors:
 
 
 PI = 3.1415926535897932384626433832795028841971693993
+
 HALF_PI = PI/2
+
 TWO_PI = PI*2
+
 TAU = PI * 2
 
 
 def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, int]):
+    """Clamp a value between two values
+
+        example:
+            ```
+            clamp(-1, 0, 1) # 0
+            clamp(2, 0, 1) # 1
+            clamp(0.5, 0, 1) # 0.5
+            ```
+
+    """
     return min(max(val, minv), maxv)
 
 def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
-    # TODO fix this in the processing stage
     with open(location) as csvfile:
         reader = csv.reader(csvfile)
         list_of_lists: list[tuple[float, float, float]] = []
@@ -60,6 +65,13 @@ def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
 
 
 def dist(a: Iterable[float], b: Iterable[float]) -> float:
+    """The distance between two vectors
+
+        example:
+            ```
+            dist([3], [4]) # 5
+            ```
+    """ 
     total = 0
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2
@@ -67,10 +79,17 @@ def dist(a: Iterable[float], b: Iterable[float]) -> float:
 
 
 def linear(x: float) -> float:
+    """The linear activation function
+
+    Activation function can be used with lerp to achieve different interpolations.
+
+    The activations are taken from https://easings.net/# and are similar to the CSS implementations
+    """
     return x
 
 
 def step(x: float) -> float:
+    """The step activation function"""
     if x > 0.5:
         return 1
     else:
@@ -78,26 +97,32 @@ def step(x: float) -> float:
 
 
 def ease_in_sine(x: float) -> float:
+    """The ease in sine activation function"""
     return 1 - math.cos((x * math.pi) / 2)
 
 
 def ease_out_sine(x: float) -> float:
+    """The ease out sine activation function"""
     return math.sin((x * math.pi) / 2)
 
 
 def ease_in_out_sine(x: float) -> float:
+    """The ease in out sine activation function"""
     return -(math.cos(math.pi * x) - 1) / 2
 
 
 def ease_in_cubic(x: float) -> float:
+    """The ease in cubic activation function"""
     return x * x * x
 
 
 def ease_out_cubic(x: float) -> float:
+    """The ease out cubic activation function"""
     return 1 - math.pow(1 - x, 3)
 
 
 def ease_in_out_cubic(x: float) -> float:
+    """The ease in out cubic activation function"""
     if x < 0.5:
         return 4 * x * x * x
     else:
@@ -105,14 +130,17 @@ def ease_in_out_cubic(x: float) -> float:
 
 
 def ease_in_quint(x: float) -> float:
+    """The ease in quint activation function"""
     return x * x * x * x * x
 
 
 def ease_out_quint(x: float) -> float:
+    """The ease out quint activation function"""
     return 1 - math.pow(1 - x, 5)
 
 
 def ease_in_out_quint(x: float) -> float:
+    """The ease in out quint activation function"""
     if x < 0.5:
         return 16 * x * x * x * x * x
     else:
@@ -120,14 +148,17 @@ def ease_in_out_quint(x: float) -> float:
 
 
 def ease_in_circ(x: float) -> float:
+    """The ease in circle activation function"""
     return 1 - math.sqrt(1 - math.pow(x, 2))
 
 
 def ease_out_circ(x: float) -> float:
+    """The ease out circle activation function"""
     return math.sqrt(1 - math.pow(x - 1, 2))
 
 
 def ease_in_out_circ(x: float) -> float:
+    """The ease in out circle activation function"""
     if x < 0.5:
         return (1 - math.sqrt(1 - math.pow(2 * x, 2))) / 2
     else:
@@ -135,6 +166,7 @@ def ease_in_out_circ(x: float) -> float:
 
 
 def ease_in_elastic(x: float) -> float:
+    """The ease in elastic activation function"""
     c4 = (2 * math.pi) / 3
     if x <= 0:
         return 0
@@ -145,6 +177,7 @@ def ease_in_elastic(x: float) -> float:
 
 
 def ease_out_elastic(x: float) -> float:
+    """The ease out elastic activation function"""
     c4 = (2 * math.pi) / 3
     if x <= 0:
         return 0
@@ -155,6 +188,7 @@ def ease_out_elastic(x: float) -> float:
 
 
 def ease_in_out_elastic(x: float) -> float:
+    """The ease in out elastic activation function"""
     c5 = (2 * math.pi) / 4.5
     if x <= 0:
         return 0
@@ -167,14 +201,17 @@ def ease_in_out_elastic(x: float) -> float:
 
 
 def ease_in_quad(x: float) -> float:
+    """The ease in quad activation function"""
     return x * x
 
 
 def ease_out_quad(x: float) -> float:
+    """The ease out quad activation function"""
     return 1 - (1 - x) * (1 - x)
 
 
 def ease_in_out_quad(x: float) -> float:
+    """The ease in out quad activation function"""
     if x < 0.5:
         return 2 * x * x
     else:
@@ -182,14 +219,17 @@ def ease_in_out_quad(x: float) -> float:
 
 
 def ease_in_quart(x: float) -> float:
+    """The ease in quart activation function"""
     return x * x * x * x
 
 
 def ease_out_quart(x: float) -> float:
+    """The ease out quart activation function"""
     return 1 - math.pow(1 - x, 4)
 
 
 def ease_in_out_quart(x: float) -> float:
+    """The ease in out quart activation function"""
     if x < 0.5:
         return 8 * x * x * x * x * x
     else:
@@ -197,6 +237,7 @@ def ease_in_out_quart(x: float) -> float:
 
 
 def ease_in_expo(x: float) -> float:
+    """The ease in expo activation function"""
     if x <= 0:
         return 0
     else:
@@ -204,6 +245,7 @@ def ease_in_expo(x: float) -> float:
 
 
 def ease_out_expo(x: float) -> float:
+    """The ease out expo activation function"""
     if x >= 1:
         return 1
     else:
@@ -211,6 +253,7 @@ def ease_out_expo(x: float) -> float:
 
 
 def ease_in_out_expo(x: float) -> float:
+    """The ease in out expo activation function"""
     if x <= 0:
         return 0
     elif x >= 1:
@@ -222,12 +265,14 @@ def ease_in_out_expo(x: float) -> float:
 
 
 def ease_in_back(x: float) -> float:
+    """The ease in back activation function"""
     c1 = 1.70158
     c3 = c1 + 1
     return c3 * x * x * x - c1 * x * x
 
 
 def ease_out_back(x: float) -> float:
+    """The ease out back activation function"""
     c1 = 1.70158
     c3 = c1 + 1
 
@@ -235,6 +280,7 @@ def ease_out_back(x: float) -> float:
 
 
 def ease_in_out_back(x: float) -> float:
+    """The ease in out back activation function"""
     c1 = 1.70158
     c2 = c1 * 1.525
 
@@ -245,10 +291,12 @@ def ease_in_out_back(x: float) -> float:
 
 
 def ease_in_bounce(x: float) -> float:
+    """The ease in bounce activation function"""
     return 1 - ease_out_bounce(1 - x)
 
 
 def ease_out_bounce(x: float) -> float:
+    """The ease out bounce activation function"""
     n1 = 7.5625
     d1 = 2.75
 
@@ -266,6 +314,7 @@ def ease_out_bounce(x: float) -> float:
 
 
 def ease_in_out_bounce(x: float) -> float:
+    """The ease in out bounce activation function"""
     if x < 0.5:
         return (1 - ease_out_bounce(1 - 2 * x)) / 2
     else:

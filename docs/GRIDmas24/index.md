@@ -1,11 +1,11 @@
-# 🎄 GRIDmas 2024 — Results & Highlights
+# GRIDmas 2024 — Results & Highlights
 
 Thank you to everyone who took part in the GRIDmas programming challenge!  
 Supported by Heriot-Watt Robotics Society, Heriot-Watt Makers Society, and the Heriot-Watt MACS department.
 
 ---
 
-## 🥇 1st Place — **3D Vector Cube**
+## 1st Place — **3D Vector Cube**
 
 A beautifully rendered rotating cube in 3D space.  
 This entry made seriously clever use of vector math and spatial transforms to produce a stable and very clean visual animation.
@@ -19,7 +19,7 @@ I've been told there are even secret messages hidden in the pattern for you to d
 
 ---
 
-## 🥈 2nd Place — **Pick Apples**
+## 2nd Place — **Pick Apples**
 
 A wholesome interactive sequence that told the story of apples being picked from the top of the tree and carefully placed at the bottom.  
 Charming, creative, and technically sound!
@@ -32,7 +32,7 @@ Charming, creative, and technically sound!
 
 ---
 
-## 🥉 3rd Place — **Christmas Helix**
+## 3rd Place — **Christmas Helix**
 
 A festive DNA-like helix spiralling upward through the tree.  
 Smooth timing, great use of space, and very *very* Christmas-core.
@@ -45,7 +45,7 @@ Smooth timing, great use of space, and very *very* Christmas-core.
 
 ---
 
-## 📸 Live Display Highlights
+## Live Display Highlights
 
 Here are some shots from the live tree during the showcase event:
 

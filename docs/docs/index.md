@@ -3,7 +3,7 @@
 This is the main hub for anyone taking part in the 2025 GRIDmas Tree project. 
 
 !!! warning "Please Note"
-    The closing date for pattern submissions for the 2025 competition is: XX.YY.ZZZZ<br>
+    The closing date for pattern submissions for the 2025 competition is: 14/12/2025<br>
     Please make sure you have submitted your pattern **before** this date
 
 

@@ -10,6 +10,12 @@
     5. fizzle
     6. attribute
     7. gemoetry
+
+
+    Use this at the top of your pattern:
+    ```
+    from gridmas import *
+    ```
 """
 
 from util import *
