@@ -2,7 +2,7 @@
 
 # The Task
 
-Make the best light display, making use of the 3D aspect of the tree. Patterns or animations will only be displayed for 2 minutes, but looping or procedural animations are encouraged. Patterns will be judged at our final light display, and scored by a panel of judged.
+Make the best light display, making use of the 3D aspect of the tree. Patterns or animations will only be displayed for 2 minutes, but looping or procedural animations are encouraged. Patterns will be judged at our final light display, and scored by a panel of judges.
 
 ## Prizes
 
