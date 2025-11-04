@@ -50,7 +50,7 @@ class Color:
         """Blue component 0-255
 
             example:
-                ```
+                ```py
                 myColor = Color(255, 100, 120)
                 print(myColor.r) # 255
                 print(myColor.g) # 100
@@ -68,7 +68,7 @@ class Color:
         """An alias for the constructor, values between 0 and 255
 
         example:
-            ```
+            ```py
             red = Color.rgb(255, 0, 0)
             blue = Color.rgb(0, 255, 0)
             green = Color.rgb(0, 0, 255)
@@ -248,8 +248,10 @@ class Color:
         Sets the color to the fully on state (white, RGB(255,255,255))
         
         Examples:
-            >>> my_color = Color.red() # Creates a new color that is red
-            >>> my_color.on() # The color is now white (255,255,255)
+            ```py
+            my_color = Color.red() # Creates a new color that is red
+            my_color.on() # The color is now white (255,255,255)
+            ```
         """
         self._r = 255
         self._g = 255
@@ -263,8 +265,10 @@ class Color:
         Sets the color to the fully off state (black, RGB(0,0,0))
         
         Examples:
-            >>> my_color = Color.red() # Creates a new color that is red
-            >>> my_color.off() # The color is now black (0,0,0)
+            ```py
+            my_color = Color.red() # Creates a new color that is red
+            my_color.off() # The color is now black (0,0,0)
+            ```
         """
         self._r = 0
         self._g = 0
@@ -570,15 +574,35 @@ class Pixel(Color):
         return self._d
 
     def distance_to(self, p: "Pixel") -> float:
-        """Find the distance to the passed pixel"""
+        """Find the distance to the passed pixel
+        example:
+            ```
+            my_pixel = pixels(0)
+            print(my_pixel.distance_to(pixels(10))) # 0.45
+        """
         return self._tree.distances[self._id][p.id]
 
     def nearest(self, n: int) -> list[tuple["Pixel", float]]:
-        """Find the distance to the passed pixel"""
+        """Find the nearest n pixels from the current
+
+            example:
+                ```
+                my_pixel = pixels(0)
+                neighbors = my_pixel.nearest(4)
+                len(neighbors) # 4, nearest pixels
+                ```
+        """
         return self._tree.pixel_distance_matrix[self._id][:n]
 
     def within(self, d: float) -> list["Pixel"]:
-        """Find all pixels that are within a certain radius"""
+        """Find all pixels that are within a certain radius
+
+            example:
+                ```
+                my_pixel = pixels(0)
+                neighbors = my_pixel.within(0.4) # pixels within 0.4 radius
+                ```
+        """
         left = 0
         right = len(self._pixels()) - 1
         while left < right:

@@ -172,6 +172,11 @@ def set_pixel(n: int, color: Color):
     Args:
         n (int): The light you want to set
         color (Color): The color that you want to set the light to
+
+    Example:
+        ```
+        set_pixel(2, Color.black())
+        ```
     """
     pixels(n).set(color)
 
@@ -181,6 +186,14 @@ def set_fps(fps: int):
 
     Args:
         fps (int): target fps for the animation.
+
+    Example:
+        ```
+        set_fps(30)
+        def draw():
+            pass # called 30 times per second
+        ```
+        
     """
     tree._fps = fps
 
@@ -189,13 +202,35 @@ def fade(n: int = 10):
         fades the tree to black over n frames
     Args:
         n (int, optional): Unknown. Defaults to 10
+    Example:
+        ```
+        def draw():
+            fade(10)
+        ```
     """
     c = Color.black()
     for pixel in tree._pixels:
         pixel.lerp(c, n)
 
+def background(c: Color):
+    """Set the background color of the tree
+        if a pixel hasn't been directly set or no shape overlaps the pixel, it will be drawn as the background color.
+
+        removes any fading or lerping that might be applying
+
+        example:
+        ```
+        background(Color.black())
+        def draw():
+            set_pixel(1, Color.white())
+        ```
+    """
+    tree._background = c
+
 def fill(color: Color):
     """Set all lights on the tree to one color
+
+    This differs from background as it is part of the 1st rendering layer, directly setting pixels
 
     Args:
         color (Color): The color you want to set the tree to
@@ -206,10 +241,18 @@ def fill(color: Color):
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     """Lerp the entire tree from its current color to the target color over the specified amount of frames
 
+    Once lerp has been called, it will automatically interpolate every frame to the target. Subsequent calls with the same parameters will continue the lerp, not reset.
+
     Args:
         color (Color): Target color
         frames (int): The number of frames to perform the lerp over
         fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
+
+    Example:
+        ```
+        def draw():
+            lerp(Color.black(), 10) # similar to fade
+        ```
     """
     for pixel in tree._pixels:
         pixel.lerp(color, frames, fn=fn)
@@ -261,11 +304,5 @@ def millis() -> int:
             ```
     """
     return math.floor((time.time() - tree._pattern_started_at) * 1000)
-
-def background(c: Color):
-    """Set the background color of the tree
-
-    """
-    tree._background = c
 
 tree = Tree()

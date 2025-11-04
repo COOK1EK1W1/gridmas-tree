@@ -42,7 +42,7 @@ class Sphere(Shape):
         Create an instance of Sphere
 
         Args:
-            pos (tuple[float, float, float]): The center point of the sphere
+            pos (tuple[float, float, float]): The center point of the sphere [x, y, z]
             radius (float): The radius of the sphere
             color (Color): The color of the sphere
         """
@@ -128,8 +128,8 @@ class Line(Shape):
         Create a new instance of Line
 
         Args:
-            a (tuple[float, float, float]): The start position of the line
-            b (tuple[float, float, float]): The end position of the line
+            a (tuple[float, float, float]): The start position of the line [x, y, z]
+            b (tuple[float, float, float]): The end position of the line [x, y, z]
             stroke (float): The width of the line
             color (Color): The color of the line
         """

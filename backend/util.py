@@ -69,7 +69,7 @@ def dist(a: Iterable[float], b: Iterable[float]) -> float:
 
         example:
             ```
-            dist([3], [4]) # 5
+            dist([0, 0], [3, 4]) # 5
             ```
     """ 
     total = 0
