@@ -1,7 +1,7 @@
 import { Button } from "../ui/button";
 import { createNew, savePattern } from "../landing/actions";
 import { useEditor } from "@/util/context/editorContext";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, CloudUpload, LoaderCircle } from "lucide-react";
@@ -12,18 +12,41 @@ export default function TopBar({ user }: { user: any }) {
   const { codeRef, patternID, patternTitle, pattern } = useEditor()
 
   const [lastSaved, setLastSaved] = useState(pattern)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   const [isPending, startTransition] = useTransition()
 
   const router = useRouter()
 
+  // Update lastSaved when pattern prop changes
+  useEffect(() => {
+    setLastSaved(pattern)
+    setHasUnsavedChanges(false)
+  }, [pattern])
+
+  // Timer to check for changes every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (codeRef.current === null) return
+      
+      const currentValue = codeRef.current.getValue()
+      const hasChanges = currentValue !== lastSaved
+      setHasUnsavedChanges(hasChanges)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [codeRef, lastSaved])
+
   const handleSave = () => {
+    console.log("saving")
     if (patternID) {
       startTransition(async () => {
         if (codeRef.current === null) return
         const res = await savePattern(patternID, codeRef.current.getValue())
         if (res.data) {
-          setLastSaved(codeRef.current.getValue())
+          const savedValue = codeRef.current.getValue()
+          setLastSaved(savedValue)
+          setHasUnsavedChanges(false)
         }
       })
     } else {
@@ -47,8 +70,8 @@ export default function TopBar({ user }: { user: any }) {
         {user ? (
           <Button onClick={handleSave} variant="green">
             <LoaderCircle className={cn('animate-spin', isPending ? "inline" : "hidden")} />
-            <Check className={lastSaved === codeRef.current?.getValue() && !isPending ? "inline" : "hidden"} />
-            <CloudUpload className={lastSaved !== codeRef.current?.getValue() && !isPending ? "inline" : "hidden"} />
+            <Check className={!hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
+            <CloudUpload className={hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
             <span>Save Now</span>
           </Button>
         ) : (
