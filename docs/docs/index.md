@@ -7,7 +7,7 @@ This is the main hub for anyone taking part in the 2025 GRIDmas Tree project.
     Please make sure you have submitted your pattern **before** this date
 
 
-For your first pattern, you can use this code [Taken From This Example](/samples/on):
+For your first pattern, you can use this code [Taken From This Example](https://owen7000.github.io/gridmas-tree/samples/on):
 ```py title="Example - On" linenums="1"
 from gridmas import *
 
