@@ -93,7 +93,7 @@ export function PersonalPattern({ patterns }: { patterns: Pick<Pattern, "title" 
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Link href={`/p/${pattern.id}`}>
+          <Link href={`/p/${pattern.id}`} prefetch={false}>
             <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
               <div className="px-3 pt-7 pb-3">
                 <h4 className="text-center text-red-800 font-semibold text-sm leading-tight">{pattern.title}</h4>
