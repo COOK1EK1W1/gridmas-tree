@@ -485,10 +485,38 @@ def sd2dCircle(shape_args: float, point):
 
 
 # Pattern functions
-def patternSolid(shape_args, color_args: Color, point):
+def patternSolid(shape_args, color_args: tuple[Color], point):
+    """
+    Pattern function for a solid colour
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (tuple[Color]): Color of shape 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
+
     return color_args[0]
 
 def patternSplit(shape_args, color_args: tuple[Color, Color], point):
+    """
+    Pattern function for 2 vertically split colours 
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (tuple[Color, Color]): Top color, bottom color 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
+        
     a, b = color_args
     x, y, z = point
 
@@ -498,19 +526,74 @@ def patternSplit(shape_args, color_args: tuple[Color, Color], point):
         return b
     
 def patternAxis(shape_args, color_args: None, point):
+    """
+    Pattern function that returns a different colour per octant
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (None): Unused color arguments for consistency 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
+
     x, y, z = point
     return Color(int(x*10), int(y*10), int(z*10))
 
 def patternRainbow(shape_args, color_args: None, point):
+    """
+    Pattern function for a rainbow pattern
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (None): Unused color arguments for consistency 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
     x, y, z = point
     return Color(int(x*255), int(y*255), int(z*255))
 
 def patternPastel(shape_args, color_args: None, point):
+    """
+    Pattern function for a pastel rainbow pattern
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (None): Unused color arguments for consistency 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
+
     x, y, z = point
     x, y, z = (x+1)/2, (y+1)/2, (z+1)/2
     return Color(int(x*255), int(y*255), int(z*255))
 
 def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
+    """
+    Pattern function for a ribbon wrapped present
+    Query an object space (x, y, z) point
+
+    Args:
+        shape_args (tuple): Unused shape arguments for consistency
+        color_args (tuple[Color, Color, float]): Main color, ribbon color, ribbon thickness 
+        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+
+    Return:
+        (Color) : Calculated color at point
+    
+    """
+
     x, y, z = point
     box_col, stripe_col, stripe_thickness = color_args
 
@@ -525,15 +608,68 @@ def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
 
 # Union functions - shape
 def sdUnionAddition(shape_args: None, a, b):
+    """
+    Union function for the Addition of two shapes
+
+    Args:
+        shape_args (None): Unused shape union arguments for consistency
+        a (float): distance to shape a
+        b (float): distance to shape b
+
+    Return:
+        (float): distance to union
+
+    """
+
     return min(a, b)
 
 def sdUnionIntersection(shape_args: None, a, b):
+    """
+    Union function for the Intersection of two shapes
+
+    Args:
+        shape_args (None): Unused shape union arguments for consistency
+        a (float): distance to shape a
+        b (float): distance to shape b
+
+    Return:
+        (float): distance to union
+
+    """
+
     return max(a, b)
 
 def sdUnionSubtraction(shape_args: None, a, b):
+    """
+    Union function for subtracting shape b from shape a
+
+    Args:
+        shape_args (None): Unused shape union arguments for consistency
+        a (float): distance to shape a
+        b (float): distance to shape b
+
+    Return:
+        (float): distance to union
+
+    """
+
     return max(a, -b)
 
-def sdUnionSmooth(shape_args: ["sdUnionFunction", float], a, b):
+def sdUnionSmooth(shape_args: tuple["sdUnionFunction", float], a, b):
+    """
+    Union function for smoothly combining a and b
+    Uses a seperate function to define the union behaviour
+
+    Args:
+        shape_args (tuple["sdUnionFunction", float]): Union function to define union behaviour, smoothness factor
+        a (float): distance to shape a
+        b (float): distance to shape b
+
+    Return:
+        (float): distance to union
+
+    """
+
     shapeUnion, k = shape_args
     if (k == 0):
         return shapeUnion(None, a, b)
@@ -546,12 +682,42 @@ def sdUnionSmooth(shape_args: ["sdUnionFunction", float], a, b):
 
 # Union functions - pattern
 def patternUnionClosest(pattern_args: None, dist_a, col_a, dist_b, col_b):
+    """
+    Union function for returning the color of the closest shape
+
+    Args:
+        pattern_args (None): Unused pattern union arguments for consistency
+        dist_a (float): distance to shape a
+        col_a (Color): color of shape a
+        dist_b (float): distance to shape b
+        col_b (Color): color of shape b
+
+
+    Return:
+        (Color): calculated color
+    """
+
     if (dist_a <= dist_b):
         return col_a
     else:
         return col_b 
 
 def patternUnionSmooth(pattern_args: ["patternUnionFunction", float], dist_a, col_a, dist_b, col_b):
+    """
+    Union function for smoothly interpolating between the color of a and b
+    Uses a seperate function to define the union behaviour
+
+    Args:
+        pattern_args (tuple["patternUnionFunction", float]): Union function to define union behaviour, smoothness factor
+        dist_a (float): distance to shape a
+        col_a (Color): color of shape a
+        dist_b (float): distance to shape b
+        col_b (Color): color of shape b
+
+
+    Return:
+        (Color): calculated color
+    """
     patternUnion, k = pattern_args
 
     if (k == 0):
