@@ -1,177 +1,568 @@
-"""Some helpful code for building Shapes for your patterns"""
+"""
+A robust rendering engine to create custom 3d shapes in your patterns.
+"""
 
+
+import math
 from abc import ABC, abstractmethod
 from typing import Optional
 from colors import Color, Pixel
 from tree import tree
 
-class Shape(ABC):
-    """Shape Contains a shape
 
-    A shape to be used for geometry
+class Shape:
+    """
+    A base class with a position and a rotation
+    Shared functionality for all geometry
 
     Args:
         ABC (abc.ABC): An abstract class
     """
-    @abstractmethod
-    def does_draw(self, pixel: Pixel) -> Optional[Color]:
-        """does_draw T.B.D
-
-        
+    def __init__(self, position, rotation):
+        """
+        Create a new instance of Shape
 
         Args:
-            pixel (Pixel): T.B.D
+            position (tuple[float, float, float]): the (x, y, z) position of the shape
+            rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the shape
+        """
+
+        self.position = position
+        self.rotation = rotation
+
+    
+    def get_pixel_position(self, pixel):
+        """
+        Converts a tree (world) space position to shape (object) space
+
+        Args:
+            pixel (tuple[float, float, float]): the (x, y, z) position of the pixel
 
         Returns:
-            Optional[Color]: T.B.D
+            (tuple[float, float, float]): The transformed position
         """
+        # Unpack variables
+        pixel_x, pixel_y, pixel_z = pixel
+        x_pos, y_pos, z_pos = self.position
+        pitch, yaw, roll = self.rotation
+
+        # Translate the pixels to shape origin
+        pixel_x -= x_pos
+        pixel_y -= y_pos
+        pixel_z -= z_pos
+
+        # Rotate pixels around shape
+        rotated_point = rotate((pixel_x, pixel_y, pixel_z), pitch, yaw, roll)
+
+        return rotated_point
+
+    @abstractmethod
+    def get_color(self, pixel: tuple[float, float, float]) -> Optional[Color]:
         ...
 
-class Sphere(Shape):
-    """Sphere a 3D circle :wink:
+    def does_draw(self, pixel: Pixel) -> Optional[Color]:
+        """
+        Method for backwards compatibility with existing API
+        Deprecated, do not use in new code
 
-    Represents a spherical object
+        Args:
+            pixel (Pixel): The input pixel
 
-    Args:
-        Shape (Shape): Must be an instance of Shape
-    """
+        Returns:
+            Optional[Color]: Color of pixel, if valid. Else, returns None.
+        """
+
+        return self.get_color((pixel.x, pixel.y, pixel.z))
     
-    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
-        """__init__ Create a sphere
-
-        Create an instance of Sphere
-
-        Args:
-            pos (tuple[float, float, float]): The center point of the sphere [x, y, z]
-            radius (float): The radius of the sphere
-            color (Color): The color of the sphere
+    def render(self):
         """
-        self.pos = pos
-        self.x, self.y, self.z = pos
-        self.radius = radius
-        self.radius2 = radius * radius  # store squared radius
-        self.inner_radius = radius / 1.73205  # for inscribed cube
-        self.color = color
+        Render the shape by adding to the tree
+        """
         tree._shapes.append(self)
 
-    def does_draw(self, pixel: Pixel) -> Optional[Color]:
-        dx = pixel.x - self.x
-        dy = pixel.y - self.y
-        dz = pixel.z - self.z
 
-        # 1. Quick reject (outside bounding box)
-        if abs(dx) > self.radius or abs(dy) > self.radius or abs(dz) > self.radius:
-            return None
-
-        # 2. Quick accept (inside inscribed cube)
-        if abs(dx) <= self.inner_radius and abs(dy) <= self.inner_radius and abs(dz) <= self.inner_radius:
-            return self.color
-
-        # 3. Exact sphere check (squared distance)
-        if dx*dx + dy*dy + dz*dz <= self.radius2:
-            return self.color
-
-        return None
-
-class Box(Shape):
-    def __init__(self, pos: tuple[float, float, float], length: float, color: Color):
-        self.pos = pos
-        self.x = pos[0]
-        self.y = pos[1]
-        self.z = pos[2]
-        self.length = length
-        self.color = color
-        tree._shapes.append(self)
-
-    def does_draw(self, pixel: Pixel) -> Optional[Color]:
-        # Check if the pixel is within the outer bounding box
-        if self.z - self.length < pixel.z < self.z + self.length and \
-           self.x - self.length < pixel.x < self.x + self.length and \
-           self.y - self.length < pixel.y < self.y + self.length:
-
-            return self.color
-        else:
-            return None
-
-class Box(Shape):
-    def __init__(self, pos: tuple[float, float, float], length: float, color: Color):
-        self.pos = pos
-        self.x = pos[0]
-        self.y = pos[1]
-        self.z = pos[2]
-        self.length = length
-        self.color = color
-        tree._shapes.append(self)
-
-    def does_draw(self, pixel: Pixel) -> Optional[Color]:
-        # Check if the pixel is within the outer bounding box
-        if self.z - self.length < pixel.z < self.z + self.length and \
-           self.x - self.length < pixel.x < self.x + self.length and \
-           self.y - self.length < pixel.y < self.y + self.length:
-
-            return self.color
-        else:
-            return None
-
-
-class Line(Shape):
-    """Line A line
-
-    Has a starting point, end point, color, and a stroke
+class Primitive(Shape):
+    """
+    A primitive 3d object
 
     Args:
-        Shape (Shape): Must be an instance of Shape
+        Shape: A base class with functionality for 3d geometry
     """
-    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color):
-        """__init__ Create a line
-
-        Create a new instance of Line
+    def __init__(self, position, starting_rotation, shape_args, pattern_args):
+        """
+        Create an instance of Primitive
 
         Args:
-            a (tuple[float, float, float]): The start position of the line [x, y, z]
-            b (tuple[float, float, float]): The end position of the line [x, y, z]
-            stroke (float): The width of the line
-            color (Color): The color of the line
+            position (tuple[float, float, float]): the (x, y, z) position of the primitive
+            starting_rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the primitive
+            shape_args (tuple["sdFunction", *args]): Definition of the shape. args e.g. radius, size, thickness etc
+            pattern_args (tuple["patternFunction", *args]): Definition of the pattern. args e.g. Color, stripe_thickness etc
         """
-        self.ax, self.ay, self.az = a
-        self.bx, self.by, self.bz = b
-        self.stroke = stroke
-        self.stroke2 = stroke * stroke
-        self.color = color
 
-        # Precompute axis vector and squared length
-        self.vx = self.bx - self.ax
-        self.vy = self.by - self.ay
-        self.vz = self.bz - self.az
-        self.len2 = self.vx*self.vx + self.vy*self.vy + self.vz*self.vz
+        super().__init__(position, starting_rotation)
 
-        tree._shapes.append(self)
+        self.distance_function = shape_args[0]
+        self.shape_args = shape_args[1:]
 
-    def does_draw(self, pixel: Pixel) -> Optional[Color]:
-        # Vector from A to point
-        px = pixel.x - self.ax
-        py = pixel.y - self.ay
-        pz = pixel.z - self.az
+        self.pattern_function = pattern_args[0]
+        self.color_args = pattern_args[1:]
+    
 
-        # Project onto axis
-        dot = px*self.vx + py*self.vy + pz*self.vz
-        t = dot / self.len2 if self.len2 != 0 else 0.0
+    def get_distance(self, position):
+        """
+        Gets signed distance from a point to object surface 
 
-        # Reject if outside the segment
-        if t < 0.0 or t > 1.0:
+        Args:
+            position (tuple[float, float, float]): the object-space position of the position
+        
+        Returns:
+            distance (float): Signed distance from point to object surface. Negative if inside.
+        """
+        # Get distance
+        distance = self.distance_function(self.shape_args, position)
+
+        return distance
+
+    def get_pattern_value(self, position):
+        """
+        Gets color of position using an object's pattern 
+
+        Args:
+            position (tuple[float, float, float]): the object-space position of the position
+
+        Returns:
+            pixel_color (Color): Color of pixel using object pattern
+        """
+
+        # Get color
+        pixel_color = self.pattern_function(self.shape_args, self.color_args, position)
+
+        return pixel_color
+
+    # Wrapper function. might change
+    def get_color(self, pixel: tuple[float, float, float]) -> Optional[Color]:
+        """
+        Gets color of position if it is inside object 
+
+        Args:
+            position (tuple[float, float, float]): the object-space position of the point
+
+        Returns:
+            pixel_color (Optional[Color]): Color of pixel using object pattern if it is inside    
+        """
+
+        world_space_pixel = super().get_pixel_position(pixel)
+
+        if (self.get_distance(world_space_pixel) <= 0):
+            return self.get_pattern_value(world_space_pixel)
+        else:
             return None
 
-        # Closest point on line
-        cx = self.ax + t * self.vx
-        cy = self.ay + t * self.vy
-        cz = self.az + t * self.vz
 
-        dx = pixel.x - cx
-        dy = pixel.y - cy
-        dz = pixel.z - cz
+class CompositeShape(Shape):
+    """
+    A 3d object that combines two primitives,
+    using custom shape and pattern intersection functions
 
-        # Squared distance check
-        if dx*dx + dy*dy + dz*dz <= self.stroke2:
-            return self.color
-        return None
+    Args:
+        Shape: A base class with functionality for 3d geometry
+    """
+    def __init__(self, position, starting_rotation, shape_a, shape_b, shape_args, pattern_args):
+        """
+        Create an instance of CompositeShape
+
+        Args:
+            position (tuple[float, float, float]): the (x, y, z) position of the composite shape
+            starting_rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the composite shape
+            shape_a (Primitive): First primitive
+            shape_b (Primitive): Second primitive
+            shape_args (tuple["sdUnionFunction", *args]): Definition of the shape union.
+            pattern_args (tuple["patternFunction", *args]): Definition of the pattern union.
+        """
+
+        super().__init__(position, starting_rotation)
+
+        # Shape objects
+        self.shape_a = shape_a
+        self.shape_b = shape_b  
+
+        self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
+        self.patternUnion = pattern_args[0]
+
+
+        self.shape_args = shape_args[1:]
+        self.pattern_args = pattern_args[1:]
+
+
+
+    def get_color(self, pixel: tuple[float, float, float]) -> Optional[Color]:
+        """
+        Gets color of position if it satisfies shape union function
+
+        Args:
+            position (tuple[float, float, float]): the object-space position of the point
+
+        Returns:
+            pixel_color (Optional[Color]): Color of pixel combining object patterns using pattern union function
+        """
+        closest_distance = float('inf')
+        closest_shape = None
+
+        # Rotate and translate composite shape
+        position = super().get_pixel_position(pixel)
+
+        # Rotate and translate for element shapes
+        position_a = self.shape_a.get_pixel_position(position)
+        position_b = self.shape_b.get_pixel_position(position)        
+
+        a_distance = self.shape_a.get_distance(position_a)
+        b_distance = self.shape_b.get_distance(position_b)
+
+        distance = self.shapeUnion(self.shape_args, a_distance, b_distance)
+
+
+        if (distance <= 0):
+            a_color = self.shape_a.get_pattern_value(position_a)
+            b_color = self.shape_b.get_pattern_value(position_b)
+            color = self.patternUnion(self.pattern_args, a_distance, a_color, b_distance, b_color)
+
+            return color
+        else: 
+            return None
+
+    def move_centre(self, value):
+        """
+        Changes the centre of rotation for the composite shape
+
+        Args:
+            value (tuple[x, y, z]): (x, y, z) value for the centre to be moved by
+
+        """
+        x, y, z = value
+
+        self.position[0] += x
+        self.position[1] += y
+        self.position[2] += z
+
+        self.shape_a.position[0] -= x
+        self.shape_a.position[1] -= y
+        self.shape_a.position[2] -= z
+        
+        self.shape_b.position[0] -= x
+        self.shape_b.position[1] -= y
+        self.shape_b.position[2] -= z
+
+
+class Sphere(Primitive):
+    """
+    Represents a sphere of a solid colour
+    Used for backwards compatability and to decrease boilerplate code
+    """
+    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
+        super().__init__(pos, [0, 0, 0], [sdSphere, radius], [patternSolid, color])
+
+class Box(Primitive):
+    """
+    Represents a box of a solid colour
+    Used for backwards compatability and to decrease boilerplate code
+    """
+
+    def __init__(self, pos: tuple[float, float, float], size: tuple[float, float, float], color: Color):
+        super().__init__(pos, [0, 0, 0], [sdBox, size[0], size[1], size[2]], [patternSolid, color])
+
+
+
+def rotate(point, pitch, yaw, roll):
+    """
+    Rotates (x, y, z) point around (0, 0, 0)
+
+    Args:
+        point (tuple[float, float, float]): The (x, y, z) point to be rotated
+        pitch (float): Value to rotate around X by
+        yaw (float): Value to rotate around Y by
+        roll (float): Value to rotate around Z by
+
+    Returns:
+        (tuple[float, float, float]): The rotated point
+    """
+    pitch, yaw, roll = math.radians(pitch), math.radians(yaw), math.radians(roll)
+
+    sin_x, cos_x = math.sin(pitch), math.cos(pitch)
+    sin_y, cos_y = math.sin(yaw), math.cos(yaw)
+    sin_z, cos_z = math.sin(roll), math.cos(roll)
+
+    x, y, z = point
+
+    # Around X - Pitch
+    y, z = (y*cos_x - z*sin_x), (y*sin_x + z*cos_x)
+
+    # Rotate around Y (yaw)
+    x, z = x * cos_y + z * sin_y, -x * sin_y + z * cos_y
+
+    # Rotate around Z (roll)
+    x, y = x * cos_z - y * sin_z, x * sin_z + y * cos_z
+
+    return (x, y, z)
+
+
+
+# Signed Distance Functions
+# How far is point from the closest surface of shape
+
+def sdPlane(shape_args: None, point):
+    """
+    Signed distance function for a flat, infinite plane
+    Returns negative if point is inside
+
+    Args:
+        shape_args (): Unused parameter for compatability
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+
+    x, y, z = point
+
+    return z 
+
+def sdSphere(shape_args: tuple[float], point):
+    """
+    Signed distance function for a sphere
+    Returns negative if point is inside
+
+    Args:
+        shape_args (tuple[float]): Radius of sphere 
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+
+    x, y, z = point
+
+    return math.sqrt((x*x)+(y*y)+(z*z)) - shape_args[0]
+
+def sdBox(shape_args: tuple[float, float, float], point):
+    """
+    Signed distance function for a box
+    Returns negative if point is inside
+
+    Args:
+        shape_args (tuple[float, float, float]): The (x, y, z) dimensions of the box 
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+
+    depth, width, height = shape_args
+    x, y, z = point
+
+    qx = abs(x) - depth
+    qy = abs(y) - width
+    qz = abs(z) - height
+
+    a = math.sqrt((max(qx, 0.0)**2) + (max(qy, 0.0)**2) + (max(qz, 0.0)**2))
+    b = min(max(qx, max(qy, qz)), 0.0)
+
+    return a+b
+
+def sdBoxFrame(shape_args: tuple[float, float, float, float], point):
+    """
+    Signed distance function for a box frame
+    Returns negative if point is inside
+
+    Args:
+        shape_args (tuple[float, float, float, float]): The (x, y, z) dimensions of the box and the width of the frame
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+
+    depth, width, height, thickness = shape_args
+    x, y, z = point
+
+    px = abs(x) - depth
+    py = abs(y) - width
+    pz = abs(z) - height
+
+    qx = abs(px+thickness) - thickness
+    qy = abs(py+thickness) - thickness
+    qz = abs(pz+thickness) - thickness
+
+    a = math.sqrt((max(px, 0.0)**2) + (max(qy, 0.0)**2) + (max(qz, 0.0)**2)) + min(max(px, max(qy, qz)), 0.0)
+    b = math.sqrt((max(qx, 0.0)**2) + (max(py, 0.0)**2) + (max(qz, 0.0)**2)) + min(max(qx, max(py, qz)), 0.0)
+    c = math.sqrt((max(qx, 0.0)**2) + (max(qy, 0.0)**2) + (max(pz, 0.0)**2)) + min(max(qx, max(qy, pz)), 0.0)
+
+    return min(a, min(b, c))
+
+def sdCone(shape_args: tuple[float, float, float], point):
+    """
+    Signed distance function for a finite cone
+    Returns negative if point is inside
+
+    Args:
+        shape_args (tuple[float, float, float]): Two slope variables and the height
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+
+    cone1, cone2, height = shape_args
+    x, y, z = point
+
+    q = math.sqrt(x**2 + z**2)
+    return max(cone1 * q + cone2 * y, -height - y)
+
+def sdCylinder(shape_args: tuple[float, float], point):
+    """
+    Signed distance function for a finite cylinder
+    Returns negative if point is inside
+
+    Args:
+        shape_args (tuple[float, float]): (radius, height) of the cylinder
+        point (tuple[float, float, float]): The point (x, y, z) to sample 
+
+    Returns:
+        (float): The signed distance to the shape surface
+    """
+    radius, height = shape_args
+    x, y, z = point
+
+    dx = math.sqrt(x**2 + z**2) - radius
+    dy = abs(y) - height
+
+    max_d = max(dx, dy)
+    term1 = min(max_d, 0.0)
+
+    dx = max(dx, 0.0)
+    dy = max(dy, 0.0)
+    term2 = math.sqrt(dx**2 + dy**2)
+
+    return term1 + term2
+
+
+# Example for an operation that can be used on 2d SDFs
+def sd2dRevolution(shape_args: tuple["sdFunction", tuple, float], point):
+    """
+    Revolves a 2D signed distance function around the Y-axis.
+
+    Args:
+        shape_args (tuple): (primitive_function, primitive_args, axis_distance).
+        point (tuple[float, float, float]): The point (x, y, z) to sample.
+
+    Returns:
+        float: Signed distance after revolution.
+    """
+
+    primitive, primitive_args, axis_distance = shape_args
+
+    x, y, z = point
+
+    q = math.sqrt(x**2 + z**2) - axis_distance, y
+
+    primitive_distance = primitive(primitive_args, q)
+
+    return primitive_distance
+
+def sd2dCircle(shape_args: float, point):
+    """
+    Signed distance function for a 2D circle.
+
+    Args:
+        shape_args (float): Radius of the circle.
+        point (tuple[float, float]): The point (x, y) to sample.
+
+    Returns:
+        float: Signed distance to the shape surface.
+    """
+
+    x, y = point
+    return math.sqrt(x*x + y*y) - shape_args
+
+
+# Pattern functions
+def patternSolid(shape_args, color_args: Color, point):
+    return color_args[0]
+
+def patternSplit(shape_args, color_args: tuple[Color, Color], point):
+    a, b = color_args
+    x, y, z = point
+
+    if (z >= 0):
+        return a
+    else:
+        return b
+    
+def patternAxis(shape_args, color_args: None, point):
+    x, y, z = point
+    return Color(int(x*10), int(y*10), int(z*10))
+
+def patternRainbow(shape_args, color_args: None, point):
+    x, y, z = point
+    return Color(int(x*255), int(y*255), int(z*255))
+
+def patternPastel(shape_args, color_args: None, point):
+    x, y, z = point
+    x, y, z = (x+1)/2, (y+1)/2, (z+1)/2
+    return Color(int(x*255), int(y*255), int(z*255))
+
+def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
+    x, y, z = point
+    box_col, stripe_col, stripe_thickness = color_args
+
+    if (x >= -(stripe_thickness/2)) and (x <= (stripe_thickness/2)):
+        return stripe_col
+    if (y >= -(stripe_thickness/2)) and (y <= (stripe_thickness/2)):
+        return stripe_col
+    
+    return box_col
+
+
+
+# Union functions - shape
+def sdUnionAddition(shape_args: None, a, b):
+    return min(a, b)
+
+def sdUnionIntersection(shape_args: None, a, b):
+    return max(a, b)
+
+def sdUnionSubtraction(shape_args: None, a, b):
+    return max(a, -b)
+
+def sdUnionSmooth(shape_args: ["sdUnionFunction", float], a, b):
+    shapeUnion, k = shape_args
+    if (k == 0):
+        return shapeUnion(None, a, b)
+
+    h = min(max(0.5 + 0.5*(a - b)/k, 0.0), 1.0)
+    dist = ((a*(1-h))+(b*h)) - k*h*(1.0-h)
+
+    return dist
+
+
+# Union functions - pattern
+def patternUnionClosest(pattern_args: None, dist_a, col_a, dist_b, col_b):
+    if (dist_a <= dist_b):
+        return col_a
+    else:
+        return col_b 
+
+def patternUnionSmooth(pattern_args: ["patternUnionFunction", float], dist_a, col_a, dist_b, col_b):
+    patternUnion, k = pattern_args
+
+    if (k == 0):
+        return patternUnion(None, dist_a, col_a, dist_b, col_b)
+
+    h = min(max(0.5 + 0.5*(dist_a - dist_b)/k, 0.0), 1.0)
+
+
+    r = ((col_a.r*(1-h))+(col_b.r*h)) - k*h*(1.0-h)
+    g = ((col_a.g*(1-h))+(col_b.g*h)) - k*h*(1.0-h)
+    b = ((col_a.b*(1-h))+(col_b.b*h)) - k*h*(1.0-h)
+
+    return Color(int(r), int(g), int(b))
 
