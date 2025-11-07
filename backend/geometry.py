@@ -56,7 +56,7 @@ class Shape:
         pixel_z -= z_pos
 
         # Rotate pixels around shape
-        rotated_point = rotate((pixel_x, pixel_y, pixel_z), pitch, yaw, roll)
+        rotated_point = rotate((pixel_x, pixel_y, pixel_z), self.sin_rotation, self.cos_rotation)
 
         return rotated_point
 
@@ -81,8 +81,23 @@ class Shape:
     def render(self):
         """
         Render the shape by adding to the tree
+        Update cached values for this frame
         """
+
+        # Update cached values
+        self.sin_rotation = (
+            math.sin(math.radians(self.rotation[0])),
+            math.sin(math.radians(self.rotation[1])),
+            math.sin(math.radians(self.rotation[2])),
+        )
+        self.cos_rotation = (
+            math.cos(math.radians(self.rotation[0])),
+            math.cos(math.radians(self.rotation[1])),
+            math.cos(math.radians(self.rotation[2])),
+        )
+
         tree._shapes.append(self)
+
 
 
 class Primitive(Shape):
@@ -259,7 +274,7 @@ class CompositeShape(Shape):
 
 class Sphere(Primitive):
     """
-    Represents a sphere of a solid colour
+    Represents a sphere of a solid color
     Used for backwards compatability and to decrease boilerplate code
     """
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
@@ -267,7 +282,7 @@ class Sphere(Primitive):
 
 class Box(Primitive):
     """
-    Represents a box of a solid colour
+    Represents a box of a solid color
     Used for backwards compatability and to decrease boilerplate code
     """
 
@@ -276,24 +291,23 @@ class Box(Primitive):
 
 
 
-def rotate(point, pitch, yaw, roll):
+def rotate(point, sin_rotation, cos_rotation):
     """
     Rotates (x, y, z) point around (0, 0, 0)
 
     Args:
         point (tuple[float, float, float]): The (x, y, z) point to be rotated
-        pitch (float): Value to rotate around X by
-        yaw (float): Value to rotate around Y by
-        roll (float): Value to rotate around Z by
+        sin_rotation (tuple[float, float, float]): The sin of the (pitch, yaw, roll) rotation
+        cos_rotation (tuple[float, float, float]): The cos of the (pitch, yaw, roll) rotation
+
 
     Returns:
         (tuple[float, float, float]): The rotated point
     """
-    pitch, yaw, roll = math.radians(pitch), math.radians(yaw), math.radians(roll)
 
-    sin_x, cos_x = math.sin(pitch), math.cos(pitch)
-    sin_y, cos_y = math.sin(yaw), math.cos(yaw)
-    sin_z, cos_z = math.sin(roll), math.cos(roll)
+    sin_x, sin_y, sin_z = sin_rotation
+    cos_x, cos_y, cos_z = cos_rotation
+
 
     x, y, z = point
 
@@ -491,7 +505,7 @@ def sd2dCircle(shape_args: float, point):
 # Pattern functions
 def patternSolid(shape_args, color_args: tuple[Color], point):
     """
-    Pattern function for a solid colour
+    Pattern function for a solid color
     Query an object space (x, y, z) point
 
     Args:
@@ -508,7 +522,7 @@ def patternSolid(shape_args, color_args: tuple[Color], point):
 
 def patternSplit(shape_args, color_args: tuple[Color, Color], point):
     """
-    Pattern function for 2 vertically split colours 
+    Pattern function for 2 vertically split colors 
     Query an object space (x, y, z) point
 
     Args:
@@ -531,7 +545,7 @@ def patternSplit(shape_args, color_args: tuple[Color, Color], point):
     
 def patternAxis(shape_args, color_args: None, point):
     """
-    Pattern function that returns a different colour per octant
+    Pattern function that returns a different color per octant
     Query an object space (x, y, z) point
 
     Args:
