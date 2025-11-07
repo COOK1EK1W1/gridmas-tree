@@ -18,17 +18,21 @@ class Shape:
     Args:
         ABC (abc.ABC): An abstract class
     """
-    def __init__(self, position, rotation):
+    def __init__(self, position, rotation, render_on_init=True):
         """
         Create a new instance of Shape
 
         Args:
             position (tuple[float, float, float]): the (x, y, z) position of the shape
             rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the shape
+            render_on_init (bool): Call the .render() method on init? Used for backwards compatability and composite shapes
         """
 
         self.position = position
         self.rotation = rotation
+
+        if render_on_init:
+            self.render()
 
     
     def get_pixel_position(self, pixel):
@@ -88,7 +92,7 @@ class Primitive(Shape):
     Args:
         Shape: A base class with functionality for 3d geometry
     """
-    def __init__(self, position, starting_rotation, shape_args, pattern_args):
+    def __init__(self, position, starting_rotation, shape_args, pattern_args, render_on_init=True):
         """
         Create an instance of Primitive
 
@@ -99,7 +103,7 @@ class Primitive(Shape):
             pattern_args (tuple["patternFunction", *args]): Definition of the pattern. args e.g. Color, stripe_thickness etc
         """
 
-        super().__init__(position, starting_rotation)
+        super().__init__(position, starting_rotation, render_on_init)
 
         self.distance_function = shape_args[0]
         self.shape_args = shape_args[1:]
