@@ -187,7 +187,7 @@ class CompositeShape(Shape):
     Args:
         Shape: A base class with functionality for 3d geometry
     """
-    def __init__(self, position, starting_rotation, shape_a, shape_b, shape_args, pattern_args):
+    def __init__(self, position, starting_rotation, shape_a, shape_b, shapeUnionFunction, patternUnionFunction):
         """
         Create an instance of CompositeShape
 
@@ -209,11 +209,9 @@ class CompositeShape(Shape):
         shape_a.is_composite = True
         shape_b.is_composite = True
 
-        self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
-        self.shape_args = shape_args[1:]
+        self.shapeUnion = shapeUnionFunction  # union function. i.e. additive: min(a, b)
 
-        self.patternUnion = pattern_args[0]
-        self.pattern_args = pattern_args[1:]
+        self.patternUnion = patternUnionFunction
 
 
 
@@ -227,8 +225,6 @@ class CompositeShape(Shape):
         Returns:
             pixel_color (Optional[Color]): Color of pixel combining object patterns using pattern union function
         """
-        closest_distance = float('inf')
-        closest_shape = None
 
         # Rotate and translate composite shape
         position = super().get_pixel_position(pixel)
@@ -240,13 +236,12 @@ class CompositeShape(Shape):
         a_distance = self.shape_a.get_distance(position_a)
         b_distance = self.shape_b.get_distance(position_b)
 
-        distance = self.shapeUnion(self.shape_args, a_distance, b_distance)
-
+        distance = self.shapeUnion(a_distance, b_distance)
 
         if (distance <= 0):
             a_color = self.shape_a.get_pattern_value(position_a)
             b_color = self.shape_b.get_pattern_value(position_b)
-            color = self.patternUnion(self.pattern_args, a_distance, a_color, b_distance, b_color)
+            color = self.patternUnion(a_distance, a_color, b_distance, b_color)
 
             return color
         else: 
@@ -648,12 +643,11 @@ def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
 
 
 # Union functions - shape
-def sdUnionAddition(shape_args: None, a, b):
+def sdUnionAddition(a, b):
     """
     Union function for the Addition of two shapes
 
     Args:
-        shape_args (None): Unused shape union arguments for consistency
         a (float): distance to shape a
         b (float): distance to shape b
 
@@ -664,12 +658,11 @@ def sdUnionAddition(shape_args: None, a, b):
 
     return min(a, b)
 
-def sdUnionIntersection(shape_args: None, a, b):
+def sdUnionIntersection(a, b):
     """
     Union function for the Intersection of two shapes
 
     Args:
-        shape_args (None): Unused shape union arguments for consistency
         a (float): distance to shape a
         b (float): distance to shape b
 
@@ -680,12 +673,11 @@ def sdUnionIntersection(shape_args: None, a, b):
 
     return max(a, b)
 
-def sdUnionSubtraction(shape_args: None, a, b):
+def sdUnionSubtraction(a, b):
     """
     Union function for subtracting shape b from shape a
 
     Args:
-        shape_args (None): Unused shape union arguments for consistency
         a (float): distance to shape a
         b (float): distance to shape b
 
@@ -696,13 +688,11 @@ def sdUnionSubtraction(shape_args: None, a, b):
 
     return max(a, -b)
 
-def sdUnionSmooth(shape_args: tuple["sdUnionFunction", float], a, b):
+def sdUnionSmooth(a, b):
     """
     Union function for smoothly combining a and b
-    Uses a seperate function to define the union behaviour
 
     Args:
-        shape_args (tuple["sdUnionFunction", float]): Union function to define union behaviour, smoothness factor
         a (float): distance to shape a
         b (float): distance to shape b
 
@@ -711,9 +701,7 @@ def sdUnionSmooth(shape_args: tuple["sdUnionFunction", float], a, b):
 
     """
 
-    shapeUnion, k = shape_args
-    if (k == 0):
-        return shapeUnion(None, a, b)
+    k = 0.5
 
     h = min(max(0.5 + 0.5*(a - b)/k, 0.0), 1.0)
     dist = ((a*(1-h))+(b*h)) - k*h*(1.0-h)
@@ -722,12 +710,11 @@ def sdUnionSmooth(shape_args: tuple["sdUnionFunction", float], a, b):
 
 
 # Union functions - pattern
-def patternUnionClosest(pattern_args: None, dist_a, col_a, dist_b, col_b):
+def patternUnionClosest(dist_a, col_a, dist_b, col_b):
     """
     Union function for returning the color of the closest shape
 
     Args:
-        pattern_args (None): Unused pattern union arguments for consistency
         dist_a (float): distance to shape a
         col_a (Color): color of shape a
         dist_b (float): distance to shape b
@@ -743,13 +730,11 @@ def patternUnionClosest(pattern_args: None, dist_a, col_a, dist_b, col_b):
     else:
         return col_b 
 
-def patternUnionSmooth(pattern_args: ["patternUnionFunction", float], dist_a, col_a, dist_b, col_b):
+def patternUnionSmooth(dist_a, col_a, dist_b, col_b):
     """
     Union function for smoothly interpolating between the color of a and b
-    Uses a seperate function to define the union behaviour
 
     Args:
-        pattern_args (tuple["patternUnionFunction", float]): Union function to define union behaviour, smoothness factor
         dist_a (float): distance to shape a
         col_a (Color): color of shape a
         dist_b (float): distance to shape b
@@ -759,10 +744,8 @@ def patternUnionSmooth(pattern_args: ["patternUnionFunction", float], dist_a, co
     Return:
         (Color): calculated color
     """
-    patternUnion, k = pattern_args
 
-    if (k == 0):
-        return patternUnion(None, dist_a, col_a, dist_b, col_b)
+    k = 0.5
 
     h = min(max(0.5 + 0.5*(dist_a - dist_b)/k, 0.0), 1.0)
 
