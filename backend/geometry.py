@@ -210,10 +210,9 @@ class CompositeShape(Shape):
         shape_b.is_composite = True
 
         self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
-        self.patternUnion = pattern_args[0]
-
-
         self.shape_args = shape_args[1:]
+
+        self.patternUnion = pattern_args[0]
         self.pattern_args = pattern_args[1:]
 
 
@@ -284,6 +283,7 @@ class Sphere(Primitive):
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
         super().__init__(pos, [0, 0, 0], [sdSphere, radius], [patternSolid, color])
 
+
 class Box(Primitive):
     """
     Represents a box of a solid color
@@ -293,6 +293,25 @@ class Box(Primitive):
     def __init__(self, pos: tuple[float, float, float], size: tuple[float, float, float], color: Color):
         super().__init__(pos, [0, 0, 0], [sdBox, size[0], size[1], size[2]], [patternSolid, color])
 
+
+class Cylinder(Primitive):
+    """
+    Represents a cylinder of a solid color
+    Used to decrease boilerplate code
+    """
+
+    def __init__(self, pos: tuple[float, float, float], radius, height, color: Color):
+        super().__init__(pos, [0, 0, 0], [sdCylinder, radius, height], [patternSolid, color])
+
+
+class Plane(Primitive):
+    """
+    Represents a plane of a solid color
+    Used to decrease boilerplate code
+    """
+
+    def __init__(self, pos: tuple[float, float, float], color: Color):
+        super().__init__(pos, [0, 0, 0], [sdPlane], [patternSolid, color])
 
 
 def rotate(point, sin_rotation, cos_rotation):
