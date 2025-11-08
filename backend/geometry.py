@@ -50,7 +50,6 @@ class Shape:
         # Unpack variables
         pixel_x, pixel_y, pixel_z = pixel
         x_pos, y_pos, z_pos = self.position
-        pitch, yaw, roll = self.rotation
 
         # Translate the pixels to shape origin
         pixel_x -= x_pos
@@ -360,7 +359,7 @@ def sdSphere(shape_args: tuple[float], point):
 
     x, y, z = point
 
-    return math.sqrt((x*x)+(y*y)+(z*z)) - shape_args[0]
+    return math.hypot(x, y, z) - shape_args[0]
 
 def sdBox(shape_args: tuple[float, float, float], point):
     """
@@ -382,7 +381,7 @@ def sdBox(shape_args: tuple[float, float, float], point):
     qy = abs(y) - width
     qz = abs(z) - height
 
-    a = math.sqrt((max(qx, 0.0)**2) + (max(qy, 0.0)**2) + (max(qz, 0.0)**2))
+    a = math.hypot(max(qx, 0.0), max(qy, 0.0), max(qz, 0.0))
     b = min(max(qx, max(qy, qz)), 0.0)
 
     return a+b
@@ -411,9 +410,9 @@ def sdBoxFrame(shape_args: tuple[float, float, float, float], point):
     qy = abs(py+thickness) - thickness
     qz = abs(pz+thickness) - thickness
 
-    a = math.sqrt((max(px, 0.0)**2) + (max(qy, 0.0)**2) + (max(qz, 0.0)**2)) + min(max(px, max(qy, qz)), 0.0)
-    b = math.sqrt((max(qx, 0.0)**2) + (max(py, 0.0)**2) + (max(qz, 0.0)**2)) + min(max(qx, max(py, qz)), 0.0)
-    c = math.sqrt((max(qx, 0.0)**2) + (max(qy, 0.0)**2) + (max(pz, 0.0)**2)) + min(max(qx, max(qy, pz)), 0.0)
+    a = math.hypot((px, 0.0), max(qy, 0.0), max(qz, 0.0)) + min(max(px, max(qy, qz)), 0.0)
+    b = math.hypot((qx, 0.0), max(py, 0.0), max(qz, 0.0)) + min(max(qx, max(py, qz)), 0.0)
+    c = math.hypot((qx, 0.0), max(qy, 0.0), max(pz, 0.0)) + min(max(qx, max(qy, pz)), 0.0)
 
     return min(a, min(b, c))
 
@@ -433,7 +432,7 @@ def sdCone(shape_args: tuple[float, float, float], point):
     cone1, cone2, height = shape_args
     x, y, z = point
 
-    q = math.sqrt(x**2 + z**2)
+    q = math.hypot(x, z)
     return max(cone1 * q + cone2 * y, -height - y)
 
 def sdCylinder(shape_args: tuple[float, float], point):
@@ -451,7 +450,7 @@ def sdCylinder(shape_args: tuple[float, float], point):
     radius, height = shape_args
     x, y, z = point
 
-    dx = math.sqrt(x**2 + z**2) - radius
+    dx = math.hypot(x, z) - radius
     dy = abs(y) - height
 
     max_d = max(dx, dy)
@@ -459,7 +458,7 @@ def sdCylinder(shape_args: tuple[float, float], point):
 
     dx = max(dx, 0.0)
     dy = max(dy, 0.0)
-    term2 = math.sqrt(dx**2 + dy**2)
+    term2 = math.hypot(dx, dy)
 
     return term1 + term2
 
@@ -481,7 +480,7 @@ def sd2dRevolution(shape_args: tuple["sdFunction", tuple, float], point):
 
     x, y, z = point
 
-    q = math.sqrt(x**2 + z**2) - axis_distance, y
+    q = math.hypot(x, z) - axis_distance, y
 
     primitive_distance = primitive(primitive_args, q)
 
@@ -500,7 +499,7 @@ def sd2dCircle(shape_args: float, point):
     """
 
     x, y = point
-    return math.sqrt(x*x + y*y) - shape_args
+    return math.hypot(x, y) - shape_args
 
 
 # Pattern functions
