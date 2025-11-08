@@ -129,6 +129,8 @@ sys.stderr = JSWriter()`)
 
           // initialize the tree so that pixels() etc. are available
           pyodide.runPython(`
+import sys
+import importlib
 from gridmas import *
 Store.instance = None
 tree.init("tree.csv")
@@ -186,19 +188,21 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
 
     try {
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
-      pyodide.runPython(`import curPattern
-import importlib
+      pyodide.runPython(`
 Store.instance = None
 tree._pattern_reset()
-importlib.reload(curPattern)
+if "curPattern" in sys.modules:
+    del sys.modules["curPattern"]
+curPattern = importlib.import_module("curPattern")
+
 
 if 'pattern_generator' in globals():
     pattern_generator = None
 `)
-      
+
       // Query attributes after pattern is loaded
       queryAttributes()
-      
+
       return true;
     } catch (error: any) {
       setRunning(false)
