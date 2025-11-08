@@ -31,6 +31,8 @@ class Shape:
         self.position = position
         self.rotation = rotation
 
+        self.__update_cached_variables()
+
         if render_on_init:
             self.render()
 
@@ -83,8 +85,10 @@ class Shape:
         Render the shape by adding to the tree
         Update cached values for this frame
         """
+        self.__update_cached_variables()
+        tree._shapes.append(self)
 
-        # Update cached values
+    def __update_cached_variables(self):
         self.sin_rotation = (
             math.sin(math.radians(self.rotation[0])),
             math.sin(math.radians(self.rotation[1])),
@@ -95,9 +99,6 @@ class Shape:
             math.cos(math.radians(self.rotation[1])),
             math.cos(math.radians(self.rotation[2])),
         )
-
-        tree._shapes.append(self)
-
 
 
 class Primitive(Shape):
