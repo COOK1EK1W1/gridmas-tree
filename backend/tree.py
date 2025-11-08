@@ -80,7 +80,7 @@ class Tree():
 
             # 2. check for objects
             changed = False
-            for shape in reversed(self._shapes):
+            for shape in filter(lambda x: not x.is_composite, reversed(self._shapes)):
                 c = shape.does_draw(self._pixels[i])
                 if c is not None:
                     colors.append(c.to_bit_string())

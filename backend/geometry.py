@@ -18,14 +18,13 @@ class Shape:
     Args:
         ABC (abc.ABC): An abstract class
     """
-    def __init__(self, position, rotation, render_on_init=True):
+    def __init__(self, position, rotation):
         """
         Create a new instance of Shape
 
         Args:
             position (tuple[float, float, float]): the (x, y, z) position of the shape
             rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the shape
-            render_on_init (bool): Call the .render() method on init? Used for backwards compatability and composite shapes
         """
 
         self.position = position
@@ -33,8 +32,10 @@ class Shape:
 
         self.__update_cached_variables()
 
-        if render_on_init:
-            self.render()
+        self.is_composite = False
+
+        tree._shapes.append(self)
+        self.__update_cached_variables()
 
     
     def get_pixel_position(self, pixel):
@@ -78,7 +79,7 @@ class Shape:
         """
 
         return self.get_color((pixel.x, pixel.y, pixel.z))
-    
+
     def render(self):
         """
         Render the shape by adding to the tree
@@ -107,7 +108,7 @@ class Primitive(Shape):
     Args:
         Shape: A base class with functionality for 3d geometry
     """
-    def __init__(self, position, starting_rotation, shape_args, pattern_args, render_on_init=True):
+    def __init__(self, position, starting_rotation, shape_args, pattern_args):
         """
         Create an instance of Primitive
 
@@ -118,7 +119,7 @@ class Primitive(Shape):
             pattern_args (tuple["patternFunction", *args]): Definition of the pattern. args e.g. Color, stripe_thickness etc
         """
 
-        super().__init__(position, starting_rotation, render_on_init)
+        super().__init__(position, starting_rotation)
 
         self.distance_function = shape_args[0]
         self.shape_args = shape_args[1:]
@@ -204,6 +205,9 @@ class CompositeShape(Shape):
         # Shape objects
         self.shape_a = shape_a
         self.shape_b = shape_b  
+
+        shape_a.is_composite = True
+        shape_b.is_composite = True
 
         self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
         self.patternUnion = pattern_args[0]
