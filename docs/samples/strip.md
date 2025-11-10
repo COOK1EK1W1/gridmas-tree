@@ -1,4 +1,4 @@
-# Stri
+# Strip
 ```py linenums="1"
 from gridmas import *
 
