@@ -38,11 +38,13 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    # initialise tree
+    tree.init(args.tree_file or "tree.csv")
+
     # Start pattern manager and load patterns
     patternManager = PatternManager(args.pattern_dir or "patterns/")
 
-    # initialise tree
-    tree.init(args.tree_file or "tree.csv")
+    tree._fps = 45
 
     # Initialise the rendering pipeline
     renderer = Renderer(tree._coords)
