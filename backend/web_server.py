@@ -16,6 +16,9 @@ class Request(ABC):
 class StopPattern(Request):
     ...
 
+class RandomPattern(Request):
+    ...
+
 class StartPattern(Request):
     def __init__(self, name: str):
         self.name = name

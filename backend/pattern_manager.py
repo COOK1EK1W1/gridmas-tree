@@ -75,11 +75,13 @@ class PatternManager:
         Args:
             pattern_dir (str): The directory to search for pattern files. The search is carried out automatically
         """
+        self.patterns: dict[str, ModuleType] = {}
         self.load_patterns(pattern_dir)
 
         self.currentPattern = self.patterns["on"]
 
         self.generator = None
+
 
     def load_patterns(self, pattern_dir: str):
         """load_patterns Loads the patterns from the pattern_dir
