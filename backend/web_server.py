@@ -67,10 +67,7 @@ class WebServer:
         @app.route('/setalllight', methods=['POST'])
         def setLightColor():
             data = json.loads(request.data)
-            frame = []
-            for color in data:
-                frame.append((color[0], color[1], color[2]))
-            self.request_queue.put(frame)
+            self.request_queue.put(DrawFrame(data))
             return "done"
 
         @app.route('/lightoff/<int:number>')
