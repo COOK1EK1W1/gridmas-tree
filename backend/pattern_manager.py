@@ -86,7 +86,7 @@ class PatternManager:
     def load_patterns(self, pattern_dir: str):
         """load_patterns Loads the patterns from the pattern_dir
 
-        Searches for .py files inside the python file, and then tries to import them
+        Searches for .py files inside the patterns directory, and then tries to import them
 
         Args:
             pattern_dir (str): The directory to search in
@@ -176,7 +176,7 @@ class PatternManager:
     def get(self, name: str):
         """get Gets a pattern
 
-        Feteches the pattern with a given name from the internal pattern list, then returns it
+        Fetches the pattern with a given name from the internal pattern list, then returns it
 
         Args:
             name (str): The name of the pattern you want to fetch
