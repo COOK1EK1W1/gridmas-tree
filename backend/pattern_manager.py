@@ -148,10 +148,19 @@ class PatternManager:
             TODO fix so people cant just inject whatever name they want from client side :skull:
         """
         attribute.Store.get_store().reset()
-        module = __import__("patterns." + name)
+        try:
+            module = __import__("patterns." + name)
+        except:
+            return 
+        
         pattern_module = getattr(module, name)
         importlib.reload(pattern_module)
-        self.currentPattern = self.patterns[name]
+
+        tempVar = self.patterns.get(name)
+        if tempVar is None:
+            return    
+        self.currentPattern = tempVar
+
         self.generator = None
         print(attribute.Store.get_store().store)
 
@@ -176,4 +185,7 @@ class PatternManager:
             code (str): Returns the python code of the pattern
         """
         
-        return self.patterns[name]
+        try:
+            return self.patterns[name]
+        except:
+            return "#No Pattern"
