@@ -8,7 +8,7 @@ __documenter__ = "Owen Plimer"
 
 #!/usr/bin/python3
 
-# from renderer import Renderer
+from renderer import Renderer
 from pattern_manager import PatternManager
 from tree import tree
 from web_server import DrawFrame, StartPattern, StopPattern, WebServer, RandomPattern
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     tree._fps = 45
 
     # Initialise the rendering pipeline
-    # renderer = Renderer(tree._coords)
+    renderer = Renderer(tree._coords)
 
     # Web server
     is_rate_limit = False
@@ -117,7 +117,7 @@ if __name__ == '__main__':
             fps = tree._fps
 
             # 4. send to pixel driver | blocks until space
-            # renderer.add_to_queue(frame, fps)
+            renderer.add_to_queue(frame, fps)
 
     except KeyboardInterrupt:
         print("\nShutting down gracefully...")
