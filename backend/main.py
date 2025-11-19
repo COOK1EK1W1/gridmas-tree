@@ -11,7 +11,6 @@ __documenter__ = "Owen Plimer"
 from renderer import Renderer
 from pattern_manager import PatternManager
 from tree import tree
-from pattern_manager import PatternManager
 from web_server import DrawFrame, StartPattern, StopPattern, WebServer, RandomPattern
 import argparse
 import signal
