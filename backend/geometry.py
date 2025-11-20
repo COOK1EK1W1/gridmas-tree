@@ -277,6 +277,14 @@ class Sphere(Primitive):
     Used for backwards compatability and to decrease boilerplate code
     """
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
+        """
+        Creates an instance of the Sphere class
+        
+        Args:
+            pos (tuple[float, float, float]): A tuple containing the x,y,z of the sphere
+            radius (float): The radius of the sphere
+            color (Color): The color of the sphere
+        """
         super().__init__(pos, [0, 0, 0], [sdSphere, radius], [patternSolid, color])
 
 
@@ -287,6 +295,14 @@ class Box(Primitive):
     """
 
     def __init__(self, pos: tuple[float, float, float], size: tuple[float, float, float], color: Color):
+        """
+        Creates an instance of
+        
+        Args:
+            pos (tuple[float, float, float]): A tuple containing the x,y,z of the box
+            size (tuple[float, float, float]): A tuple containing the x,y,z dimensions of the box
+            color (Color): The color of the box
+        """
         super().__init__(pos, [0, 0, 0], [sdBox, size[0], size[1], size[2]], [patternSolid, color])
 
 
@@ -296,7 +312,16 @@ class Cylinder(Primitive):
     Used to decrease boilerplate code
     """
 
-    def __init__(self, pos: tuple[float, float, float], radius, height, color: Color):
+    def __init__(self, pos: tuple[float, float, float], radius: float, height: float, color: Color):
+        """
+        Creates an instance of the Box class
+        
+        Args:
+            pos (tuple[float, float, float]): A tuple containing the x,y,z of the cylinder
+            radius (float): The radius of the cylinder's base
+            height (float): The height of the cylinder
+            color (Color): The color of the cylinder
+        """
         super().__init__(pos, [0, 0, 0], [sdCylinder, radius, height], [patternSolid, color])
 
 
@@ -307,6 +332,13 @@ class Plane(Primitive):
     """
 
     def __init__(self, pos: tuple[float, float, float], color: Color):
+        """
+        Creates an instance of the Plane class
+        
+        Args:
+            pos (tuple[float, float, float]): A tuple containing the x,y,z of the shape
+            color (Color): The color of the shape
+        """
         super().__init__(pos, [0, 0, 0], [sdPlane], [patternSolid, color])
 
 
@@ -334,10 +366,10 @@ def rotate(point, sin_rotation, cos_rotation):
     y, z = (y*cos_x - z*sin_x), (y*sin_x + z*cos_x)
 
     # Rotate around Y (yaw)
-    x, z = x * cos_y + z * sin_y, -x * sin_y + z * cos_y
+    x, z = (x * cos_y + z * sin_y), (-x * sin_y + z * cos_y)
 
     # Rotate around Z (roll)
-    x, y = x * cos_z - y * sin_z, x * sin_z + y * cos_z
+    x, y = (x * cos_z - y * sin_z), (x * sin_z + y * cos_z)
 
     return (x, y, z)
 
@@ -357,8 +389,6 @@ def sdPlane(self, point):
     Returns:
         (float): The signed distance to the shape surface
 
-    Shape Args:
-        None
     """
 
     x, y, z = point
@@ -658,7 +688,7 @@ def patternPresent(self, point):
 
 
 # Union functions - shape
-def sdUnionAddition(self, a, b):
+def sdUnionAddition(self, a: float, b: float):
     """
     Union function for the Addition of two shapes
 
@@ -673,7 +703,7 @@ def sdUnionAddition(self, a, b):
 
     return min(a, b)
 
-def sdUnionIntersection(self, a, b):
+def sdUnionIntersection(self, a: float, b: float):
     """
     Union function for the Intersection of two shapes
 
@@ -688,7 +718,7 @@ def sdUnionIntersection(self, a, b):
 
     return max(a, b)
 
-def sdUnionSubtraction(self, a, b):
+def sdUnionSubtraction(self, a: float, b: float):
     """
     Union function for subtracting shape b from shape a
 
@@ -703,7 +733,7 @@ def sdUnionSubtraction(self, a, b):
 
     return max(a, -b)
 
-def sdUnionSmooth(self, a, b):
+def sdUnionSmooth(self, a: float, b: float):
     """
     Union function for smoothly combining a and b
 
@@ -728,7 +758,7 @@ def sdUnionSmooth(self, a, b):
 
 
 # Union functions - pattern
-def patternUnionClosest(self, dist_a, col_a, dist_b, col_b):
+def patternUnionClosest(self, dist_a: float, col_a: Color, dist_b: float, col_b: Color):
     """
     Union function for returning the color of the closest shape
 
@@ -747,7 +777,7 @@ def patternUnionClosest(self, dist_a, col_a, dist_b, col_b):
     else:
         return col_b 
 
-def patternUnionSmooth(self, dist_a, col_a, dist_b, col_b):
+def patternUnionSmooth(self, dist_a: float, col_a: Color, dist_b: float, col_b: Color):
     """
     Union function for smoothly interpolating between the color of a and b
 
