@@ -23,8 +23,8 @@ class Shape:
         Create a new instance of Shape
 
         Args:
-            position (tuple[float, float, float]): the (x, y, z) position of the shape
-            rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the shape
+            position (tuple[float, float, float]): A tuple containing the x,y,z position of the shape
+            rotation (tuple[float, float, float]): A tuple containing the pitch,yaw,roll rotation of the shape
         """
 
         self.position = position
@@ -43,7 +43,7 @@ class Shape:
         Converts a tree (world) space position to shape (object) space
 
         Args:
-            pixel (tuple[float, float, float]): the (x, y, z) position of the pixel
+            pixel (tuple[float, float, float]):A tuple containing the x,y,z position of the pixel
 
         Returns:
             (tuple[float, float, float]): The transformed position
@@ -113,8 +113,8 @@ class Primitive(Shape):
         Create an instance of Primitive
 
         Args:
-            position (tuple[float, float, float]): the (x, y, z) position of the primitive
-            starting_rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the primitive
+            position (tuple[float, float, float]):A tuple containing the x,y,z position of the primitive
+            starting_rotation (tuple[float, float, float]):A tuple containing the pitch,yaw,roll rotation of the primitive
             shape_args (tuple["sdFunction", *args]): Definition of the shape. args e.g. radius, size, thickness etc
             pattern_args (tuple["patternFunction", *args]): Definition of the pattern. args e.g. Color, stripe_thickness etc
         """
@@ -192,8 +192,8 @@ class CompositeShape(Shape):
         Create an instance of CompositeShape
 
         Args:
-            position (tuple[float, float, float]): the (x, y, z) position of the composite shape
-            starting_rotation (tuple[float, float, float]): the (pitch, yaw, roll) rotation of the composite shape
+            position (tuple[float, float, float]):A tuple containing the x,y,z position of the composite shape
+            starting_rotation (tuple[float, float, float]):A tuple containing the pitch,yaw,roll rotation of the composite shape
             shape_a (Primitive): First primitive
             shape_b (Primitive): Second primitive
             shape_args (tuple["sdUnionFunction", *args]): Definition of the shape union.
@@ -254,7 +254,7 @@ class CompositeShape(Shape):
         Changes the centre of rotation for the composite shape
 
         Args:
-            value (tuple[x, y, z]): (x, y, z) value for the centre to be moved by
+            value (tuple[x, y, z]): A tuple containing the x,y,z value for the centre to be moved by
 
         """
         x, y, z = value
@@ -316,9 +316,9 @@ def rotate(point, sin_rotation, cos_rotation):
     Rotates (x, y, z) point around (0, 0, 0)
 
     Args:
-        point (tuple[float, float, float]): The (x, y, z) point to be rotated
-        sin_rotation (tuple[float, float, float]): The sin of the (pitch, yaw, roll) rotation
-        cos_rotation (tuple[float, float, float]): The cos of the (pitch, yaw, roll) rotation
+        point (tuple[float, float, float]): A tuple containing the x,y,z point to be rotated
+        sin_rotation (tuple[float, float, float]): A tuple containing the sin of the pitch,yaw,roll rotation
+        cos_rotation (tuple[float, float, float]): A tuple containing the cos of the pitch,yaw,roll rotation
 
 
     Returns:
@@ -353,7 +353,7 @@ def sdPlane(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -372,7 +372,7 @@ def sdSphere(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -391,7 +391,7 @@ def sdBox(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -418,7 +418,7 @@ def sdBoxFrame(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -451,7 +451,7 @@ def sdCone(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -473,7 +473,7 @@ def sdCylinder(self, point):
     Returns negative if point is inside
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample 
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample 
 
     Returns:
         (float): The signed distance to the shape surface
@@ -503,7 +503,7 @@ def sd2dRevolution(self, point):
     Revolves a 2D signed distance function around the Y-axis.
 
     Args:
-        point (tuple[float, float, float]): The point (x, y, z) to sample.
+        point (tuple[float, float, float]): A tuple containing the point x,y,z to sample.
 
     Returns:
         float: Signed distance after revolution.
@@ -527,7 +527,7 @@ def sd2dCircle(self, point):
     Signed distance function for a 2D circle.
 
     Args:
-        point (tuple[float, float]): The point (x, y) to sample.
+        point (tuple[float, float]): A tuple containing the x, y to sample.
 
     Returns:
         float: Signed distance to the shape surface.
@@ -547,7 +547,7 @@ def patternSolid(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
@@ -565,7 +565,7 @@ def patternSplit(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
@@ -589,7 +589,7 @@ def patternAxis(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
@@ -605,7 +605,7 @@ def patternRainbow(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
@@ -620,7 +620,7 @@ def patternPastel(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
@@ -637,7 +637,7 @@ def patternPresent(self, point):
     Query an object space (x, y, z) point
 
     Args:
-        point (tuple[float, float, float]): (x, y, z) position of the point to be queried
+        point (tuple[float, float, float]): A tuple containing the x,y,z position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
