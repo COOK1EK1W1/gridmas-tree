@@ -30,12 +30,10 @@ class Shape:
         self.position = position
         self.rotation = rotation
 
-        self.__update_cached_variables()
-
         self.is_composite = False
 
-        tree._shapes.append(self)
         self.__update_cached_variables()
+        tree._shapes.append(self)
 
     
     def get_pixel_position(self, pixel):
@@ -80,13 +78,6 @@ class Shape:
 
         return self.get_color((pixel.x, pixel.y, pixel.z))
 
-    def render(self):
-        """
-        Render the shape by adding to the tree
-        Update cached values for this frame
-        """
-        self.__update_cached_variables()
-        tree._shapes.append(self)
 
     def __update_cached_variables(self):
         self.sin_rotation = (
@@ -139,7 +130,7 @@ class Primitive(Shape):
             distance (float): Signed distance from point to object surface. Negative if inside.
         """
         # Get distance
-        distance = self.distance_function(self.shape_args, position)
+        distance = self.distance_function(position)
 
         return distance
 
@@ -155,7 +146,7 @@ class Primitive(Shape):
         """
 
         # Get color
-        pixel_color = self.pattern_function(self.shape_args, self.color_args, position)
+        pixel_color = self.pattern_function(position)
 
         return pixel_color
 
@@ -215,21 +206,37 @@ class CompositeShape(Shape):
         self.patternUnion = pattern_args[0]
         self.pattern_args = pattern_args[1:]
 
-
-
-    def get_color(self, pixel: tuple[float, float, float]) -> Optional[Color]:
+        
+    def get_distance(self, position):
         """
-        Gets color of position if it satisfies shape union function
+        Gets the distance of a position from the surface of the composite shape
 
         Args:
             position (tuple[float, float, float]): the object-space position of the point
-
+        
         Returns:
-            pixel_color (Optional[Color]): Color of pixel combining object patterns using pattern union function
+            distance (float): the distance from the position to the surface
+            
         """
+        position_a = self.shape_a.get_pixel_position(position)
+        position_b = self.shape_b.get_pixel_position(position)        
 
-        # Rotate and translate composite shape
-        position = super().get_pixel_position(pixel)
+        a_distance = self.shape_a.get_distance(position_a)
+        b_distance = self.shape_b.get_distance(position_b)
+
+        distance = self.shapeUnion(a_distance, b_distance)
+        return distance
+
+    def get_pattern_value(self, position):
+        """
+        Gets the color of a position in the pattern of the composite shape
+
+        Args:
+            position (tuple[float, float, float]): the object-space position of the point
+        
+        Returns:
+            color (Color): the color of the point in the pattern
+        """
 
         # Rotate and translate for element shapes
         position_a = self.shape_a.get_pixel_position(position)
@@ -238,38 +245,30 @@ class CompositeShape(Shape):
         a_distance = self.shape_a.get_distance(position_a)
         b_distance = self.shape_b.get_distance(position_b)
 
-        distance = self.shapeUnion(a_distance, b_distance)
+        a_color = self.shape_a.get_pattern_value(position_a)
+        b_color = self.shape_b.get_pattern_value(position_b)
+        color = self.patternUnion(a_distance, a_color, b_distance, b_color)
 
-        if (distance <= 0):
-            a_color = self.shape_a.get_pattern_value(position_a)
-            b_color = self.shape_b.get_pattern_value(position_b)
-            color = self.patternUnion(a_distance, a_color, b_distance, b_color)
+        return color
 
-            return color
-        else: 
-            return None
-
-    def move_centre(self, value):
+    def get_color(self, pixel: tuple[float, float, float]) -> Optional[Color]:
         """
-        Changes the centre of rotation for the composite shape
+        Gets color of pixel if it satisfies shape union function
 
         Args:
-            value (tuple[x, y, z]): A tuple containing the x,y,z value for the centre to be moved by
+            pixel (tuple[float, float, float]): the world-space position of the pixel
 
+        Returns:
+            pixel_color (Optional[Color]): Color of pixel combining object patterns using pattern union function
         """
-        x, y, z = value
 
-        self.position[0] += x
-        self.position[1] += y
-        self.position[2] += z
+        world_space_pixel = super().get_pixel_position(pixel)
 
-        self.shape_a.position[0] -= x
-        self.shape_a.position[1] -= y
-        self.shape_a.position[2] -= z
-        
-        self.shape_b.position[0] -= x
-        self.shape_b.position[1] -= y
-        self.shape_b.position[2] -= z
+        if (self.get_distance(world_space_pixel) > 0):
+            return None
+
+        return self.get_pattern_value(world_space_pixel)
+
 
 
 class Sphere(Primitive):
@@ -439,9 +438,9 @@ def sdBoxFrame(self, point):
     qy = abs(py+thickness) - thickness
     qz = abs(pz+thickness) - thickness
 
-    a = math.hypot((px, 0.0), max(qy, 0.0), max(qz, 0.0)) + min(max(px, max(qy, qz)), 0.0)
-    b = math.hypot((qx, 0.0), max(py, 0.0), max(qz, 0.0)) + min(max(qx, max(py, qz)), 0.0)
-    c = math.hypot((qx, 0.0), max(qy, 0.0), max(pz, 0.0)) + min(max(qx, max(qy, pz)), 0.0)
+    a = math.hypot(max(px, 0.0), max(qy, 0.0), max(qz, 0.0)) + min(max(px, max(qy, qz)), 0.0)
+    b = math.hypot(max(qx, 0.0), max(py, 0.0), max(qz, 0.0)) + min(max(qx, max(py, qz)), 0.0)
+    c = math.hypot(max(qx, 0.0), max(qy, 0.0), max(pz, 0.0)) + min(max(qx, max(qy, pz)), 0.0)
 
     return min(a, min(b, c))
 
