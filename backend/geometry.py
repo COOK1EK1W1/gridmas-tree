@@ -187,7 +187,7 @@ class CompositeShape(Shape):
     Args:
         Shape: A base class with functionality for 3d geometry
     """
-    def __init__(self, position, starting_rotation, shape_a, shape_b, shapeUnionFunction, patternUnionFunction):
+    def __init__(self, position, starting_rotation, shape_a, shape_b, shape_args, pattern_args):
         """
         Create an instance of CompositeShape
 
@@ -209,9 +209,11 @@ class CompositeShape(Shape):
         shape_a.is_composite = True
         shape_b.is_composite = True
 
-        self.shapeUnion = shapeUnionFunction  # union function. i.e. additive: min(a, b)
+        self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
+        self.shape_args = shape_args[1:]
 
-        self.patternUnion = patternUnionFunction
+        self.patternUnion = pattern_args[0]
+        self.pattern_args = pattern_args[1:]
 
 
 
@@ -345,54 +347,60 @@ def rotate(point, sin_rotation, cos_rotation):
 # Signed Distance Functions
 # How far is point from the closest surface of shape
 
-def sdPlane(shape_args: None, point):
+def sdPlane(self, point):
     """
     Signed distance function for a flat, infinite plane
     Returns negative if point is inside
 
     Args:
-        shape_args (): Unused parameter for compatability
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+
+    Shape Args:
+        None
     """
 
     x, y, z = point
 
     return z 
 
-def sdSphere(shape_args: tuple[float], point):
+def sdSphere(self, point):
     """
     Signed distance function for a sphere
     Returns negative if point is inside
 
     Args:
-        shape_args (tuple[float]): Radius of sphere 
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+
+    Shape Args:
+        (tuple[float]): Radius of sphere 
     """
 
     x, y, z = point
 
-    return math.hypot(x, y, z) - shape_args[0]
+    return math.hypot(x, y, z) - self.shape_args[0]
 
-def sdBox(shape_args: tuple[float, float, float], point):
+def sdBox(self, point):
     """
     Signed distance function for a box
     Returns negative if point is inside
 
     Args:
-        shape_args (tuple[float, float, float]): The (x, y, z) dimensions of the box 
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+
+    Shape Args:
+        (tuple[float, float, float]): The (x, y, z) dimensions of the box 
     """
 
-    depth, width, height = shape_args
+    depth, width, height = self.shape_args
     x, y, z = point
 
     qx = abs(x) - depth
@@ -404,20 +412,23 @@ def sdBox(shape_args: tuple[float, float, float], point):
 
     return a+b
 
-def sdBoxFrame(shape_args: tuple[float, float, float, float], point):
+def sdBoxFrame(self, point):
     """
     Signed distance function for a box frame
     Returns negative if point is inside
 
     Args:
-        shape_args (tuple[float, float, float, float]): The (x, y, z) dimensions of the box and the width of the frame
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+
+    Shape Args:
+        (tuple[float, float, float, float]): The (x, y, z) dimensions of the box and the width of the frame
+        
     """
 
-    depth, width, height, thickness = shape_args
+    depth, width, height, thickness = self.shape_args
     x, y, z = point
 
     px = abs(x) - depth
@@ -434,38 +445,43 @@ def sdBoxFrame(shape_args: tuple[float, float, float, float], point):
 
     return min(a, min(b, c))
 
-def sdCone(shape_args: tuple[float, float, float], point):
+def sdCone(self, point):
     """
     Signed distance function for a finite cone
     Returns negative if point is inside
 
     Args:
-        shape_args (tuple[float, float, float]): Two slope variables and the height
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+
+    Shape Args:
+        (tuple[float, float, float]): Two slope variables and the height
+        
     """
 
-    cone1, cone2, height = shape_args
+    cone1, cone2, height = self.shape_args
     x, y, z = point
 
     q = math.hypot(x, z)
     return max(cone1 * q + cone2 * y, -height - y)
 
-def sdCylinder(shape_args: tuple[float, float], point):
+def sdCylinder(self, point):
     """
     Signed distance function for a finite cylinder
     Returns negative if point is inside
 
     Args:
-        shape_args (tuple[float, float]): (radius, height) of the cylinder
         point (tuple[float, float, float]): The point (x, y, z) to sample 
 
     Returns:
         (float): The signed distance to the shape surface
+    
+    Shape Args:
+        (tuple[float, float]): (radius, height) of the cylinder
     """
-    radius, height = shape_args
+    radius, height = self.shape_args
     x, y, z = point
 
     dx = math.hypot(x, z) - radius
@@ -482,19 +498,21 @@ def sdCylinder(shape_args: tuple[float, float], point):
 
 
 # Example for an operation that can be used on 2d SDFs
-def sd2dRevolution(shape_args: tuple["sdFunction", tuple, float], point):
+def sd2dRevolution(self, point):
     """
     Revolves a 2D signed distance function around the Y-axis.
 
     Args:
-        shape_args (tuple): (primitive_function, primitive_args, axis_distance).
         point (tuple[float, float, float]): The point (x, y, z) to sample.
 
     Returns:
         float: Signed distance after revolution.
+    
+    Shape Args:
+        (tuple[sdFunction, tuple, float]): (primitive_function, primitive_args, axis_distance)
     """
 
-    primitive, primitive_args, axis_distance = shape_args
+    primitive, primitive_args, axis_distance = self.shape_args
 
     x, y, z = point
 
@@ -504,56 +522,60 @@ def sd2dRevolution(shape_args: tuple["sdFunction", tuple, float], point):
 
     return primitive_distance
 
-def sd2dCircle(shape_args: float, point):
+def sd2dCircle(self, point):
     """
     Signed distance function for a 2D circle.
 
     Args:
-        shape_args (float): Radius of the circle.
         point (tuple[float, float]): The point (x, y) to sample.
 
     Returns:
         float: Signed distance to the shape surface.
+
+    Shape Args:
+        (float): Radius of the circle.
     """
 
     x, y = point
-    return math.hypot(x, y) - shape_args
+    return math.hypot(x, y) - self.shape_args
 
 
 # Pattern functions
-def patternSolid(shape_args, color_args: tuple[Color], point):
+def patternSolid(self, point):
     """
     Pattern function for a solid color
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (tuple[Color]): Color of shape 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
+
+    Color Args:
+        (tuple[Color]): Color of shape
     
     """
 
-    return color_args[0]
+    return self.color_args[0]
 
-def patternSplit(shape_args, color_args: tuple[Color, Color], point):
+def patternSplit(self, point):
     """
     Pattern function for 2 vertically split colors 
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (tuple[Color, Color]): Top color, bottom color 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
+
+    Color Args:
+        (tuple[Color, Color]): Top color, bottom color 
     
     """
         
-    a, b = color_args
+    a, b = self.color_args
     x, y, z = point
 
     if (z >= 0):
@@ -561,14 +583,12 @@ def patternSplit(shape_args, color_args: tuple[Color, Color], point):
     else:
         return b
     
-def patternAxis(shape_args, color_args: None, point):
+def patternAxis(self, point):
     """
     Pattern function that returns a different color per octant
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (None): Unused color arguments for consistency 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
@@ -579,14 +599,12 @@ def patternAxis(shape_args, color_args: None, point):
     x, y, z = point
     return Color(int(x*10), int(y*10), int(z*10))
 
-def patternRainbow(shape_args, color_args: None, point):
+def patternRainbow(self, point):
     """
     Pattern function for a rainbow pattern
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (None): Unused color arguments for consistency 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
@@ -596,14 +614,12 @@ def patternRainbow(shape_args, color_args: None, point):
     x, y, z = point
     return Color(int(x*255), int(y*255), int(z*255))
 
-def patternPastel(shape_args, color_args: None, point):
+def patternPastel(self, point):
     """
     Pattern function for a pastel rainbow pattern
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (None): Unused color arguments for consistency 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
@@ -615,23 +631,23 @@ def patternPastel(shape_args, color_args: None, point):
     x, y, z = (x+1)/2, (y+1)/2, (z+1)/2
     return Color(int(x*255), int(y*255), int(z*255))
 
-def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
+def patternPresent(self, point):
     """
     Pattern function for a ribbon wrapped present
     Query an object space (x, y, z) point
 
     Args:
-        shape_args (tuple): Unused shape arguments for consistency
-        color_args (tuple[Color, Color, float]): Main color, ribbon color, ribbon thickness 
         point (tuple[float, float, float]): (x, y, z) position of the point to be queried
 
     Return:
         (Color) : Calculated color at point
     
+    Color Args:
+        (tuple[Color, Color, float]): Main color, ribbon color, ribbon thickness 
     """
 
     x, y, z = point
-    box_col, stripe_col, stripe_thickness = color_args
+    box_col, stripe_col, stripe_thickness = self.color_args
 
     if (x >= -(stripe_thickness/2)) and (x <= (stripe_thickness/2)):
         return stripe_col
@@ -643,7 +659,7 @@ def patternPresent(shape_args, color_args: tuple[Color, Color, float], point):
 
 
 # Union functions - shape
-def sdUnionAddition(a, b):
+def sdUnionAddition(self, a, b):
     """
     Union function for the Addition of two shapes
 
@@ -658,7 +674,7 @@ def sdUnionAddition(a, b):
 
     return min(a, b)
 
-def sdUnionIntersection(a, b):
+def sdUnionIntersection(self, a, b):
     """
     Union function for the Intersection of two shapes
 
@@ -673,7 +689,7 @@ def sdUnionIntersection(a, b):
 
     return max(a, b)
 
-def sdUnionSubtraction(a, b):
+def sdUnionSubtraction(self, a, b):
     """
     Union function for subtracting shape b from shape a
 
@@ -688,7 +704,7 @@ def sdUnionSubtraction(a, b):
 
     return max(a, -b)
 
-def sdUnionSmooth(a, b):
+def sdUnionSmooth(self, a, b):
     """
     Union function for smoothly combining a and b
 
@@ -698,6 +714,9 @@ def sdUnionSmooth(a, b):
 
     Return:
         (float): distance to union
+
+    Shape Args:
+        (tuple[float]): smoothing factor for the union
 
     """
 
@@ -710,7 +729,7 @@ def sdUnionSmooth(a, b):
 
 
 # Union functions - pattern
-def patternUnionClosest(dist_a, col_a, dist_b, col_b):
+def patternUnionClosest(self, dist_a, col_a, dist_b, col_b):
     """
     Union function for returning the color of the closest shape
 
@@ -719,7 +738,6 @@ def patternUnionClosest(dist_a, col_a, dist_b, col_b):
         col_a (Color): color of shape a
         dist_b (float): distance to shape b
         col_b (Color): color of shape b
-
 
     Return:
         (Color): calculated color
@@ -730,7 +748,7 @@ def patternUnionClosest(dist_a, col_a, dist_b, col_b):
     else:
         return col_b 
 
-def patternUnionSmooth(dist_a, col_a, dist_b, col_b):
+def patternUnionSmooth(self, dist_a, col_a, dist_b, col_b):
     """
     Union function for smoothly interpolating between the color of a and b
 
@@ -740,12 +758,14 @@ def patternUnionSmooth(dist_a, col_a, dist_b, col_b):
         dist_b (float): distance to shape b
         col_b (Color): color of shape b
 
-
     Return:
         (Color): calculated color
+    
+    Pattern Args:
+        (tuple[float]): smoothing factor for the union
     """
 
-    k = 0.5
+    k = self.pattern_args[0]
 
     h = min(max(0.5 + 0.5*(dist_a - dist_b)/k, 0.0), 1.0)
 
