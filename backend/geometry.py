@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from colors import Color, Pixel
 from tree import tree
-
+from types import MethodType
 
 class Shape:
     """
@@ -112,10 +112,10 @@ class Primitive(Shape):
 
         super().__init__(position, starting_rotation)
 
-        self.distance_function = shape_args[0]
+        self.distance_function = MethodType(shape_args[0], self)
         self.shape_args = shape_args[1:]
 
-        self.pattern_function = pattern_args[0]
+        self.pattern_function = MethodType(pattern_args[0], self)
         self.color_args = pattern_args[1:]
     
 
@@ -200,10 +200,10 @@ class CompositeShape(Shape):
         shape_a.is_composite = True
         shape_b.is_composite = True
 
-        self.shapeUnion = shape_args[0]  # union function. i.e. additive: min(a, b)
+        self.shapeUnion = MethodType(shape_args[0], self) # union function. i.e. additive: min(a, b)
         self.shape_args = shape_args[1:]
 
-        self.patternUnion = pattern_args[0]
+        self.patternUnion = MethodType(pattern_args[0], self)
         self.pattern_args = pattern_args[1:]
 
         
