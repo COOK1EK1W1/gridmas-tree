@@ -1,7 +1,7 @@
 import { Button } from "../ui/button";
 import { createNew, savePattern } from "../landing/actions";
 import { useEditor } from "@/util/context/editorContext";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, CloudUpload, LoaderCircle } from "lucide-react";
@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 
 export default function TopBar({ user }: { user: any }) {
-  const { codeRef, patternID, patternTitle, pattern } = useEditor()
+  const { codeRef, patternID, patternTitle, pattern, patternOwnerId } = useEditor()
 
   const [lastSaved, setLastSaved] = useState(pattern)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -37,7 +37,11 @@ export default function TopBar({ user }: { user: any }) {
     return () => clearInterval(interval)
   }, [codeRef, lastSaved])
 
-  const handleSave = () => {
+  const userId = user?.user?.id
+  const ownsPattern = Boolean(userId && patternOwnerId && userId === patternOwnerId)
+  const shouldAutoSave = Boolean(ownsPattern && patternID)
+
+  const handleSave = useCallback(() => {
     console.log("saving")
     if (patternID) {
       startTransition(async () => {
@@ -60,7 +64,19 @@ export default function TopBar({ user }: { user: any }) {
         })
       }
     }
-  }
+  }, [codeRef, patternID, router, startTransition])
+
+  // Autosave every 10s when user owns the pattern and there are unsaved changes
+  useEffect(() => {
+    if (!shouldAutoSave) return
+
+    const interval = setInterval(() => {
+      if (!hasUnsavedChanges || isPending) return
+      handleSave()
+    }, 5_000)
+
+    return () => clearInterval(interval)
+  }, [handleSave, hasUnsavedChanges, isPending, shouldAutoSave])
 
   return (
     <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-900 flex flex-row w-full h-15 p-2 flex justify-between items-center">
