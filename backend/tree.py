@@ -67,15 +67,16 @@ class Tree():
     def _request_frame(self):
         """For internal use
         return the current pixel buffer"""
-        colors: list[int] = []
+        colors: list[int] = [0]*self._num_pixels
 
         # loop for every pixel and determine what color it should be
         for i in range(self._num_pixels):
 
             # 1. check if the pixel has been directly changed
             if self._pixels[i]._changed:
-                colors.append(self._pixels[i].to_bit_string())
+                colors[i] = self._pixels[i].to_bit_string()
                 self._pixels[i]._changed = False
+                self._pixels[i].lerp_reset()
                 continue
 
             # 2. check for objects
@@ -83,7 +84,7 @@ class Tree():
             for shape in reversed(self._shapes):
                 c = shape.does_draw(self._pixels[i])
                 if c is not None:
-                    colors.append(c.to_bit_string())
+                    colors[i] = c.to_bit_string()
                     self._pixels[i].set(c)
                     changed = True
                     break
@@ -92,11 +93,11 @@ class Tree():
 
             # 3. check for background
             if self._background:
-                colors.append(self._background.to_bit_string())
+                colors[i] = self._background.to_bit_string()
                 continue
 
             # default last color used.
-            colors.append(self._pixels[i].to_bit_string())
+            colors[i] = self._pixels[i].to_bit_string()
 
         for i in range(self._num_pixels):
             self._pixels[i].cont_lerp()
