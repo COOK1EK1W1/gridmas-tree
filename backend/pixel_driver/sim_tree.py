@@ -38,11 +38,29 @@ class SimTree(PixelDriver):
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
     def pygame_frame(self):
+        if len(self.coords) == 0:
+            return
+
         GL.glRotatef(-1, 0, 0, 1)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-        for coord, color in zip(self.coords, self.buffer):
-            self.draw_light(coord, color)
+        GL.glPointSize(5)
+        GL.glBegin(GL.GL_POINTS)
+
+        for (x, y, z), color in zip(self.coords, self.buffer):
+            r, g, b = int2tuple(color)
+            GL.glColor3f(r / 255, g / 255, b / 255)  # Set the color for the point
+
+            # Draw the point at the specified position
+            GL.glVertex3f(x, y, z)
+
+
+            """
+            error = GL.glGetError()
+            if error != GL.GL_NO_ERROR:
+                print(GL.glGetError())
+            """
+        GL.glEnd()
 
         pygame.display.flip()
 
@@ -50,18 +68,3 @@ class SimTree(PixelDriver):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return True
-
-    def draw_light(self, position: tuple[float, float, float], color: int):
-        GL.glPointSize(5)
-        GL.glBegin(GL.GL_POINTS)
-        r, g, b = int2tuple(color)
-        GL.glColor3f(r / 255, g / 255, b / 255)  # Set the color for the point
-
-        # Draw the point at the specified position
-        GL.glVertex3f(position[0], position[1], position[2])
-
-        GL.glEnd()
-        error = GL.glGetError()
-
-        if error != GL.GL_NO_ERROR:
-            print(GL.glGetError())

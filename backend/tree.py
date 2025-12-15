@@ -74,7 +74,9 @@ class Tree():
 
             # 1. check if the pixel has been directly changed
             if self._pixels[i]._changed:
-                colors[i] = self._pixels[i].to_bit_string()
+                #colors[i] = self._pixels[i].to_bit_string()
+                colors[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
+
                 self._pixels[i]._changed = False
                 self._pixels[i].lerp_reset()
                 continue
@@ -97,7 +99,8 @@ class Tree():
                 continue
 
             # default last color used.
-            colors[i] = self._pixels[i].to_bit_string()
+            #colors[i] = self._pixels[i].to_bit_string()
+            colors[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
 
         for i in range(self._num_pixels):
             self._pixels[i].cont_lerp()

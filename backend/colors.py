@@ -21,6 +21,7 @@ from util import linear, clamp
 class Color:
     """A class representing a color"""
 
+
     def __init__(self, r: int, g: int, b: int):
         self._changed = False
         self._r: int = r & 0xff
@@ -316,9 +317,9 @@ class Color:
 
         This method sets the previous lerp state to the current color, and sets the step number to 0
         """
-        self._L_previous[0] = self.r
-        self._L_previous[1] = self.g
-        self._L_previous[2] = self.b
+        self._L_previous[0] = self._r
+        self._L_previous[1] = self._g
+        self._L_previous[2] = self._b
 
         self._L_step = 0
 
