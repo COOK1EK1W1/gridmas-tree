@@ -110,24 +110,25 @@ class Tree():
 
         return colors
 
+
     def _generate_distance_map(self) -> list[list[float]]:
-        ret: list[list[float]] = []
-        for fr in self._coords:
-            inter: list[float] = []
-            for to in self._coords:
-                inter.append(dist([x for x in fr], [x for x in to]))
-            ret.append(inter)
+        n = len(self._coords)
+        ret: list[list[float]] = [[0.0] * n for _ in range(n)]
+        for i, pos1 in enumerate(self._coords):
+            pos1_list = list(pos1)
+            for j, pos2 in enumerate(self._coords):
+                ret[i][j] = dist(pos1_list, list(pos2))
+
         return ret
 
     def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
-        ret: list[list[tuple[Pixel, float]]] = []
-        for i in range(len(self._coords)):
-            distances: list[tuple[Pixel, float]] = []
-            for j in range(len(self._coords)):
-                distances.append((self._pixels[j], self._distances[i][j]))
+        n = len(self._coords)
+        ret: list[list[tuple[Pixel, float]]] = [None] * n
 
-            ret.append(sorted(distances, key=lambda x: x[1]))
-            pass
+        for i in range(n):
+            distances = [(self._pixels[j], self._distances[i][j]) for j in range(n)]
+
+            ret[i] = sorted(distances, key=lambda x: x[1])
 
         return ret
 

@@ -214,9 +214,9 @@ class Color:
             x: the amount to mix by, 0.5 is average, 0 gives a, 1 gives b
         """
         return Color(
-            int(a.r + (b.r - a.r) * x),
-            int(a.g + (b.g - a.g) * x),
-            int(a.b + (b.b - a.b) * x)
+            int(a._r + (b._r - a._r) * x),
+            int(a._g + (b._g - a._g) * x),
+            int(a._b + (b._b - a._b) * x)
         )
 
     def to_tuple(self) -> tuple[int, int, int]:
@@ -286,9 +286,9 @@ class Color:
             n (float, optional): Controls the speed of the fade. The larger the number, the faster it will fade. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
         """
         
-        self._r = int(clamp(self.r / n, 0, 255))
-        self._g = int(clamp(self.g / n, 0, 255))
-        self._b = int(clamp(self.b / n, 0, 255))
+        self._r = int(clamp(self._r / n, 0, 255))
+        self._g = int(clamp(self._g / n, 0, 255))
+        self._b = int(clamp(self._b / n, 0, 255))
 
         self._changed = True
 
