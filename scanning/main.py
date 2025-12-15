@@ -25,7 +25,7 @@ url = "http://" + str(args.url)
 
 cam_port = 0
 
-cam_dir = 0
+cam_dir = 90
 cam_flip = False
 
 
@@ -42,19 +42,27 @@ def get_img():
 
 
 def get_photo_of(lights: list[list[int]]) -> MatLike:
-    requests.post(f"{url}/setalllight", data=str(lights))
+    sent = False
+    while not sent:
+        x = requests.post(f"{url}/setalllight", data=str(lights))
+        if x.status_code == 200:
+            sent=True
 
-    time.sleep(0.2)
+    time.sleep(0.4)
     _, image = get_img()
-    time.sleep(0.2)
     return image
 
 
 def clear_tree():
     print("clearing light")
-    x = requests.get(url + "/lightoff")
-    if x.status_code != 200:
-        raise Exception("No Light Server")
+    sent = False
+    while not sent:
+        x = requests.get(url + "/lightoff")
+        if x.status_code != 200:
+            raise Exception("No Light Server")
+        else:
+            sent=True
+
 
 
 def countdown(seconds: int):
@@ -184,7 +192,7 @@ def find_lights2(all_on: MatLike, all_off: MatLike, images: List[MatLike]) -> Li
 
     locations: List[Optional[tuple[float, float]]] = []
 
-    for pixelid in range(350):  # Assuming 350 LEDs
+    for pixelid in range(light_amount):
         current_image = all_on_subtracted.copy()
 
         for i in range(num_bits):
@@ -249,6 +257,7 @@ def scan(dir: int):
     show_points(all_on, locations)
 
     directions.append((dir_degrees, locations))
+    print(dir_degrees, locations)
 
 
 def camera_test():
@@ -357,7 +366,7 @@ def fuse_data():
         return
     scaled_locations = scale_locations_to_GIFT(new_locations)
     print("\n\n" + str(scaled_locations) + "\n\n")
-    requests.post("http://192.168.1.50:5000/config/setlights", data=str(scaled_locations))
+    requests.post("http://172.10.20.4:5000/config/setlights", data=str(scaled_locations))
 
 def run(option: int):
     if option == 1:

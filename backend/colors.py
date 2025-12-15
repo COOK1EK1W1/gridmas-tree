@@ -580,7 +580,7 @@ class Pixel(Color):
             my_pixel = pixels(0)
             print(my_pixel.distance_to(pixels(10))) # 0.45
         """
-        return self._tree.distances[self._id][p.id]
+        return self._tree._distances[self._id][p.id]
 
     def nearest(self, n: int) -> list[tuple["Pixel", float]]:
         """Find the nearest n pixels from the current
@@ -592,7 +592,7 @@ class Pixel(Color):
                 len(neighbors) # 4, nearest pixels
                 ```
         """
-        return self._tree.pixel_distance_matrix[self._id][:n]
+        return self._tree._pixel_distance_matrix[self._id][:n]
 
     def within(self, d: float) -> list["Pixel"]:
         """Find all pixels that are within a certain radius
@@ -604,14 +604,14 @@ class Pixel(Color):
                 ```
         """
         left = 0
-        right = len(self._pixels()) - 1
+        right = self._tree._num_pixels - 1
         while left < right:
             mid = (left + right) // 2
-            if self._tree.pixel_distance_matrix[self._id][mid][1] < d:
+            if self._tree._pixel_distance_matrix[self._id][mid][1] < d:
                 left = mid + 1
             else:
                 right = mid
-        return list(map(lambda x: x[0], self._tree.pixel_distance_matrix[self._id][:left]))
+        return list(map(lambda x: x[0], self._tree._pixel_distance_matrix[self._id][:left]))
 
 def int2tuple(c: int) -> tuple[int, int, int]:
     """conver the 24bit encoded int to tuple of R, G, and B.

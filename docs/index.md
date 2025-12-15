@@ -25,9 +25,9 @@ Please see the table below for the different sections you can go to.
 
 <div class="grid cards" markdown>
 
-- :material-format-color-fill: __[Color](../docs/colors)__ for looks
-- :material-cog: __[Attributes](../docs/attributes)__ for pattern settings
-- :material-toolbox: __[Utils](../docs/util)__ for making life endurable
-- :material-check-decagram: __[Examples](../samples)__ for example patterns
+- :material-format-color-fill: __[Color](https://owen7000.github.io/gridmas-tree/docs/colors)__ for looks
+- :material-cog: __[Attributes](https://owen7000.github.io/gridmas-tree/docs/attributes)__ for pattern settings
+- :material-toolbox: __[Utils](https://owen7000.github.io/gridmas-tree/docs/util)__ for making life endurable
+- :material-check-decagram: __[Examples](https://owen7000.github.io/gridmas-tree/samples)__ for example patterns
 
 </div>

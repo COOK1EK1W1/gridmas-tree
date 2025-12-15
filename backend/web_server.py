@@ -5,17 +5,18 @@ from pattern_manager import PatternManager
 import util
 import json
 import time
-from colors import Color
-from attribute import Store, RangeAttr
-from tree import tree
 from flask import Flask, request, render_template, send_from_directory
 from queue import Queue
+from gridmas import *
 
 
 class Request(ABC):
     ...
 
 class StopPattern(Request):
+    ...
+
+class RandomPattern(Request):
     ...
 
 class StartPattern(Request):
@@ -66,9 +67,7 @@ class WebServer:
         @app.route('/setalllight', methods=['POST'])
         def setLightColor():
             data = json.loads(request.data)
-            for color, pixel in zip(data, pixels()):
-                pixel.set_rgb(color[0], color[1], color[2])
-            tree.update()
+            self.request_queue.put(DrawFrame(data))
             return "done"
 
         @app.route('/lightoff/<int:number>')
