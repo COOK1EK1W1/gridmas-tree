@@ -18,9 +18,6 @@ import sys
 import time
 import random
 
-import cProfile
-import pstats
-
 # add the command line arguments
 parser = argparse.ArgumentParser(
     prog="GRIDmas Tree - Main",
@@ -40,8 +37,7 @@ def signal_handler(sig, frame):
         web_server.stop()
     sys.exit(0)
 
-
-def main():
+if __name__ == '__main__':
     args = parser.parse_args()
 
     # Set up signal handling for clean shutdown
@@ -49,12 +45,12 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
 
     # initialise tree
-    tree.init(args.tree_file or "backend/tree.csv")
+    tree.init(args.tree_file or "tree.csv")
 
     # Start pattern manager and load patterns
-    patternManager = PatternManager(args.pattern_dir or "backend/patterns/")
+    patternManager = PatternManager(args.pattern_dir or "patterns/")
 
-    tree._fps = 99999
+    tree._fps = 45
 
     # Initialise the rendering pipeline
     renderer = Renderer(tree._coords)
@@ -135,12 +131,3 @@ def main():
         print(f"Error in main loop: {e}")
         web_server.stop()
         raise
-
-if __name__ == '__main__':
-    profiler = cProfile.Profile()
-    try:
-        profiler.enable()
-        main()
-    finally:
-        profiler.disable()
-        profiler.dump_stats("gridmas.prof")
