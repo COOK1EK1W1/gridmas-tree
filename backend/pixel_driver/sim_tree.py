@@ -50,16 +50,15 @@ class SimTree(PixelDriver):
         for (x, y, z), color in zip(self.coords, self.buffer):
             r, g, b = int2tuple(color)
             GL.glColor3f(r / 255, g / 255, b / 255)  # Set the color for the point
-
-            # Draw the point at the specified position
-            GL.glVertex3f(x, y, z)
-
+            GL.glVertex3f(x, y, z)  # Draw the point at the specified position
 
             """
+            # Debug purposes only
             error = GL.glGetError()
             if error != GL.GL_NO_ERROR:
                 print(GL.glGetError())
             """
+
         GL.glEnd()
 
         pygame.display.flip()

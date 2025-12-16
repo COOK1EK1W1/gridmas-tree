@@ -86,7 +86,8 @@ class Tree():
             for shape in reversed(self._shapes):
                 c = shape.does_draw(self._pixels[i])
                 if c is not None:
-                    colors[i] = c.to_bit_string()
+                    # colors[i] = c.to_bit_string()
+                    colors[i] = (c._r << 8) | (c._g << 16) | c._b
                     self._pixels[i].set(c)
                     changed = True
                     break
@@ -95,7 +96,8 @@ class Tree():
 
             # 3. check for background
             if self._background:
-                colors[i] = self._background.to_bit_string()
+                # colors[i] = self._background.to_bit_string()
+                colors[i] = (self._background._r << 8) | (self._background._g << 16) | self._background._b
                 continue
 
             # default last color used.
