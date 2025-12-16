@@ -33,7 +33,7 @@ export default function TreeVis({
     }
     const avgLoopTime = loopTimes.current.reduce((x, y) => x + y, 0) / loopTimes.current.length
     const targetMs = 1000 / targetFps
-    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(1)}ms/${targetMs.toFixed(1)}ms`
+    fpsRef.current.innerHTML = `${avgLoopTime.toFixed(3)}ms/${targetMs.toFixed(1)}ms`
   }
 
   // Create stable refs for each material without calling hooks in a loop
@@ -137,8 +137,6 @@ try:
     if 'pattern_generator' not in globals() or pattern_generator is None:
         # Create a new generator from the pattern
         pattern_generator = curPattern.draw()
-        if pattern_generator:
-            next(pattern_generator)
     else:
         # If we have a generator, call next() on it
         try:
@@ -146,8 +144,6 @@ try:
         except StopIteration:
             # Generator is exhausted, create a new one
             pattern_generator = curPattern.draw()
-            if pattern_generator:
-                next(pattern_generator)
         except Exception as e:
             print_to_react(f"Error in pattern generator: {e}", 0)
             pattern_generator = None
@@ -159,21 +155,11 @@ except Exception as e:
 tree._request_frame()
 `)
 
-            // Extract the lights data from the tree state
-            const lights: number[][] = res.toJs().map((x: number) => [((x >> 8) & 255) / 255, ((x >> 16) & 255) / 255, (x & 255) / 255])
+            const l = res.toJs()
 
             // Update the material colors for each tree node
             for (let i = 0; i < tree.length; i++) {
-              const mat = matRefs[i].current
-              if (mat) {
-                // use setRGB for clarity
-                mat.color.setRGB(lights[i][0], lights[i][1], lights[i][2])
-              }
-            }
-
-            // prevent PyProxy leaks on older pyodide versions
-            if (typeof res?.destroy === 'function') {
-              res.destroy()
+              matRefs[i].current?.color.setRGB(((l[i] >> 8) & 255) / 255, ((l[i] >> 16) & 255) / 255, (l[i] & 255) / 255)
             }
           } catch (error: any) {
             // surface errors to the parent output panel

@@ -46,22 +46,10 @@ def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, in
     return min(max(val, minv), maxv)
 
 def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
-    with open(location) as csvfile:
+    with open(location, newline="") as csvfile:
         reader = csv.reader(csvfile)
-        list_of_lists: list[tuple[float, float, float]] = []
-        for row in reader:
-            a = (float(row[0]), float(row[1]), float(row[2]))
-            list_of_lists.append(a)
-            """
-    ret = []
-    for coord in list_of_lists:
-        newX = coord[0] * math.cos(math.pi) - coord[1] * math.sin(math.pi)
-        newY = coord[1] * math.cos(math.pi) + coord[0] * math.sin(math.pi)
-        ret.append(coord)
-        ret.append([newX, newY, coord[2]])
-            """
-
-    return list_of_lists
+        f = float
+        return [(f(a), f(b), f(c)) for a, b, c in reader]
 
 
 def dist(a: Iterable[float], b: Iterable[float]) -> float:

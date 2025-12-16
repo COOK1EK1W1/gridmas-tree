@@ -58,6 +58,8 @@ class Tree():
         self._background = None
         self._fps = 45
 
+        self._color_buffer = [0]*self._num_pixels
+
     def _pattern_reset(self):
         self._pattern_started_at = time.time()
         self._frame = 0
@@ -67,7 +69,6 @@ class Tree():
     def _request_frame(self):
         """For internal use
         return the current pixel buffer"""
-        colors: list[int] = [0]*self._num_pixels
 
         # loop for every pixel and determine what color it should be
         for i in range(self._num_pixels):
@@ -75,7 +76,7 @@ class Tree():
             # 1. check if the pixel has been directly changed
             if self._pixels[i]._changed:
                 #colors[i] = self._pixels[i].to_bit_string()
-                colors[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
+                self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
 
                 self._pixels[i]._changed = False
                 self._pixels[i].lerp_reset()
@@ -87,7 +88,7 @@ class Tree():
                 c = shape.does_draw(self._pixels[i])
                 if c is not None:
                     # colors[i] = c.to_bit_string()
-                    colors[i] = (c._r << 8) | (c._g << 16) | c._b
+                    self._color_buffer[i] = (c._r << 8) | (c._g << 16) | c._b
                     self._pixels[i].set(c)
                     changed = True
                     break
@@ -97,12 +98,12 @@ class Tree():
             # 3. check for background
             if self._background:
                 # colors[i] = self._background.to_bit_string()
-                colors[i] = (self._background._r << 8) | (self._background._g << 16) | self._background._b
+                self._color_buffer[i] = (self._background._r << 8) | (self._background._g << 16) | self._background._b
                 continue
 
             # default last color used.
             #colors[i] = self._pixels[i].to_bit_string()
-            colors[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
+            self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
 
         for i in range(self._num_pixels):
             self._pixels[i].cont_lerp()
@@ -110,30 +111,14 @@ class Tree():
         self._shapes = []
         self._frame += 1
 
-        return colors
+        return self._color_buffer
 
 
     def _generate_distance_map(self) -> list[list[float]]:
-        n = len(self._coords)
-        ret: list[list[float]] = [[0.0] * n for _ in range(n)]
-        for i, pos1 in enumerate(self._coords):
-            pos1_list = list(pos1)
-            for j, pos2 in enumerate(self._coords):
-                ret[i][j] = dist(pos1_list, list(pos2))
-
-        return ret
+        return [ [dist(pos1, pos2) for pos2 in self._coords] for pos1 in self._coords ]
 
     def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
-        n = len(self._coords)
-        ret: list[list[tuple[Pixel, float]]] = [None] * n
-
-        for i in range(n):
-            distances = [(self._pixels[j], self._distances[i][j]) for j in range(n)]
-
-            ret[i] = sorted(distances, key=lambda x: x[1])
-
-        return ret
-
+        return [ sorted( zip(self._pixels, dist_row), key=lambda x: x[1]) for dist_row in self._distances]
 
 def height() -> float: 
     """The height of the tree

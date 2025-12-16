@@ -70,7 +70,7 @@ if __name__ == '__main__':
     web_server.run(port)
 
     # Give the web server a moment to start up
-    time.sleep(0.5)
+    time.sleep(0.2)
     print(f"Web server started on port {port}")
 
     t = 0
