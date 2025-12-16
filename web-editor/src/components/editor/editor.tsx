@@ -275,7 +275,7 @@ if 'pattern_generator' in globals():
           <div className="h-40 overflow-auto hidden md:block">
             {output.map((x, i) => (
               <div key={i} className={`flex px-2  ${i % 2 == 0 ? "bg-slate-100" : "bg-slate-200"}`}>
-                <p className={`font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
+                <p className={`select-text font-mono flex-grow ${x.error ? "text-red-600" : ""}`}>
                   {x.content}
                 </p>
                 {x.frame !== 0 && (
