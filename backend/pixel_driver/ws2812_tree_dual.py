@@ -45,15 +45,19 @@ class ws2812_tree_dual(PixelDriver):
         # Convert frame list to ctypes array
         frame_array = (c_uint32 * len(frame))(*frame)
 
+        # Cache LED_COUNT for minor performance improvement
+        led_count_0 = self.LED_COUNT[0]
+        led_count_1 = self.LED_COUNT[1] 
+
         # Update channel 0
         channel_0 = ws.ws2811_channel_get(self.leds, 0)
-        for i in range(self.LED_COUNT[0]):
+        for i in range(led_count_0):
             ws.ws2811_led_set(channel_0, i, frame_array[i])
 
         # Update channel 1
         channel_1 = ws.ws2811_channel_get(self.leds, 1)
-        for i in range(self.LED_COUNT[1]):
-            ws.ws2811_led_set(channel_1, i, frame_array[i + self.LED_COUNT[0]])
+        for i in range(led_count_1):
+            ws.ws2811_led_set(channel_1, i, frame_array[i + led_count_0])
 
     def show(self):
         # Render all channels at once
