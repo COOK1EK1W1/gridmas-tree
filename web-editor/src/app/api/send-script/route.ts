@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-static'
 
 export async function GET(req: NextRequest) {
   const name = req.nextUrl.searchParams.get("s")

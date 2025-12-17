@@ -7,25 +7,25 @@ import { promisify } from 'util';
 import archiver from 'archiver';
 
 const pipelineAsync = promisify(pipeline);
-
-export async function GET(req: NextRequest) {
+export const dynamic = 'force-static'
+export async function GET() {
   try {
     // List of core Python files that need to be included
     const coreFiles = [
-      "util.py", 
-      "colors.py", 
-      "tree.csv", 
-      "gridmas.py", 
-      "tree.py", 
-      "particle_system.py", 
-      "fizzle.py", 
-      "wipe.py", 
-      "attribute.py", 
+      "util.py",
+      "colors.py",
+      "tree.csv",
+      "gridmas.py",
+      "tree.py",
+      "particle_system.py",
+      "fizzle.py",
+      "wipe.py",
+      "attribute.py",
       "geometry.py"
     ];
 
     const backendPath = path.join(process.cwd(), '../backend');
-    
+
     // Create a zip archive
     const archive = archiver('zip', {
       zlib: { level: 9 } // Maximum compression
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // Add each file to the archive
     for (const fileName of coreFiles) {
       const filePath = path.join(backendPath, fileName);
-      
+
       // Check if file exists before adding
       if (fs.existsSync(filePath)) {
         const fileStream = createReadStream(filePath);
@@ -60,11 +60,11 @@ export async function GET(req: NextRequest) {
         archive.on('data', (chunk) => {
           controller.enqueue(chunk);
         });
-        
+
         archive.on('end', () => {
           controller.close();
         });
-        
+
         archive.on('error', (err) => {
           console.error('Archive error:', err);
           controller.error(err);
