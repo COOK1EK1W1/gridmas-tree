@@ -89,6 +89,7 @@ class Tree():
                 if c is not None:
                     # colors[i] = c.to_bit_string()
                     self._color_buffer[i] = (c._r << 8) | (c._g << 16) | c._b
+                    self._pixels[i].lerp_reset()
                     self._pixels[i].set(c)
                     changed = True
                     break
