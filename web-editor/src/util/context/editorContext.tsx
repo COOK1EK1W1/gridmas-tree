@@ -24,6 +24,7 @@ type provided = {
   pattern: string,
   patternID: string | null,
   patternTitle: string | null,
+  patternOwnerId: string | null,
   setPattern: Dispatch<SetStateAction<string>>,
   codeRef: RefObject<Parameters<OnMount>[0] | null>;
   syncStatus: typeof syncStatusKeys[number],

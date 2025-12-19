@@ -30,6 +30,7 @@ export default function CloudEditorProvider({ children, cloudPattern }: Props) {
       pattern,
       patternID: cloudPattern.id,
       patternTitle: cloudPattern.title,
+      patternOwnerId: cloudPattern.userId,
       setPattern,
       codeRef,
       syncStatus,

@@ -11,7 +11,6 @@ __documenter__ = "Owen Plimer"
 from renderer import Renderer
 from pattern_manager import PatternManager
 from tree import tree
-from pattern_manager import PatternManager
 from web_server import DrawFrame, StartPattern, StopPattern, WebServer, RandomPattern
 import argparse
 import signal
@@ -20,12 +19,17 @@ import time
 import random
 
 # add the command line arguments
-parser = argparse.ArgumentParser(description="")
+parser = argparse.ArgumentParser(
+    prog="GRIDmas Tree - Main",
+    description="This is the main entry point for the GRIDmas Tree web server",
+    epilog="GRIDmas Tree is inspired by Matt Parkers 500 LED christmas tree. Please see his videos on the subject, they are a very good watch!"
+)
+
 parser.add_argument("--port", type=int, required=False, help="The port to host the Web Server")
-parser.add_argument("--tree-file", type=str, required=False, help="specify the tree file")
-parser.add_argument("--rate-limit", action="store_true", required=False, help="rate limit the web interface")
-parser.add_argument("--pattern-dir", type=str, required=False, help="the directory containing patterns")
-parser.add_argument("--auto-pattern", type=int, required=False, help="Automatically try different patterns")
+parser.add_argument("--tree-file", type=str, required=False, help="Specify where to find the tree.csv file")
+parser.add_argument("--rate-limit", action="store_true", required=False, help="Use this to enable rate limiting on the web server")
+parser.add_argument("--pattern-dir", type=str, required=False, help="Specify the directory where pattern files are stored")
+parser.add_argument("--auto-pattern", type=int, required=False, help="Automatically run through random patterns at the interval you set")
 
 def signal_handler(sig, frame):
     print("\nShutting down gracefully...")
@@ -66,7 +70,7 @@ if __name__ == '__main__':
     web_server.run(port)
 
     # Give the web server a moment to start up
-    time.sleep(0.5)
+    time.sleep(0.2)
     print(f"Web server started on port {port}")
 
     t = 0
