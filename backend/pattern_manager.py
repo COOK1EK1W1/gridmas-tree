@@ -86,7 +86,7 @@ class PatternManager:
     def load_patterns(self, pattern_dir: str):
         """load_patterns Loads the patterns from the pattern_dir
 
-        Searches for .py files inside the python file, and then tries to import them
+        Searches for .py files inside the patterns directory, and then tries to import them
 
         Args:
             pattern_dir (str): The directory to search in
@@ -131,10 +131,12 @@ class PatternManager:
                     if isinstance(res, GeneratorType):
                         self.generator = res
             except Exception as e:
+                print(f"Current pattern in draw_current:{self.currentPattern}")
+                print(e)
+                
                 self.generator = None
                 self.currentPattern = None
-                print("There was an error", e)
-
+                # print("There was an error", e)
 
     def load_pattern(self, name: str):
         """load_pattern Loads a pattern
@@ -148,10 +150,20 @@ class PatternManager:
             TODO fix so people cant just inject whatever name they want from client side :skull:
         """
         attribute.Store.get_store().reset()
-        module = __import__("patterns." + name)
+        print(f"Attempting to load pattern: {name}")
+        try:
+            module = __import__("patterns." + name)
+        except:
+            return 
+        
         pattern_module = getattr(module, name)
         importlib.reload(pattern_module)
-        self.currentPattern = self.patterns[name]
+
+        tempVar = self.patterns.get(name)
+        if tempVar is None:
+            return    
+        self.currentPattern = tempVar
+
         self.generator = None
         print(attribute.Store.get_store().store)
 
@@ -167,7 +179,7 @@ class PatternManager:
     def get(self, name: str):
         """get Gets a pattern
 
-        Feteches the pattern with a given name from the internal pattern list, then returns it
+        Fetches the pattern with a given name from the internal pattern list, then returns it
 
         Args:
             name (str): The name of the pattern you want to fetch
@@ -176,4 +188,7 @@ class PatternManager:
             code (str): Returns the python code of the pattern
         """
         
-        return self.patterns[name]
+        try:
+            return self.patterns[name]
+        except:
+            return "#No Pattern"

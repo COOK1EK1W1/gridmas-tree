@@ -86,6 +86,16 @@ class WebServer:
             util.save_lights(data)
             return "bruh"
 
+        @app.route('/current/pattern', methods=['GET'])
+        def getCurrentPattern():
+            pattern_dict = {"patternName": str(patternManager.currentPattern.__name__).replace("patterns.", "").title()}
+            return pattern_dict
+
+        @app.route('/all-patterns', methods=['GET'])
+        def getAllPatterns():
+            print([x for x in manager.patterns.keys()])
+            return [x for x in manager.patterns.keys()]
+
         @app.route('/attribute/<nam>', methods=['GET'])
         def attributeG(nam: str):
             a = Store.get_store().get(nam)
