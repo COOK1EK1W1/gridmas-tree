@@ -35,6 +35,13 @@ class Tree():
         self._rgb       = np.zeros((self._num_pixels, 3), dtype=np.uint8)
         self._changed   = np.zeros(self._num_pixels, dtype=bool)
 
+        # lerp state arrays
+        self._lerp_prev   = np.zeros((self._num_pixels, 3), dtype=np.float32)
+        self._lerp_target = np.zeros((self._num_pixels, 3), dtype=np.float32)
+        self._lerp_step   = np.zeros(self._num_pixels, dtype=np.int32)
+        self._lerp_total  = np.zeros(self._num_pixels, dtype=np.int32)
+        self._lerp_fn     = [linear] * self._num_pixels  # python list, not np array
+
         self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
 
@@ -110,12 +117,35 @@ class Tree():
             self._pixels[i].lerp_reset()
         self._changed[:] = False
 
-        # TODO - vectorise lerp state so this loop gets removed
-        for p in self._pixels:
-            p.cont_lerp()
+        self._advance_all_lerps()
 
         self._frame += 1
         return packed
+
+    def _advance_all_lerps(self):
+        """Vectorized equivalent of calling cont_lerp() on every pixel.
+ 
+        Maybe overengineered, lerp is a weird mechanic
+        Mirrors Colour.cont_lerp()
+        cont_lerp() should be removed at some point, or at least deprecated
+        """
+        active = self._lerp_step < self._lerp_total
+        if not np.any(active):
+            return
+ 
+        self._lerp_step[active] = np.minimum(self._lerp_step[active] + 1, self._lerp_total[active])
+ 
+        idx = np.nonzero(active)[0]
+        percent = np.clip(self._lerp_step[idx] / self._lerp_total[idx], 0, 1)
+ 
+        fns = np.array([self._lerp_fn[i] for i in idx], dtype=object)
+        for fn in set(fns.tolist()):
+            group_mask = fns == fn
+            group_idx = idx[group_mask]
+            d = np.asarray(fn(percent[group_mask]), dtype=np.float32).reshape(-1, 1)
+            prev = self._lerp_prev[group_idx]
+            target = self._lerp_target[group_idx]
+            self._rgb[group_idx] = (prev * (1 - d) + target * d).astype(np.uint8)
 
 
     def _generate_distance_map(self) -> list[list[float]]:
