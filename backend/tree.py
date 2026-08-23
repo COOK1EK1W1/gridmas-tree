@@ -33,6 +33,7 @@ class Tree():
         self._angle     = np.arctan2(self._positions[:, 1], self._positions[:, 0])
         self._pdist     = np.sqrt(self._positions[:, 0]**2 + self._positions[:, 1]**2)
         self._rgb       = np.zeros((self._num_pixels, 3), dtype=np.uint8)
+        self._changed   = np.zeros(self._num_pixels, dtype=bool)
 
         self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
@@ -64,8 +65,6 @@ class Tree():
         
         self._background = None
         self._fps = 9999
-
-        self._color_buffer = [0]*self._num_pixels
 
     def _pattern_reset(self):
         self._pattern_started_at = time.time()
@@ -101,21 +100,22 @@ class Tree():
         b = self._rgb[:, 2].astype(np.uint32)
         packed = (r << 8) | (g << 16) | b
 
+        # Non-changed pixels are set to background colour
         if self._background:
             bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-            unchanged = np.array([not p._changed for p in self._pixels], dtype=bool)
-            packed[unchanged] = bg
+            packed[~self._changed] = bg
 
-        # TODO - vectorise lerp
+        # only changed pixels need lerp reset
+        for i in np.nonzero(self._changed)[0]:
+            self._pixels[i].lerp_reset()
+        self._changed[:] = False
+
+        # TODO - vectorise lerp state so this loop gets removed
         for p in self._pixels:
-            if p._changed:
-                p._changed = False
-                p.lerp_reset()
             p.cont_lerp()
 
-        self._color_buffer = packed.tolist()
         self._frame += 1
-        return self._color_buffer
+        return packed
 
 
     def _generate_distance_map(self) -> list[list[float]]:

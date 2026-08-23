@@ -534,6 +534,11 @@ class Pixel(Color):
     def _b(self, v): self._tree._rgb[self._id, 2] = v
 
     @property
+    def _changed(self): return bool(self._tree._changed[self._id])
+    @_changed.setter
+    def _changed(self, v): self._tree._changed[self._id] = v
+
+    @property
     def x(self) -> float: return float(self._tree._positions[self._id, 0])
     @property
     def y(self) -> float: return float(self._tree._positions[self._id, 1])
