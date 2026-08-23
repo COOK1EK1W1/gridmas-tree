@@ -25,6 +25,7 @@ export default function EditorProvider({ children }: Props) {
       setAttributes,
       patternID: null,
       patternTitle: null,
+      patternOwnerId: null,
       pattern,
       setPattern,
       codeRef,

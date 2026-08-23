@@ -131,10 +131,12 @@ class PatternManager:
                     if isinstance(res, GeneratorType):
                         self.generator = res
             except Exception as e:
+                print(f"Current pattern in draw_current:{self.currentPattern}")
+                print(e)
+                
                 self.generator = None
                 self.currentPattern = None
-                print("There was an error", e)
-
+                # print("There was an error", e)
 
     def load_pattern(self, name: str):
         """load_pattern Loads a pattern
@@ -148,6 +150,7 @@ class PatternManager:
             TODO fix so people cant just inject whatever name they want from client side :skull:
         """
         attribute.Store.get_store().reset()
+        print(f"Attempting to load pattern: {name}")
         try:
             module = __import__("patterns." + name)
         except:

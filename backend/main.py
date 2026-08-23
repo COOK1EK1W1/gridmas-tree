@@ -70,7 +70,7 @@ if __name__ == '__main__':
     web_server.run(port)
 
     # Give the web server a moment to start up
-    time.sleep(0.5)
+    time.sleep(0.2)
     print(f"Web server started on port {port}")
 
     t = 0
@@ -95,6 +95,8 @@ if __name__ == '__main__':
                     case StartPattern(name=name):
                         tree._pattern_reset()
                         patternManager.load_pattern(name)
+                        last_change = time.time() + 300 
+                        # Make user selected patterns run for 5 mins from the point they start
 
                     case DrawFrame(frame=frame):
                         patternManager.unload_pattern()

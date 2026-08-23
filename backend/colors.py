@@ -21,14 +21,15 @@ from util import linear, clamp
 class Color:
     """A class representing a color"""
 
+
     def __init__(self, r: int, g: int, b: int):
         self._changed = False
         self._r: int = r & 0xff
         self._g: int = g & 0xff
         self._b: int = b & 0xff
 
-        self._L_previous = (0, 0, 0)
-        self._L_target = (0, 0, 0)
+        self._L_previous = [0, 0, 0]
+        self._L_target = [0, 0, 0]
 
         self._L_step = 0
         self._L_total = 0
@@ -213,9 +214,9 @@ class Color:
             x: the amount to mix by, 0.5 is average, 0 gives a, 1 gives b
         """
         return Color(
-            int(a.r + (b.r - a.r) * x),
-            int(a.g + (b.g - a.g) * x),
-            int(a.b + (b.b - a.b) * x)
+            int(a._r + (b._r - a._r) * x),
+            int(a._g + (b._g - a._g) * x),
+            int(a._b + (b._b - a._b) * x)
         )
 
     def to_tuple(self) -> tuple[int, int, int]:
@@ -285,11 +286,10 @@ class Color:
             n (float, optional): Controls the speed of the fade. The larger the number, the faster it will fade. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
         """
         
-        self._r = int(clamp(self.r / n, 0, 255))
-        self._g = int(clamp(self.g / n, 0, 255))
-        self._b = int(clamp(self.b / n, 0, 255))
+        self._r = int(clamp(self._r / n, 0, 255))
+        self._g = int(clamp(self._g / n, 0, 255))
+        self._b = int(clamp(self._b / n, 0, 255))
 
-        self.lerp_reset()
         self._changed = True
 
 
@@ -317,7 +317,10 @@ class Color:
 
         This method sets the previous lerp state to the current color, and sets the step number to 0
         """
-        self._L_previous = (self.r, self.g, self.b)
+        self._L_previous[0] = self._r
+        self._L_previous[1] = self._g
+        self._L_previous[2] = self._b
+
         self._L_step = 0
 
     def set_lerp(self, target: "Color", time: int, override: bool = False, fn: Callable[[float], float] = linear):
@@ -349,7 +352,6 @@ class Color:
         self._g = c._g
         self._b = c._b
 
-        self.lerp_reset()
         self._changed = True
         
     def set_color(self, c: "Color"):
@@ -357,7 +359,6 @@ class Color:
         self._g = c._g
         self._b = c._b
 
-        self.lerp_reset()
         self._changed = True
     
     def set_rgb(self, r: int, g: int, b: int):        
@@ -366,7 +367,6 @@ class Color:
         self._g = g & 0xff
         self._b = b & 0xff
 
-        self.lerp_reset()
         self._changed = True
 
     def set_hsl(self, hue: float, sat: float, lig: float):
@@ -376,21 +376,18 @@ class Color:
         self._g = int(g * 255)
         self._b = int(b * 255)
 
-        self.lerp_reset()
         self._changed = True
 
     def set_hex(self, s: str):
         """Set the color with a string hex code, in format "#FFFFFF" """
         self._r, self._g, self._b = int(s[1:3], 16), int(s[3:5], 16), int(s[5:7], 16)
 
-        self.lerp_reset()
         self._changed = True
 
     def set_bit_string(self, i: int):
         """Set the color with a string hex code, in format "#FFFFFF" """
         self._r, self._g, self._b = int2tuple(i)
 
-        self.lerp_reset()
         self._changed = True
 
     def set_random(self, saturation: float = 1, lightness: float = 0.6):
@@ -398,7 +395,6 @@ class Color:
            The random value is for the Hue. The saturation and lightness can be specified"""
         self.set_hsl(random.random(), saturation, lightness)
 
-        self.lerp_reset()
         self._changed = True
 
     def set_different_from(self, color: 'Color'):
@@ -415,97 +411,78 @@ class Color:
 
     def set_black(self):
         self._r, self._g, self._b = 0, 0, 0
-        self.lerp_reset()
         self._changed = True
 
     def set_red(self):
         self._r, self._g, self._b = 255, 0, 0
-        self.lerp_reset()
         self._changed = True
 
     def set_orange(self):
         self._r, self._g, self._b = 252, 81, 8
-        self.lerp_reset()
         self._changed = True
 
     def set_amber(self):
         self._r, self._g, self._b = 251, 136, 10
-        self.lerp_reset()
         self._changed = True
 
     def set_yellow(self):
         self._r, self._g, self._b = 234, 163, 8
-        self.lerp_reset()
         self._changed = True
 
     def set_lime(self):
         self._r, self._g, self._b = 107, 202, 3
-        self.lerp_reset()
         self._changed = True
 
     def set_green(self):
         self._r, self._g, self._b = 0, 255, 0
-        self.lerp_reset()
         self._changed = True
 
     def set_emerald(self):
         self._r, self._g, self._b = 23, 178, 106
-        self.lerp_reset()
         self._changed = True
 
     def set_teal(self):
         self._r, self._g, self._b = 23, 175, 150
-        self.lerp_reset()
         self._changed = True
 
     def set_cyan(self):
         self._r, self._g, self._b = 21, 170, 210
-        self.lerp_reset()
         self._changed = True
 
     def set_sky(self):
         self._r, self._g, self._b = 20, 146, 241
-        self.lerp_reset()
         self._changed = True
 
     def set_blue(self):
         self._r, self._g, self._b = 0, 0, 255
-        self.lerp_reset()
         self._changed = True
 
     def set_indigo(self):
         self._r, self._g, self._b = 78, 64, 255
-        self.lerp_reset()
         self._changed = True
 
     def set_violet(self):
         self._r, self._g, self._b = 122, 47, 255
-        self.lerp_reset()
         self._changed = True
 
     def set_purple(self):
         self._r, self._g, self._b = 155, 30, 255
-        self.lerp_reset()
         self._changed = True
 
     def set_fuchsia(self):
         self._r, self._g, self._b = 215, 0, 250
-        self.lerp_reset()
         self._changed = True
 
     def set_pink(self):
         self._r, self._g, self._b = 240, 15, 137
-        self.lerp_reset()
         self._changed = True
 
     def set_rose(self):
         self._r, self._g, self._b = 251, 0, 69
-        self.lerp_reset()
         self._changed = True
 
     def set_white(self):
         self._r, self._g, self._b = 255, 255, 255
-        self.lerp_reset()
         self._changed = True
 
 

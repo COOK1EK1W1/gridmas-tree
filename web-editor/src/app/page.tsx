@@ -40,7 +40,6 @@ export default async function Home() {
   return (
     <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
       <StartModal />
-      <Snow />
 
       {/* Background festive glows */}
       <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-red-500/20 blur-3xl" />
