@@ -2,6 +2,7 @@
 
 from math import dist
 import math
+import numpy as np
 from typing import Callable, Optional, Union, overload
 from util import  linear, read_tree_csv
 import time
@@ -28,11 +29,17 @@ class Tree():
         self._num_pixels = int(len(self._coords))
         """The number of pixels on the tree"""
 
-        self._height = max([x[2] for x in self._coords])
-        """The height of the tree"""
+        self._positions = np.array(self._coords, dtype=np.float32)
+        self._angle     = np.arctan2(self._positions[:, 1], self._positions[:, 0])
+        self._pdist     = np.sqrt(self._positions[:, 0]**2 + self._positions[:, 1]**2)
+        self._rgb       = np.zeros((self._num_pixels, 3), dtype=np.uint8)
 
-        self._pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self._coords)]
+        self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
+
+
+        self._height = float(self._positions[:, 2].max())
+        """The height of the tree"""
 
         # 2d array, cols from, rows to -> dist
         self._distances = self._generate_distance_map()
@@ -56,7 +63,7 @@ class Tree():
         """The list of shapes that the tree can draw"""
         
         self._background = None
-        self._fps = 45
+        self._fps = 9999
 
         self._color_buffer = [0]*self._num_pixels
 
@@ -66,52 +73,48 @@ class Tree():
         self._background = None
         self._fps = 45
 
-    def _request_frame(self):
-        """For internal use
-        return the current pixel buffer"""
+    def _render_shapes(self):
+        """
+        Temporary function to refactor shape rendering
+        It is no longer baked into the rendering
+        Instead, it acts as a normal pixel modification
+        """
+        if len(self._shapes) == 0:
+            return
 
-        # loop for every pixel and determine what color it should be
         for i in range(self._num_pixels):
-
-            # 1. check if the pixel has been directly changed
-            if self._pixels[i]._changed:
-                #colors[i] = self._pixels[i].to_bit_string()
-                self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
-
-                self._pixels[i]._changed = False
-                self._pixels[i].lerp_reset()
-                continue
-
-            # 2. check for objects
-            changed = False
             for shape in reversed(self._shapes):
-                c = shape.does_draw(self._pixels[i])
-                if c is not None:
-                    # colors[i] = c.to_bit_string()
-                    self._color_buffer[i] = (c._r << 8) | (c._g << 16) | c._b
-                    self._pixels[i].set(c)
-                    self._pixels[i].lerp_reset()
-                    changed = True
+                sc = shape.does_draw(self._pixels[i])
+                if sc is not None:
+                    self._pixels[i].set(sc)
                     break
-            if changed:
-                continue
-
-            # 3. check for background
-            if self._background:
-                # colors[i] = self._background.to_bit_string()
-                self._color_buffer[i] = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-                continue
-
-            # default last color used.
-            #colors[i] = self._pixels[i].to_bit_string()
-            self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
-
-        for i in range(self._num_pixels):
-            self._pixels[i].cont_lerp()
 
         self._shapes = []
-        self._frame += 1
+        
 
+    def _request_frame(self):
+        self._render_shapes()
+
+        # pack the whole array at once. vectorized!
+        r = self._rgb[:, 0].astype(np.uint32)
+        g = self._rgb[:, 1].astype(np.uint32)
+        b = self._rgb[:, 2].astype(np.uint32)
+        packed = (r << 8) | (g << 16) | b
+
+        if self._background:
+            bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
+            unchanged = np.array([not p._changed for p in self._pixels], dtype=bool)
+            packed[unchanged] = bg
+
+        # TODO - vectorise lerp
+        for p in self._pixels:
+            if p._changed:
+                p._changed = False
+                p.lerp_reset()
+            p.cont_lerp()
+
+        self._color_buffer = packed.tolist()
+        self._frame += 1
         return self._color_buffer
 
 

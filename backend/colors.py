@@ -502,53 +502,55 @@ class Pixel(Color):
        d: float: The polar distance from the Z axis (trunk)
     """
 
-    def __init__(self, id: int, coord: tuple[float, float, float], tree: "Tree", color: Color = Color.black()):
-        super().__init__(*color.to_tuple())
+    def __init__(self, id: int, tree: "Tree", color: Color = Color.black()):
         self._id = id
-
-        self._x = coord[0]
-        self._y = coord[1]
-        self._z = coord[2]
-
-        self._a = math.atan2(self._y, self._x)
-        self._d = math.sqrt(self._y ** 2 + self._x ** 2)
-        
         self._tree = tree
+        super().__init__(*color.to_tuple())
+
+
+    """ The existing code assumes Pixel, extending Color, contains data about itself
+        In the new architecture, this data is stored in separate numpy arrays in Tree
+        To ensure compatability, override the getter/setters of rgb, xyz etc
+        This trick means the code doesn't need migated, but still gets (most of) the performance
+        increase from the numpy array 
+    """
+
+    """
+    RGB getter/setter overides
+    """
+    @property
+    def _r(self): return int(self._tree._rgb[self._id, 0])
+    @_r.setter
+    def _r(self, v): self._tree._rgb[self._id, 0] = v
+
+    @property
+    def _g(self): return int(self._tree._rgb[self._id, 1])
+    @_g.setter
+    def _g(self, v): self._tree._rgb[self._id, 1] = v
+
+    @property
+    def _b(self): return int(self._tree._rgb[self._id, 2])
+    @_b.setter
+    def _b(self, v): self._tree._rgb[self._id, 2] = v
+
+    @property
+    def x(self) -> float: return float(self._tree._positions[self._id, 0])
+    @property
+    def y(self) -> float: return float(self._tree._positions[self._id, 1])
+    @property
+    def z(self) -> float: return float(self._tree._positions[self._id, 2])
+    @property
+    def xyz(self) -> tuple[float, float, float]: return tuple(self._tree._positions[self._id].tolist())
+    @property
+    def a(self) -> float: return float(self._tree._angle[self._id])
+    @property
+    def d(self) -> float: return float(self._tree._pdist[self._id])
 
     @property
     def id(self) -> int:
         """The id in the LED sequence"""
         return self._id
 
-    @property
-    def x(self) -> float:
-        """The X coordinate, left (-1) to right (+1)"""
-        return self._x
-
-    @property
-    def y(self) -> float:
-        """The Y coordinate, front (+1) to back (-1)"""
-        return self._y
-
-    @property
-    def z(self) -> float:
-        """The Z coordinate bottom (0) to top (height())"""
-        return self._z
-
-    @property
-    def xyz(self) -> tuple[float, float, float]:
-        """The tuple containing the xyz coordinates"""
-        return (self._x, self._y, self._z)
-
-    @property
-    def a(self) -> float:
-        """The angle clockwise from the x+ direction around the tree"""
-        return self._a
-
-    @property
-    def d(self) -> float:
-        """The distance from the center line (trunk) of the tree"""
-        return self._d
 
     def distance_to(self, p: "Pixel") -> float:
         """Find the distance to the passed pixel
