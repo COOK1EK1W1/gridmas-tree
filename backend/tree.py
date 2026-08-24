@@ -40,7 +40,12 @@ class Tree():
         self._lerp_target = np.zeros((self._num_pixels, 3), dtype=np.float64)
         self._lerp_step   = np.zeros(self._num_pixels, dtype=np.int32)
         self._lerp_total  = np.zeros(self._num_pixels, dtype=np.int32)
-        self._lerp_fn     = [linear] * self._num_pixels  # plain list
+
+        # lerp function stored for entire tree, not per pixel
+        # this limits the tree to a single lerp function at once
+        # but improves performance a lot
+        self._lerp_fn = linear
+        
 
         self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
@@ -135,20 +140,24 @@ class Tree():
         if not np.any(active):
             return
 
-        self._lerp_step[active] = np.minimum(self._lerp_step[active] + 1, self._lerp_total[active])
 
         idx = np.nonzero(active)[0]
-        percent = np.clip(self._lerp_step[idx] / self._lerp_total[idx], 0, 1)
+        self._lerp_step[idx] += 1
 
-        fns = np.array([self._lerp_fn[i] for i in idx], dtype=object)
-        for fn in set(fns.tolist()):
-            group_mask = fns == fn
-            group_idx = idx[group_mask]
-            d = np.array([fn(float(p)) for p in percent[group_mask]], dtype=np.float64).reshape(-1, 1)
-            prev = self._lerp_prev[group_idx]
-            target = self._lerp_target[group_idx]
-            blended = prev * (1 - d) + target * d
-            self._rgb[group_idx] = np.clip(blended, 0, 255).astype(np.uint8)
+        step = self._lerp_step[idx].astype(np.float64)
+        total = self._lerp_total[idx].astype(np.float64)
+
+        t = np.divide(step, total, out=np.ones_like(step), where=total != 0)
+        t = np.clip(t, 0.0, 1.0)
+
+        eased = self._lerp_fn(t)[:, None]
+
+        self._rgb[idx] = np.clip(
+            (self._lerp_prev[idx] + (self._lerp_target[idx] - self._lerp_prev[idx]) * eased), 
+            0,
+            255,
+        ).astype(np.uint8)
+
 
     def _generate_distance_map(self) -> list[list[float]]:
         return [ [dist(pos1, pos2) for pos2 in self._coords] for pos1 in self._coords ]
@@ -282,8 +291,28 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
             lerp(Color.black(), 10) # similar to fade
         ```
     """
-    for pixel in tree._pixels:
-        pixel.lerp(color, frames, fn=fn)
+    target = np.asarray(color.to_tuple(), dtype=np.uint8)
+
+    changed = (
+        np.any(tree._lerp_target != target, axis=1)
+        | (tree._lerp_total != frames)
+    )
+
+    if not np.any(changed):
+        return
+
+    # Save the current RGB values as the interpolation starting point.
+    tree._lerp_prev[changed] = tree._rgb[changed]
+
+    # Reset interpolation progress.
+    tree._lerp_step[changed] = 0
+
+    # Set new interpolation state.
+    tree._lerp_target[changed] = target
+    tree._lerp_total[changed] = frames
+    tree._lerp_fn = fn
+
+    
 
 def coords():
     """An array of 3d coordinates mapped directly to the pixels

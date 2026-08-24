@@ -561,10 +561,11 @@ class Pixel(Color):
     @_L_total.setter
     def _L_total(self, v): self._tree._lerp_total[self._id] = v
 
+    # Sets for entire tree, not just pixel
     @property
-    def _L_fn(self): return self._tree._lerp_fn[self._id]
+    def _L_fn(self): return self._tree._lerp_fn
     @_L_fn.setter
-    def _L_fn(self, v): self._tree._lerp_fn[self._id] = v
+    def _L_fn(self, v): self._tree._lerp_fn = v
 
     @property
     def x(self) -> float: return float(self._tree._positions[self._id, 0])
