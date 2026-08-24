@@ -33,14 +33,14 @@ class Tree():
         self._angle     = np.arctan2(self._positions[:, 1], self._positions[:, 0])
         self._pdist     = np.sqrt(self._positions[:, 0]**2 + self._positions[:, 1]**2)
         self._rgb       = np.zeros((self._num_pixels, 3), dtype=np.uint8)
-        self._changed   = np.zeros(self._num_pixels, dtype=bool)
+        self._changed_arr = np.zeros(self._num_pixels, dtype=bool)
 
-        # lerp state arrays
-        self._lerp_prev   = np.zeros((self._num_pixels, 3), dtype=np.float32)
-        self._lerp_target = np.zeros((self._num_pixels, 3), dtype=np.float32)
+        # lerp state array
+        self._lerp_prev   = np.zeros((self._num_pixels, 3), dtype=np.float64)
+        self._lerp_target = np.zeros((self._num_pixels, 3), dtype=np.float64)
         self._lerp_step   = np.zeros(self._num_pixels, dtype=np.int32)
         self._lerp_total  = np.zeros(self._num_pixels, dtype=np.int32)
-        self._lerp_fn     = [linear] * self._num_pixels  # python list, not np array
+        self._lerp_fn     = [linear] * self._num_pixels  # plain list
 
         self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
@@ -72,6 +72,8 @@ class Tree():
         
         self._background = None
         self._fps = 9999
+
+        self._color_buffer = [0]*self._num_pixels
 
     def _pattern_reset(self):
         self._pattern_started_at = time.time()
@@ -107,46 +109,46 @@ class Tree():
         b = self._rgb[:, 2].astype(np.uint32)
         packed = (r << 8) | (g << 16) | b
 
-        # Non-changed pixels are set to background colour
+        changed_mask = self._changed_arr.copy()
+
         if self._background:
             bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-            packed[~self._changed] = bg
+            packed[~changed_mask] = bg
 
-        # only changed pixels need lerp reset
-        for i in np.nonzero(self._changed)[0]:
+        for i in np.nonzero(changed_mask)[0]:
             self._pixels[i].lerp_reset()
-        self._changed[:] = False
+        self._changed_arr[:] = False
 
         self._advance_all_lerps()
 
+        self._color_buffer = packed.tolist()
         self._frame += 1
-        return packed
+        return self._color_buffer
+
 
     def _advance_all_lerps(self):
         """Vectorized equivalent of calling cont_lerp() on every pixel.
- 
-        Maybe overengineered, lerp is a weird mechanic
-        Mirrors Colour.cont_lerp()
-        cont_lerp() should be removed at some point, or at least deprecated
+
+        Mirrors Color.cont_lerp()
         """
         active = self._lerp_step < self._lerp_total
         if not np.any(active):
             return
- 
+
         self._lerp_step[active] = np.minimum(self._lerp_step[active] + 1, self._lerp_total[active])
- 
+
         idx = np.nonzero(active)[0]
         percent = np.clip(self._lerp_step[idx] / self._lerp_total[idx], 0, 1)
- 
+
         fns = np.array([self._lerp_fn[i] for i in idx], dtype=object)
         for fn in set(fns.tolist()):
             group_mask = fns == fn
             group_idx = idx[group_mask]
-            d = np.asarray(fn(percent[group_mask]), dtype=np.float32).reshape(-1, 1)
+            d = np.array([fn(float(p)) for p in percent[group_mask]], dtype=np.float64).reshape(-1, 1)
             prev = self._lerp_prev[group_idx]
             target = self._lerp_target[group_idx]
-            self._rgb[group_idx] = (prev * (1 - d) + target * d).astype(np.uint8)
-
+            blended = prev * (1 - d) + target * d
+            self._rgb[group_idx] = np.clip(blended, 0, 255).astype(np.uint8)
 
     def _generate_distance_map(self) -> list[list[float]]:
         return [ [dist(pos1, pos2) for pos2 in self._coords] for pos1 in self._coords ]

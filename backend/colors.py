@@ -519,27 +519,27 @@ class Pixel(Color):
     RGB getter/setter overides
     """
     @property
-    def _r(self): return self._tree._rgb[self._id, 0]
+    def _r(self): return int(self._tree._rgb[self._id, 0])
     @_r.setter
     def _r(self, v): self._tree._rgb[self._id, 0] = v
 
     @property
-    def _g(self): return self._tree._rgb[self._id, 1]
+    def _g(self): return int(self._tree._rgb[self._id, 1])
     @_g.setter
     def _g(self, v): self._tree._rgb[self._id, 1] = v
 
     @property
-    def _b(self): return self._tree._rgb[self._id, 2]
+    def _b(self): return int(self._tree._rgb[self._id, 2])
     @_b.setter
     def _b(self, v): self._tree._rgb[self._id, 2] = v
 
     @property
-    def _changed(self): return self._tree._changed[self._id]
+    def _changed(self): return bool(self._tree._changed_arr[self._id])
     @_changed.setter
-    def _changed(self, v): self._tree._changed[self._id] = v
+    def _changed(self, v): self._tree._changed_arr[self._id] = v
 
     """
-    Lerp state getter/setter overrides 
+    Lerp state getter/setter overrides
     """
     @property
     def _L_previous(self): return self._tree._lerp_prev[self._id]
@@ -547,17 +547,17 @@ class Pixel(Color):
     def _L_previous(self, v): self._tree._lerp_prev[self._id] = v
 
     @property
-    def _L_target(self): return self._tree._lerp_target[self._id]
+    def _L_target(self): return tuple(self._tree._lerp_target[self._id].tolist())
     @_L_target.setter
     def _L_target(self, v): self._tree._lerp_target[self._id] = v
 
     @property
-    def _L_step(self): return self._tree._lerp_step[self._id]
+    def _L_step(self): return int(self._tree._lerp_step[self._id])
     @_L_step.setter
     def _L_step(self, v): self._tree._lerp_step[self._id] = v
 
     @property
-    def _L_total(self): return self._tree._lerp_total[self._id]
+    def _L_total(self): return int(self._tree._lerp_total[self._id])
     @_L_total.setter
     def _L_total(self, v): self._tree._lerp_total[self._id] = v
 
@@ -566,9 +566,6 @@ class Pixel(Color):
     @_L_fn.setter
     def _L_fn(self, v): self._tree._lerp_fn[self._id] = v
 
-    """
-    Position property overrides
-    """
     @property
     def x(self) -> float: return float(self._tree._positions[self._id, 0])
     @property
