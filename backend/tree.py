@@ -245,8 +245,7 @@ def fade(n: int = 10):
         ```
     """
     c = Color.black()
-    for pixel in tree._pixels:
-        pixel.lerp(c, n)
+    lerp(c, n)
 
 def background(c: Color):
     """Set the background color of the tree
@@ -271,8 +270,8 @@ def fill(color: Color):
     Args:
         color (Color): The color you want to set the tree to
     """
-    for pixel in tree._pixels:
-        pixel.set(color)
+    tree._rgb[:] = color
+    tree._changed_arr[:] = True
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     """Lerp the entire tree from its current color to the target color over the specified amount of frames
