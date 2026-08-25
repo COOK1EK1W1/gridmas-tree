@@ -78,7 +78,6 @@ class Tree():
         self._background = None
         self._fps = 9999
 
-        self._color_buffer = [0]*self._num_pixels
 
     def _pattern_reset(self):
         self._pattern_started_at = time.time()
@@ -126,9 +125,8 @@ class Tree():
 
         self._advance_all_lerps()
 
-        self._color_buffer = packed.tolist()
         self._frame += 1
-        return self._color_buffer
+        return packed
 
 
     def _advance_all_lerps(self):
