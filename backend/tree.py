@@ -85,21 +85,22 @@ class Tree():
         self._background = None
         self._fps = 45
 
-    def _render_shapes(self):
-        """
-        Temporary function to refactor shape rendering
-        It is no longer baked into the rendering
-        Instead, it acts as a normal pixel modification
-        """
-        if len(self._shapes) == 0:
-            return
 
-        for i in range(self._num_pixels):
-            for shape in reversed(self._shapes):
-                sc = shape.does_draw(self._pixels[i])
-                if sc is not None:
-                    self._pixels[i].set(sc)
-                    break
+    def _render_shapes(self):
+        if len(self._shapes) == 0: return
+
+        undetermined = np.ones(self._num_pixels, dtype=bool)
+
+        for shape in reversed(self._shapes):
+            if not np.any(undetermined):
+                break
+
+            draw_mask, colors = shape.does_draw(self._positions)
+            apply_mask = undetermined & draw_mask
+            if np.any(apply_mask):
+                self._rgb[apply_mask] = colors[apply_mask]
+                self._changed_arr[apply_mask] = True
+                undetermined &= ~apply_mask
 
         self._shapes = []
         
