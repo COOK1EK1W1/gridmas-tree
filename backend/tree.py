@@ -109,20 +109,20 @@ class Tree():
         self._render_shapes()
 
         # pack the whole array at once. vectorized!
-        r = self._rgb[:, 0].astype(np.uint32)
-        g = self._rgb[:, 1].astype(np.uint32)
-        b = self._rgb[:, 2].astype(np.uint32)
-        packed = (r << 8) | (g << 16) | b
+        rgb = self._rgb.astype(np.uint32, copy=False)
+        packed = (rgb[:, 0] << 8) | (rgb[:, 1] << 16) | rgb[:, 2]
 
-        changed_mask = self._changed_arr.copy()
+        changed = self._changed_arr
 
         if self._background:
             bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-            packed[~changed_mask] = bg
+            packed[~changed] = bg
 
-        for i in np.nonzero(changed_mask)[0]:
-            self._pixels[i].lerp_reset()
-        self._changed_arr[:] = False
+        # Reset lerps
+        self._lerp_prev[changed] = rgb[changed]
+        self._lerp_step[changed] = 0
+
+        changed[:] = False
 
         self._advance_all_lerps()
 
