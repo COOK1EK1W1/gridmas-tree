@@ -158,11 +158,23 @@ class Tree():
         ).astype(np.uint8)
 
 
-    def _generate_distance_map(self) -> list[list[float]]:
-        return [ [dist(pos1, pos2) for pos2 in self._coords] for pos1 in self._coords ]
+    def _generate_distance_map(self) -> np.ndarray:
+        positions = self._positions.astype(np.float64, copy=False)
+        diff = positions[:, None, :] - positions[None, :, :]
+        return np.sqrt(np.einsum('ijk,ijk->ij', diff, diff))
 
     def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
-        return [ sorted( zip(self._pixels, dist_row), key=lambda x: x[1]) for dist_row in self._distances]
+        order = np.argsort(self._distances, axis=1, kind="stable")
+        sorted_dists = np.take_along_axis(self._distances, order, axis=1)
+
+        pixels_arr = np.array(self._pixels, dtype=object)
+        sorted_pixels = pixels_arr[order]
+
+        return [
+            list(zip(sorted_pixels[i], sorted_dists[i]))
+            for i in range(self._num_pixels)
+        ]
+
 
 def height() -> float: 
     """The height of the tree
@@ -214,7 +226,12 @@ def set_pixel(n: int, color: Color):
         set_pixel(2, Color.black())
         ```
     """
-    pixels(n).set(color)
+    tree._rgb[n][0] = color._r
+    tree._rgb[n][1] = color._g
+    tree._rgb[n][2] = color._b
+
+    tree._changed_arr[n] = True
+
 
 def set_fps(fps: int):
     """Allows you to change the speed that you want the animation to run at.
@@ -233,6 +250,7 @@ def set_fps(fps: int):
     """
     tree._fps = fps
 
+
 def fade(n: int = 10):
     """Fade the entire tree.
         fades the tree to black over n frames
@@ -246,6 +264,7 @@ def fade(n: int = 10):
     """
     c = Color.black()
     lerp(c, n)
+
 
 def background(c: Color):
     """Set the background color of the tree
@@ -262,6 +281,7 @@ def background(c: Color):
     """
     tree._background = c
 
+
 def fill(color: Color):
     """Set all lights on the tree to one color
 
@@ -272,6 +292,7 @@ def fill(color: Color):
     """
     tree._rgb[:] = color
     tree._changed_arr[:] = True
+
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     """Lerp the entire tree from its current color to the target color over the specified amount of frames
@@ -310,8 +331,56 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     tree._lerp_total[changed] = frames
     tree._lerp_fn = fn
 
-    
 
+def coords():
+    """An array of 3d coordinates mapped directly to the pixels
+    coords()[10] gives the xyz tuple of the 10th pixel in the strip
+    equivelant to pixels(10).xyz
+    """
+    return tree._coords
+
+def sleep(n: int):
+    """sleep for n frames
+
+    example:
+        ```
+        def draw():
+            lerp(Color.black(), 10)
+            yield from sleep(10)
+        ```
+    """
+    for _ in range(n):
+        yield
+
+def frame() -> int:
+    """The current frame number since the start of the pattern
+            example:
+            ```
+            def draw():
+                f = frame() # 1, 2, 3
+                print(f"{f} frames since the pattern started")
+            ```
+"""
+    return tree._frame
+
+def seconds() -> int:
+    """The number of seconds since the start of the pattern"""
+    return math.floor(time.time() - tree._pattern_started_at)
+
+def millis() -> int:
+    """The number of milliseconds since the start of the pattern
+
+        example:
+            ```
+            def draw():
+                s = seconds()
+                m = millis()
+                print(f"{s}:{m} since the pattern started")
+            ```
+    """
+    return math.floor((time.time() - tree._pattern_started_at) * 1000)
+
+    
 def _rotated_z(theta: float, alpha: float) -> np.ndarray:
     """Compute the rotated Z coordinate for every pixel at once.
 
@@ -411,53 +480,5 @@ def _cont_lerp_masked(mask: np.ndarray) -> None:
         255,
     ).astype(np.uint8)
 
-
-def coords():
-    """An array of 3d coordinates mapped directly to the pixels
-    coords()[10] gives the xyz tuple of the 10th pixel in the strip
-    equivelant to pixels(10).xyz
-    """
-    return tree._coords
-
-def sleep(n: int):
-    """sleep for n frames
-
-    example:
-        ```
-        def draw():
-            lerp(Color.black(), 10)
-            yield from sleep(10)
-        ```
-    """
-    for _ in range(n):
-        yield
-
-def frame() -> int:
-    """The current frame number since the start of the pattern
-            example:
-            ```
-            def draw():
-                f = frame() # 1, 2, 3
-                print(f"{f} frames since the pattern started")
-            ```
-"""
-    return tree._frame
-
-def seconds() -> int:
-    """The number of seconds since the start of the pattern"""
-    return math.floor(time.time() - tree._pattern_started_at)
-
-def millis() -> int:
-    """The number of milliseconds since the start of the pattern
-
-        example:
-            ```
-            def draw():
-                s = seconds()
-                m = millis()
-                print(f"{s}:{m} since the pattern started")
-            ```
-    """
-    return math.floor((time.time() - tree._pattern_started_at) * 1000)
 
 tree = Tree()
