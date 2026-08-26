@@ -4,8 +4,9 @@ P.P.S please do not actually wipe the tree, the LEDs do not like being wet and m
 """
 
 from typing import Callable, Optional
-import math
+import numpy as np
 from gridmas import *
+from tree import _rotated_z, _set_masked, _lerp_masked, _cont_lerp_masked
 
 
 def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Color] = None):
@@ -20,29 +21,37 @@ def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Co
         color (Color): The color you are setting
         speed (int): The speed of the animation
         fade (Color | None, optional): Possibly an in between color to be used during the wipe. Defaults to None.
+
+    Note:
+        The outer `for rng in range(...)` loop below is the frame stepper —
+        it has to remain a loop because each iteration must `yield` a
+        separate animation frame. Everything that happens *within* a frame
+        (the coordinate transform and the per-pixel condition check, as well
+        as the actual color/lerp writes) is vectorised with numpy masks
+        instead of looping over pixels.
     """
     # based on Matt Parkers Xmas tree
-    coords2 = [[x, y, z] for [x, y, z] in coords()]
-    for i, coord in enumerate(coords()):
-        coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) + coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
+    scaled_z = _rotated_z(theta, alpha) * 200
 
-    minZ = min([x[2] for x in coords2])
-    maxZ = max([x[2] for x in coords2])
+    min_z = scaled_z.min()
+    max_z = scaled_z.max()
 
-    for rng in range(int(minZ * 200 - 10), int(maxZ * 200 + 10), speed):
-        for i, coord in enumerate(coords2):
-            if rng <= coord[2] * 200 < rng + 10:
-                set_pixel(i, color)
-            else:
-                if fade:
-                    pixels(i).lerp(fade, 50)
+    for rng in range(int(min_z - 10), int(max_z + 10), speed):
+        lit_mask = (scaled_z >= rng) & (scaled_z < rng + 10)
+
+        _set_masked(lit_mask, color)
+
+        if fade:
+            _lerp_masked(~lit_mask, fade, 50)
+
         yield
+
 
 def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade: Optional[Color] = None):
     """wipe_frames wipe for n number of frames
 
     A more predictable version of wipe().
-    
+
     Args:
         theta (float): Angle in radians
         alpha (float): Angle in radians
@@ -51,23 +60,26 @@ def wipe_frames(theta: float, alpha: float, color: Color, frames: int = 45, fade
         fade (Color | None, optional): The color the tree goes to after the wipe. Defaults to None.
     """
     # based on Matt Parkers Xmas tree
-    coords2 = [[x, y, z] for [x, y, z] in coords()]
-    for i, coord in enumerate(coords()):
-        coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) + coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
+    rotated_z = _rotated_z(theta, alpha)
 
-    minZ = min([x[2] for x in coords2])
-    maxZ = max([x[2] for x in coords2])
-    slice_width = (maxZ - minZ) / frames
+    min_z = rotated_z.min()
+    max_z = rotated_z.max()
+    slice_width = (max_z - min_z) / frames
 
-    for slice in range(frames):
-        slice_min = slice * slice_width + minZ
-        slice_max = (slice + 1) * slice_width + minZ
-        for i, coord in enumerate(coords2):
-            if slice_min <= coord[2] <= slice_max:
-                set_pixel(i, color)
-            else:
-                if fade:
-                    pixels(i).lerp(fade, 50)
+    # all slice boundaries computed up-front, vectorised, instead of per-frame arithmetic
+    slice_edges = min_z + np.arange(frames + 1) * slice_width
+
+    for slice_idx in range(frames):
+        slice_min = slice_edges[slice_idx]
+        slice_max = slice_edges[slice_idx + 1]
+
+        lit_mask = (rotated_z >= slice_min) & (rotated_z <= slice_max)
+
+        _set_masked(lit_mask, color)
+
+        if fade:
+            _lerp_masked(~lit_mask, fade, 50)
+
         yield
 
 
@@ -84,22 +96,22 @@ def wipe_wave_frames(theta: float, alpha: float, color: Color, frames: int = 45,
         lerp_frame (int, optional): The number of frames to lerp over. Defaults to 20.
         lerp_fn (Callable[[float], float], optional): Unkown. Defaults to linear.
     """
-    
     # based on Matt Parkers Xmas tree
-    coords2 = [[x, y, z] for [x, y, z] in coords()]
-    for i, coord in enumerate(coords()):
-        coords2[i][2] = math.sin(theta) * (coord[0] * math.sin(alpha) + coord[1] * math.cos(alpha)) + coord[2] * math.cos(theta)
+    rotated_z = _rotated_z(theta, alpha)
 
-    minZ = min([x[2] for x in coords2])
-    maxZ = max([x[2] for x in coords2])
-    slice_width = (maxZ - minZ) / frames
+    min_z = rotated_z.min()
+    max_z = rotated_z.max()
+    slice_width = (max_z - min_z) / frames
 
-    for slice in range(frames):
-        slice_min = slice * slice_width + minZ
-        slice_max = (slice + 1) * slice_width + minZ
-        for i, coord in enumerate(coords2):
-            if slice_min <= coord[2] <= slice_max:
-                pixels(i).lerp(color, lerp_frame, fn=lerp_fn)
-            else:
-                pixels(i).cont_lerp()
+    slice_edges = min_z + np.arange(frames + 1) * slice_width
+
+    for slice_idx in range(frames):
+        slice_min = slice_edges[slice_idx]
+        slice_max = slice_edges[slice_idx + 1]
+
+        wave_mask = (rotated_z >= slice_min) & (rotated_z <= slice_max)
+
+        _lerp_masked(wave_mask, color, lerp_frame, fn=lerp_fn)
+        _cont_lerp_masked(~wave_mask)
+
         yield

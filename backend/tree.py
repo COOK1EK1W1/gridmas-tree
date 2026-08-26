@@ -2,6 +2,7 @@
 
 from math import dist
 import math
+import numpy as np
 from typing import Callable, Optional, Union, overload
 from util import  linear, read_tree_csv
 import time
@@ -28,11 +29,30 @@ class Tree():
         self._num_pixels = int(len(self._coords))
         """The number of pixels on the tree"""
 
-        self._height = max([x[2] for x in self._coords])
-        """The height of the tree"""
+        self._positions = np.array(self._coords, dtype=np.float32)
+        self._angle     = np.arctan2(self._positions[:, 1], self._positions[:, 0])
+        self._pdist     = np.sqrt(self._positions[:, 0]**2 + self._positions[:, 1]**2)
+        self._rgb       = np.zeros((self._num_pixels, 3), dtype=np.uint8)
+        self._changed_arr = np.zeros(self._num_pixels, dtype=bool)
 
-        self._pixels: list[Pixel] = [Pixel(i, (x[0], x[1], x[2]), self) for i, x in enumerate(self._coords)]
+        # lerp state array
+        self._lerp_prev   = np.zeros((self._num_pixels, 3), dtype=np.float64)
+        self._lerp_target = np.zeros((self._num_pixels, 3), dtype=np.float64)
+        self._lerp_step   = np.zeros(self._num_pixels, dtype=np.int32)
+        self._lerp_total  = np.zeros(self._num_pixels, dtype=np.int32)
+
+        # lerp function stored for entire tree, not per pixel
+        # this limits the tree to a single lerp function at once
+        # but improves performance a lot
+        self._lerp_fn = linear
+        
+
+        self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
+
+
+        self._height = float(self._positions[:, 2].max())
+        """The height of the tree"""
 
         # 2d array, cols from, rows to -> dist
         self._distances = self._generate_distance_map()
@@ -58,7 +78,6 @@ class Tree():
         self._background = None
         self._fps = 45
 
-        self._color_buffer = [0]*self._num_pixels
 
     def _pattern_reset(self):
         self._pattern_started_at = time.time()
@@ -66,60 +85,96 @@ class Tree():
         self._background = None
         self._fps = 45
 
-    def _request_frame(self):
-        """For internal use
-        return the current pixel buffer"""
 
-        # loop for every pixel and determine what color it should be
-        for i in range(self._num_pixels):
+    def _render_shapes(self):
+        if len(self._shapes) == 0: return
 
-            # 1. check if the pixel has been directly changed
-            if self._pixels[i]._changed:
-                #colors[i] = self._pixels[i].to_bit_string()
-                self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
+        undetermined = np.ones(self._num_pixels, dtype=bool)
 
-                self._pixels[i]._changed = False
-                self._pixels[i].lerp_reset()
-                continue
+        for shape in reversed(self._shapes):
+            if not np.any(undetermined):
+                break
 
-            # 2. check for objects
-            changed = False
-            for shape in reversed(self._shapes):
-                c = shape.does_draw(self._pixels[i])
-                if c is not None:
-                    # colors[i] = c.to_bit_string()
-                    self._color_buffer[i] = (c._r << 8) | (c._g << 16) | c._b
-                    self._pixels[i].set(c)
-                    self._pixels[i].lerp_reset()
-                    changed = True
-                    break
-            if changed:
-                continue
-
-            # 3. check for background
-            if self._background:
-                # colors[i] = self._background.to_bit_string()
-                self._color_buffer[i] = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-                continue
-
-            # default last color used.
-            #colors[i] = self._pixels[i].to_bit_string()
-            self._color_buffer[i] = (self._pixels[i]._r << 8) | (self._pixels[i]._g << 16) | self._pixels[i]._b
-
-        for i in range(self._num_pixels):
-            self._pixels[i].cont_lerp()
+            draw_mask, colors = shape.does_draw(self._positions)
+            apply_mask = undetermined & draw_mask
+            if np.any(apply_mask):
+                self._rgb[apply_mask] = colors[apply_mask]
+                self._changed_arr[apply_mask] = True
+                undetermined &= ~apply_mask
 
         self._shapes = []
+
+
+    def _request_frame(self):
+        self._render_shapes()
+
+        # pack the whole array at once. vectorized!
+        rgb = self._rgb.astype(np.uint32, copy=False)
+        packed = (rgb[:, 0] << 8) | (rgb[:, 1] << 16) | rgb[:, 2]
+
+        changed = self._changed_arr
+
+        if self._background:
+            bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
+            packed[~changed] = bg
+
+        # Reset lerps
+        self._lerp_prev[changed] = rgb[changed]
+        self._lerp_step[changed] = 0
+
+        changed[:] = False
+
+        self._advance_all_lerps()
+
         self._frame += 1
+        return packed
 
-        return self._color_buffer
+
+    def _advance_all_lerps(self):
+        """Vectorized equivalent of calling cont_lerp() on every pixel.
+
+        Mirrors Color.cont_lerp()
+        """
+        active = self._lerp_step < self._lerp_total
+        if not np.any(active):
+            return
 
 
-    def _generate_distance_map(self) -> list[list[float]]:
-        return [ [dist(pos1, pos2) for pos2 in self._coords] for pos1 in self._coords ]
+        idx = np.nonzero(active)[0]
+        self._lerp_step[idx] += 1
+
+        step = self._lerp_step[idx].astype(np.float64)
+        total = self._lerp_total[idx].astype(np.float64)
+
+        t = np.divide(step, total, out=np.ones_like(step), where=total != 0)
+        t = np.clip(t, 0.0, 1.0)
+
+        eased = self._lerp_fn(t)[:, None]
+
+        self._rgb[idx] = np.clip(
+            (self._lerp_prev[idx] + (self._lerp_target[idx] - self._lerp_prev[idx]) * eased), 
+            0,
+            255,
+        ).astype(np.uint8)
+
+
+    def _generate_distance_map(self) -> np.ndarray:
+        positions = self._positions.astype(np.float64, copy=False)
+        diff = positions[:, None, :] - positions[None, :, :]
+        return np.sqrt(np.einsum('ijk,ijk->ij', diff, diff))
 
     def _generate_pixel_distances(self) -> list[list[tuple[Pixel, float]]]:
-        return [ sorted( zip(self._pixels, dist_row), key=lambda x: x[1]) for dist_row in self._distances]
+        order = np.argsort(self._distances, axis=1, kind="stable")
+        sorted_dists = np.take_along_axis(self._distances, order, axis=1)
+
+        pixels_arr = np.array(self._pixels, dtype=object)
+        sorted_pixels = pixels_arr[order]
+
+        return [
+            list(zip(sorted_pixels[i], sorted_dists[i]))
+            for i in range(self._num_pixels)
+        ]
+
 
 def height() -> float: 
     """The height of the tree
@@ -171,7 +226,12 @@ def set_pixel(n: int, color: Color):
         set_pixel(2, Color.black())
         ```
     """
-    pixels(n).set(color)
+    tree._rgb[n][0] = color._r
+    tree._rgb[n][1] = color._g
+    tree._rgb[n][2] = color._b
+
+    tree._changed_arr[n] = True
+
 
 def set_fps(fps: int):
     """Allows you to change the speed that you want the animation to run at.
@@ -190,6 +250,7 @@ def set_fps(fps: int):
     """
     tree._fps = fps
 
+
 def fade(n: int = 10):
     """Fade the entire tree.
         fades the tree to black over n frames
@@ -202,8 +263,8 @@ def fade(n: int = 10):
         ```
     """
     c = Color.black()
-    for pixel in tree._pixels:
-        pixel.lerp(c, n)
+    lerp(c, n)
+
 
 def background(c: Color):
     """Set the background color of the tree
@@ -220,6 +281,7 @@ def background(c: Color):
     """
     tree._background = c
 
+
 def fill(color: Color):
     """Set all lights on the tree to one color
 
@@ -228,8 +290,9 @@ def fill(color: Color):
     Args:
         color (Color): The color you want to set the tree to
     """
-    for pixel in tree._pixels:
-        pixel.set(color)
+    tree._rgb[:] = color
+    tree._changed_arr[:] = True
+
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     """Lerp the entire tree from its current color to the target color over the specified amount of frames
@@ -247,8 +310,27 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
             lerp(Color.black(), 10) # similar to fade
         ```
     """
-    for pixel in tree._pixels:
-        pixel.lerp(color, frames, fn=fn)
+    target = np.asarray(color.to_tuple(), dtype=np.uint8)
+
+    changed = (
+        np.any(tree._lerp_target != target, axis=1)
+        | (tree._lerp_total != frames)
+    )
+
+    if not np.any(changed):
+        return
+
+    # Save the current RGB values as the interpolation starting point.
+    tree._lerp_prev[changed] = tree._rgb[changed]
+
+    # Reset interpolation progress.
+    tree._lerp_step[changed] = 0
+
+    # Set new interpolation state.
+    tree._lerp_target[changed] = target
+    tree._lerp_total[changed] = frames
+    tree._lerp_fn = fn
+
 
 def coords():
     """An array of 3d coordinates mapped directly to the pixels
@@ -297,5 +379,106 @@ def millis() -> int:
             ```
     """
     return math.floor((time.time() - tree._pattern_started_at) * 1000)
+
+    
+def _rotated_z(theta: float, alpha: float) -> np.ndarray:
+    """Compute the rotated Z coordinate for every pixel at once.
+
+    Helper function for wipe() functions
+
+    Args:
+        theta (float): Angle in radians
+        alpha (float): Angle in radians
+
+    Returns:
+        np.ndarray: An (N,) array of rotated Z values, one per pixel, in the
+            same order as coords()/pixels()
+    """
+    xyz = np.asarray(coords(), dtype=np.float64)
+    x, y, z = xyz[:, 0], xyz[:, 1], xyz[:, 2]
+    return np.sin(theta) * (x * np.sin(alpha) + y * np.cos(alpha)) + z * np.cos(theta)
+
+
+def _set_masked(mask: np.ndarray, color: Color) -> None:
+    """Vectorised equivalent of `[set_pixel(i, color) for i in idx]`.
+
+    Directly writes the color into the tree's underlying rgb array for every
+    pixel where mask is True, and flags those pixels as changed.
+
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel should be set
+        color (Color): The color to set the masked pixels to
+    """
+    if not np.any(mask):
+        return
+
+    rgb = np.asarray(color.to_tuple(), dtype=np.uint8)
+    tree._rgb[mask] = rgb
+    tree._changed_arr[mask] = True
+
+
+def _lerp_masked(mask: np.ndarray, color: Color, frames: int, fn: Callable[[float], float] = linear) -> None:
+    """Vectorised equivalent of `[pixels(i).lerp(color, frames, fn=fn) for i in idx]`.
+
+    Mirrors tree.py's module level lerp(), but scoped to only the pixels selected by mask
+    instead of the whole tree. Only (re)starts the interpolation for pixels whose target/duration
+    actually changed, matching Color.set_lerp()'s no-op-if-unchanged behaviour.
+
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel should start/continue lerping
+        color (Color): The target color to lerp to
+        frames (int): The number of frames to lerp over
+        fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
+    """
+    if not np.any(mask):
+        return
+
+    target = np.asarray(color.to_tuple(), dtype=np.uint8)
+
+    changed = mask & (
+        np.any(tree._lerp_target != target, axis=1)
+        | (tree._lerp_total != frames)
+    )
+
+    if not np.any(changed):
+        return
+
+    tree._lerp_prev[changed] = tree._rgb[changed]
+    tree._lerp_step[changed] = 0
+    tree._lerp_target[changed] = target
+    tree._lerp_total[changed] = frames
+    tree._lerp_fn = fn
+
+
+def _cont_lerp_masked(mask: np.ndarray) -> None:
+    """Vectorised equivalent of `[pixels(i).cont_lerp() for i in idx]`.
+
+    Mirrors tree.py's Tree._advance_all_lerps(), but scoped to only the pixels
+    selected by mask instead of every pixel on the tree.
+
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel's lerp should advance one step
+    """
+    active = mask & (tree._lerp_step < tree._lerp_total)
+    if not np.any(active):
+        return
+
+    idx = np.flatnonzero(active)
+    tree._lerp_step[idx] += 1
+
+    step = tree._lerp_step[idx].astype(np.float64)
+    total = tree._lerp_total[idx].astype(np.float64)
+
+    t = np.divide(step, total, out=np.ones_like(step), where=total != 0)
+    t = np.clip(t, 0.0, 1.0)
+
+    eased = tree._lerp_fn(t)[:, None]
+
+    tree._rgb[idx] = np.clip(
+        (tree._lerp_prev[idx] + (tree._lerp_target[idx] - tree._lerp_prev[idx]) * eased),
+        0,
+        255,
+    ).astype(np.uint8)
+
 
 tree = Tree()
