@@ -76,7 +76,7 @@ class Tree():
         """The list of shapes that the tree can draw"""
         
         self._background = None
-        self._fps = 9999
+        self._fps = 45
 
 
     def _pattern_reset(self):
