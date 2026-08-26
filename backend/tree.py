@@ -312,6 +312,7 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
 
     
 
+
 def coords():
     """An array of 3d coordinates mapped directly to the pixels
     coords()[10] gives the xyz tuple of the 10th pixel in the strip

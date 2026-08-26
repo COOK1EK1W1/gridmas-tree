@@ -505,6 +505,22 @@ class Pixel(Color):
     def __init__(self, id: int, tree: "Tree", color: Color = Color.black()):
         self._id = id
         self._tree = tree
+
+        # Cache views into tree arrays
+        self._rgb_row = tree._rgb[id]
+        self._lerp_prev_row = tree._lerp_prev[id]
+        self._lerp_target_row = tree._lerp_target[id]
+        self._changed_arr = tree._changed_arr
+        self._lerp_step_arr = tree._lerp_step
+        self._lerp_total_arr = tree._lerp_total
+
+        # position/angle/distance are read-only, so store them per-pixel
+        self._x = float(tree._positions[id, 0])
+        self._y = float(tree._positions[id, 1])
+        self._z = float(tree._positions[id, 2])
+        self._a_cached = float(tree._angle[id])
+        self._d_cached = float(tree._pdist[id])
+
         super().__init__(*color.to_tuple())
 
 
@@ -519,47 +535,47 @@ class Pixel(Color):
     RGB getter/setter overides
     """
     @property
-    def _r(self): return int(self._tree._rgb[self._id, 0])
+    def _r(self): return int(self._rgb_row[0])
     @_r.setter
-    def _r(self, v): self._tree._rgb[self._id, 0] = v
+    def _r(self, v): self._rgb_row[0] = v
 
     @property
-    def _g(self): return int(self._tree._rgb[self._id, 1])
+    def _g(self): return int(self._rgb_row[1])
     @_g.setter
-    def _g(self, v): self._tree._rgb[self._id, 1] = v
+    def _g(self, v): self._rgb_row[1] = v
 
     @property
-    def _b(self): return int(self._tree._rgb[self._id, 2])
+    def _b(self): return int(self._rgb_row[2])
     @_b.setter
-    def _b(self, v): self._tree._rgb[self._id, 2] = v
+    def _b(self, v): self._rgb_row[2] = v
 
     @property
-    def _changed(self): return bool(self._tree._changed_arr[self._id])
+    def _changed(self): return bool(self._changed_arr[self._id])
     @_changed.setter
-    def _changed(self, v): self._tree._changed_arr[self._id] = v
+    def _changed(self, v): self._changed_arr[self._id] = v
 
     """
     Lerp state getter/setter overrides
     """
     @property
-    def _L_previous(self): return self._tree._lerp_prev[self._id]
+    def _L_previous(self): return self._lerp_prev_row
     @_L_previous.setter
-    def _L_previous(self, v): self._tree._lerp_prev[self._id] = v
+    def _L_previous(self, v): self._lerp_prev_row[:] = v
 
     @property
-    def _L_target(self): return tuple(self._tree._lerp_target[self._id].tolist())
+    def _L_target(self): return tuple(self._lerp_target_row.tolist())
     @_L_target.setter
-    def _L_target(self, v): self._tree._lerp_target[self._id] = v
+    def _L_target(self, v): self._lerp_target_row[:] = v
 
     @property
-    def _L_step(self): return int(self._tree._lerp_step[self._id])
+    def _L_step(self): return int(self._lerp_step_arr[self._id])
     @_L_step.setter
-    def _L_step(self, v): self._tree._lerp_step[self._id] = v
+    def _L_step(self, v): self._lerp_step_arr[self._id] = v
 
     @property
-    def _L_total(self): return int(self._tree._lerp_total[self._id])
+    def _L_total(self): return int(self._lerp_total_arr[self._id])
     @_L_total.setter
-    def _L_total(self, v): self._tree._lerp_total[self._id] = v
+    def _L_total(self, v): self._lerp_total_arr[self._id] = v
 
     # Sets for entire tree, not just pixel
     @property
@@ -568,17 +584,17 @@ class Pixel(Color):
     def _L_fn(self, v): self._tree._lerp_fn = v
 
     @property
-    def x(self) -> float: return float(self._tree._positions[self._id, 0])
+    def x(self) -> float: return self._x
     @property
-    def y(self) -> float: return float(self._tree._positions[self._id, 1])
+    def y(self) -> float: return self._y
     @property
-    def z(self) -> float: return float(self._tree._positions[self._id, 2])
+    def z(self) -> float: return self._z
     @property
-    def xyz(self) -> tuple[float, float, float]: return tuple(self._tree._positions[self._id].tolist())
+    def xyz(self) -> tuple[float, float, float]: return (self._x, self._y, self._z)
     @property
-    def a(self) -> float: return float(self._tree._angle[self._id])
+    def a(self) -> float: return self._a_cached
     @property
-    def d(self) -> float: return float(self._tree._pdist[self._id])
+    def d(self) -> float: return self._d_cached
 
     @property
     def id(self) -> int:
