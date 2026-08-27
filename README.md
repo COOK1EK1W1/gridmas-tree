@@ -1,8 +1,8 @@
 # Gridmas Tree - Web
-This is a project based on Standup Maths' 500 LED christmas tree. [Watch his video here](https://www.youtube.com/watch?v=TvlpIojusBE)
+This is a project based on Standup Maths' 500 LED Christmas tree. [Watch his video here](https://www.youtube.com/watch?v=TvlpIojusBE)
 
 # Docs
-Documentation for the web edition can be found through the button labeled `Reference` on the homepage, and from the `/reference` section of the website.
+Documentation for the web edition can be found through the button labelled `Reference` on the homepage, and from the `/reference` section of the website.
 
 # How To Setup
 ## Downloading
@@ -19,7 +19,7 @@ To download the Gridmas Tree web editor you can use any of the below tools:
     ```
 
 ## Setup
-Now that you have the project downloaded, you a ready to install the project dependencies.
+Now that you have the project downloaded, you are ready to install the project dependencies.
 It is recommended to use the [NPM Bun](https://www.npmjs.com/package/bun) package for running the project. 
 
 To install the dependencies:
@@ -37,7 +37,7 @@ bun run dev
 This will start a local web server which you can access. There will be an IP address echo'd in your terminal, _copy/paste_ it into your browser of choice to see the web view
 
 # How to run docs locally
-The documentaion for GRIDmas Tree is generated automatically with MKDocs. This is done through MKDocStrings.
+The documentation for GRIDmas Tree is generated automatically with MKDocs. This is done through MKDocStrings.
 To run the docs on a local webserver, you must do the following:
 1. Install dependencies through `pip install -r "requirements.txt"`
 2. Run `mkdocs serve`
