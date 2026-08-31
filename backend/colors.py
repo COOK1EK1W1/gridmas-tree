@@ -7,7 +7,6 @@
 """
 
 import random
-import math
 import colorsys
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -207,7 +206,7 @@ class Color:
     @staticmethod
     def mix(a: "Color", b: "Color", x: float):
         """Mix two colors together
-        
+
         args:
             a: The first color
             b: The second color
@@ -239,7 +238,7 @@ class Color:
         return colorsys.rgb_to_hls(self._r, self._g, self._b)
 
     def to_bit_string(self) -> int:
-        """Return the color as an byte string integer, 
+        """Return the color as an byte string integer,
        int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB"""
         return (self._r << 8) | (self._g << 16) | self._b
 
@@ -247,7 +246,7 @@ class Color:
         """on Set the color to on
 
         Sets the color to the fully on state (white, RGB(255,255,255))
-        
+
         Examples:
             ```py
             my_color = Color.red() # Creates a new color that is red
@@ -264,7 +263,7 @@ class Color:
         """off Set the color to off
 
         Sets the color to the fully off state (black, RGB(0,0,0))
-        
+
         Examples:
             ```py
             my_color = Color.red() # Creates a new color that is red
@@ -285,7 +284,7 @@ class Color:
         Args:
             n (float, optional): Controls the speed of the fade. The larger the number, the faster it will fade. Values less than 1 cause the color to get brighter to a max color of white. Defaults to 1.1.
         """
-        
+
         self._r = int(clamp(self._r / n, 0, 255))
         self._g = int(clamp(self._g / n, 0, 255))
         self._b = int(clamp(self._b / n, 0, 255))
@@ -295,7 +294,7 @@ class Color:
 
     def lerp(self, target: "Color", n: int, override: bool = False, fn: Callable[[float], float] = linear):
         """Linearly interpolate the color from its current color to the target color over n frames.
-        
+
         Each successive call to lerp will advance the interpolation by a frame. After n amount of calls, it will be the target color. Any change to the target or frames amount will reset the interpolation from the current color. fn provides a way to choose an interpolation method, defaults to linear
 
         Examples:
@@ -311,7 +310,7 @@ class Color:
         """
 
         self.set_lerp(target, n, override, fn)
-  
+
     def lerp_reset(self):
         """lerp_reset Reset to lerp step 0
 
@@ -353,15 +352,15 @@ class Color:
         self._b = c._b
 
         self._changed = True
-        
+
     def set_color(self, c: "Color"):
         self._r = c._r
         self._g = c._g
         self._b = c._b
 
         self._changed = True
-    
-    def set_rgb(self, r: int, g: int, b: int):        
+
+    def set_rgb(self, r: int, g: int, b: int):
         """Set the red, green and blue values of the color, values between 0 and 255"""
         self._r = r & 0xff
         self._g = g & 0xff
@@ -410,78 +409,97 @@ class Color:
         self.set_hsl(newh, s, v) # handles the changed and lerp reset
 
     def set_black(self):
+        """set_black Sets the color to black"""
         self._r, self._g, self._b = 0, 0, 0
         self._changed = True
 
     def set_red(self):
+        """set_red Sets the color to red"""
         self._r, self._g, self._b = 255, 0, 0
         self._changed = True
 
     def set_orange(self):
+        """set_orange Sets the color to orange"""
         self._r, self._g, self._b = 252, 81, 8
         self._changed = True
 
     def set_amber(self):
+        """set_amber Sets the color to amber"""
         self._r, self._g, self._b = 251, 136, 10
         self._changed = True
 
     def set_yellow(self):
+        """set_yellow Sets the color to yellow"""
         self._r, self._g, self._b = 234, 163, 8
         self._changed = True
 
     def set_lime(self):
+        """set_lime Sets the color to lime"""
         self._r, self._g, self._b = 107, 202, 3
         self._changed = True
 
     def set_green(self):
+        """set_green Sets the color to green"""
         self._r, self._g, self._b = 0, 255, 0
         self._changed = True
 
     def set_emerald(self):
+        """set_emerald Sets the color to emerald"""
         self._r, self._g, self._b = 23, 178, 106
         self._changed = True
 
     def set_teal(self):
+        """set_teal Sets the color to teal"""
         self._r, self._g, self._b = 23, 175, 150
         self._changed = True
 
     def set_cyan(self):
+        """set_cyan Sets the color to cyan"""
         self._r, self._g, self._b = 21, 170, 210
         self._changed = True
 
     def set_sky(self):
+        """set_sky Sets the color to sky"""
         self._r, self._g, self._b = 20, 146, 241
         self._changed = True
 
     def set_blue(self):
+        """set_blue Sets the color to blue"""
         self._r, self._g, self._b = 0, 0, 255
         self._changed = True
 
     def set_indigo(self):
+        """set_indigo Sets the color to indigo"""
         self._r, self._g, self._b = 78, 64, 255
         self._changed = True
 
     def set_violet(self):
+        """set_violet Sets the color to violet"""
         self._r, self._g, self._b = 122, 47, 255
         self._changed = True
 
     def set_purple(self):
+        """set_purple Sets the color to purple"""
         self._r, self._g, self._b = 155, 30, 255
         self._changed = True
 
     def set_fuchsia(self):
+        "set_fuchsia Sets the color to fuchsia"
         self._r, self._g, self._b = 215, 0, 250
         self._changed = True
 
     def set_pink(self):
+        """set_pink Sets the color to pink"""
         self._r, self._g, self._b = 240, 15, 137
         self._changed = True
 
     def set_rose(self):
+        """set_rose Sets the color to rose"""
         self._r, self._g, self._b = 251, 0, 69
         self._changed = True
 
     def set_white(self):
+        """set_white Sets the color to white"""
         self._r, self._g, self._b = 255, 255, 255
         self._changed = True
 
@@ -528,79 +546,113 @@ class Pixel(Color):
         In the new architecture, this data is stored in separate numpy arrays in Tree
         To ensure compatability, override the getter/setters of rgb, xyz etc
         This trick means the code doesn't need migated, but still gets (most of) the performance
-        increase from the numpy array 
+        increase from the numpy array
     """
 
     """
     RGB getter/setter overides
     """
     @property
-    def _r(self): return int(self._rgb_row[0])
+    def _r(self):
+        return int(self._rgb_row[0])
+
     @_r.setter
     def _r(self, v): self._rgb_row[0] = v
 
     @property
-    def _g(self): return int(self._rgb_row[1])
+    def _g(self):
+        return int(self._rgb_row[1])
+
     @_g.setter
     def _g(self, v): self._rgb_row[1] = v
 
     @property
-    def _b(self): return int(self._rgb_row[2])
+    def _b(self):
+        return int(self._rgb_row[2])
+
     @_b.setter
     def _b(self, v): self._rgb_row[2] = v
 
     @property
-    def _changed(self): return bool(self._changed_arr[self._id])
+    def _changed(self):
+        return bool(self._changed_arr[self._id])
+
     @_changed.setter
-    def _changed(self, v): self._changed_arr[self._id] = v
+    def _changed(self, v):
+        self._changed_arr[self._id] = v
 
     """
     Lerp state getter/setter overrides
     """
     @property
-    def _L_previous(self): return self._lerp_prev_row
+    def _L_previous(self):
+        return self._lerp_prev_row
+
     @_L_previous.setter
-    def _L_previous(self, v): self._lerp_prev_row[:] = v
+    def _L_previous(self, v):
+        self._lerp_prev_row[:] = v
 
     @property
-    def _L_target(self): return tuple(self._lerp_target_row.tolist())
+    def _L_target(self):
+        return tuple(self._lerp_target_row.tolist())
+
     @_L_target.setter
-    def _L_target(self, v): self._lerp_target_row[:] = v
+    def _L_target(self, v):
+        self._lerp_target_row[:] = v
 
     @property
-    def _L_step(self): return int(self._lerp_step_arr[self._id])
+    def _L_step(self):
+        return int(self._lerp_step_arr[self._id])
+
     @_L_step.setter
-    def _L_step(self, v): self._lerp_step_arr[self._id] = v
+    def _L_step(self, v):
+        self._lerp_step_arr[self._id] = v
 
     @property
-    def _L_total(self): return int(self._lerp_total_arr[self._id])
+    def _L_total(self):
+        return int(self._lerp_total_arr[self._id])
+
     @_L_total.setter
-    def _L_total(self, v): self._lerp_total_arr[self._id] = v
+    def _L_total(self, v):
+        self._lerp_total_arr[self._id] = v
 
     # Sets for entire tree, not just pixel
     @property
-    def _L_fn(self): return self._tree._lerp_fn
+    def _L_fn(self):
+        return self._tree._lerp_fn
+
     @_L_fn.setter
-    def _L_fn(self, v): self._tree._lerp_fn = v
+    def _L_fn(self, v):
+        self._tree._lerp_fn = v
 
     @property
-    def x(self) -> float: return self._x
+    def x(self) -> float:
+        return self._x
+
     @property
-    def y(self) -> float: return self._y
+    def y(self) -> float:
+        return self._y
+
     @property
-    def z(self) -> float: return self._z
+    def z(self) -> float:
+        return self._z
+
     @property
-    def xyz(self) -> tuple[float, float, float]: return (self._x, self._y, self._z)
+    def xyz(self) -> tuple[float, float, float]:
+        return (self._x, self._y, self._z)
+
     @property
-    def a(self) -> float: return self._a_cached
+    def a(self) -> float:
+        return self._a_cached
+
     @property
-    def d(self) -> float: return self._d_cached
+    def d(self) -> float:
+        return self._d_cached
 
     @property
     def id(self) -> int:
         """The id in the LED sequence"""
         return self._id
-
 
     def distance_to(self, p: "Pixel") -> float:
         """Find the distance to the passed pixel
@@ -642,6 +694,7 @@ class Pixel(Color):
                 right = mid
         return list(map(lambda x: x[0], self._tree._pixel_distance_matrix[self._id][:left]))
 
+
 def int2tuple(c: int) -> tuple[int, int, int]:
     """conver the 24bit encoded int to tuple of R, G, and B.
        int bitmap encoded as GGGGGGGGRRRRRRRRBBBBBBBB"""
@@ -653,11 +706,9 @@ def tuple2int(t: tuple[int, int, int]) -> int:
     """
     return (t[0] << 8) | (t[1] << 16) | t[2]
 
-
 def tuple2hex(t: tuple[int, int, int]) -> str:
     """Convert an RGB tuple to hex string """
     return '#%02x%02x%02x' % t
-
 
 def hex2tuple(h: str) -> tuple[int, int, int]:
     """Convert a hex string to an RGB tuple"""
