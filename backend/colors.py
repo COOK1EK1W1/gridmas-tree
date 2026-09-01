@@ -665,10 +665,24 @@ class Pixel(Color):
 
     @property
     def a(self) -> float:
+        """a Return the polar angle for this Pixel
+
+         The angle is measured counterclockwise from the polar axis
+
+        Returns:
+            float: The angle measured counterclockwise from the polar origin in degrees
+        """
         return self._a_cached
 
     @property
     def d(self) -> float:
+        """d Return the distance to the pixel from the origin
+
+        The distance from the pole to the pixel
+
+        Returns:
+            float: The distance measured from the pole origin to this point
+        """
         return self._d_cached
 
     @property
