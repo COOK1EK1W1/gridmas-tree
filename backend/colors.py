@@ -654,6 +654,13 @@ class Pixel(Color):
 
     @property
     def xyz(self) -> tuple[float, float, float]:
+        """xyz Get the location of the pixel
+
+        Combines the x, y and z coordinates into a single tuple
+
+        Returns:
+            tuple[float, float, float]: a tuple where in order you get: x, y, z as floats
+        """
         return (self._x, self._y, self._z)
 
     @property
