@@ -60,7 +60,7 @@ def dist(a: Iterable[float], b: Iterable[float]) -> float:
             ```
             dist([0, 0], [3, 4]) # 5
             ```
-    """ 
+    """
     total = 0
     for pair in zip(a, b):
         total += (pair[0] - pair[1]) ** 2

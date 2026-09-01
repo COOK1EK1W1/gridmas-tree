@@ -18,8 +18,6 @@ class Shape(ABC):
     def does_draw(self, positions: np.ndarray):
         """does_draw T.B.D
 
-        
-
         Args:
             positions np.float32 ndarray, shape (num_pixels, 3): Positions of pixels on tree
 
@@ -39,7 +37,7 @@ class Sphere(Shape):
     Args:
         Shape (Shape): Must be an instance of Shape
     """
-    
+
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
         """__init__ Create a sphere
 

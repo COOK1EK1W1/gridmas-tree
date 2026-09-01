@@ -95,6 +95,11 @@ class Fixture(ABC):
         self._fps = 45
 
     def _render_shapes(self):
+        """_render_shapes Renders all shapes that are currently in use
+
+        If no shapes are present, this function immediately returns.
+        If there are shapes, reverse the list and draw them to the tree
+        """
         if len(self._shapes) == 0: return
 
         undetermined = np.ones(self._num_pixels, dtype=bool)

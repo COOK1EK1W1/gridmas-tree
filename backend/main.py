@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
                     case StartPattern(name=name):
                         patternManager.load_pattern(name)
-                        last_change = time.time() + 300 
+                        last_change = time.time() + 300
                         # Make user selected patterns run for 5 mins from the point they start
 
                     case RandomPattern():
@@ -87,7 +87,7 @@ if __name__ == '__main__':
                         patternManager.load_pattern(a[0])
                         last_change = time.time()
 
-                    case _: 
+                    case _:
                         pass
                 req = web_server.get_next_request()
 
