@@ -553,33 +553,76 @@ class Pixel(Color):
     RGB getter/setter overides
     """
     @property
-    def _r(self):
+    def _r(self) -> int:
+        """_r Get the Red value for this pixel
+
+        Returns:
+            int: The Red (r) value of this pixel
+        """
         return int(self._rgb_row[0])
 
     @_r.setter
-    def _r(self, v): self._rgb_row[0] = v
+    def _r(self, value:int) -> None:
+        """_r Set the Red value for this pixel
+
+        Args:
+            value (int): The new Red (r) value for this pixel
+        """
+        self._rgb_row[0] = value
 
     @property
-    def _g(self):
+    def _g(self) -> int:
+        """_g Get the Green value for this pixel
+
+        Returns:
+            int: The Green (g) value of this pixel
+        """
         return int(self._rgb_row[1])
 
     @_g.setter
-    def _g(self, v): self._rgb_row[1] = v
+    def _g(self, value:int) -> None:
+        """_g Set the Green value for this pixel
+
+        Args:
+            value (int): The new Green (g) value for this pixel
+        """
+        self._rgb_row[1] = value
 
     @property
-    def _b(self):
+    def _b(self) -> int:
+        """_b Get the Blue value for this pixel
+
+        Returns:
+            int: The Blue (b) value for this pixel
+        """
         return int(self._rgb_row[2])
 
     @_b.setter
-    def _b(self, v): self._rgb_row[2] = v
+    def _b(self, value:int) -> None:
+        """_b Set the Blue value for this pixel
+
+        Args:
+            value (int): The new Blue (b) value for this pixel
+        """
+        self._rgb_row[2] = value
 
     @property
-    def _changed(self):
+    def _changed(self) -> bool:
+        """_changed Get whether something has been changed or not
+
+        Returns:
+            bool: True if something has changed, false otherwise
+        """
         return bool(self._changed_arr[self._id])
 
     @_changed.setter
-    def _changed(self, v):
-        self._changed_arr[self._id] = v
+    def _changed(self, value:bool) -> None:
+        """_changed Set to indicate that something has changed
+
+        Args:
+            value (bool): The value to store
+        """
+        self._changed_arr[self._id] = value
 
     """
     Lerp state getter/setter overrides
