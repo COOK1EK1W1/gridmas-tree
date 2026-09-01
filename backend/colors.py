@@ -627,14 +627,29 @@ class Pixel(Color):
 
     @property
     def x(self) -> float:
+        """x Get the x coordinate of the Pixel
+
+        Returns:
+            float: the x coordinate
+        """
         return self._x
 
     @property
     def y(self) -> float:
+        """y Get the y coordinate of the Pixel
+
+        Returns:
+            float: the y coordinate
+        """
         return self._y
 
     @property
     def z(self) -> float:
+        """z Get the z coordinate of the Pixel
+
+        Returns:
+            float: the z coordinate
+        """
         return self._z
 
     @property
