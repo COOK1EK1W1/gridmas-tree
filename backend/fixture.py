@@ -79,6 +79,11 @@ class Fixture(ABC):
 
 
     def set_draw_fn(self, draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]]):
+        """set_draw_fn Reset the currently running pattern
+
+        Resets all the runtime data of a pattern.
+        Sets the start time to now, sets the frame to 0, clears the background and resets the frame rate back to 45
+        """
         if self._draw_fn == draw_fn:
             return
         self._draw_fn = draw_fn
