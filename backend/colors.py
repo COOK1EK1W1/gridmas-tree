@@ -713,7 +713,7 @@ class Pixel(Color):
          The angle is measured counterclockwise from the polar axis
 
         Returns:
-            float: The angle measured counterclockwise from the polar origin in degrees
+            float: The polar angle in radians from the x axis going clockwise when looking downward on the tree
         """
         return self._a_cached
 
@@ -724,7 +724,7 @@ class Pixel(Color):
         The distance from the pole to the pixel
 
         Returns:
-            float: The distance measured from the pole origin to this point
+            float: The polar distance from the Z axis (trunk)
         """
         return self._d_cached
 

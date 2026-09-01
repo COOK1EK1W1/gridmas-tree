@@ -20,7 +20,6 @@ class Fixture(ABC):
     def __init__(self, coords: list[tuple[float, float, float]]):
         """For internal use
         Initialise / reset the tree"""
-        
         self._coords = coords
         """The coordinates of all lights on the tree"""
 
@@ -43,7 +42,7 @@ class Fixture(ABC):
         # this limits the tree to a single lerp function at once
         # but improves performance a lot
         self._lerp_fn = linear
-        
+
 
         self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
@@ -62,7 +61,7 @@ class Fixture(ABC):
 
         self._last_update = time.perf_counter()
         """When the last update took place"""
-        
+
         self._render_times: list[float] = []
         """A list of the render times for frames"""
 
@@ -72,7 +71,7 @@ class Fixture(ABC):
 
         self._shapes: list[Shape] = []
         """The list of shapes that the tree can draw"""
-        
+
         self._background = None
 
         self._draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
@@ -165,7 +164,7 @@ class Fixture(ABC):
         eased = self._lerp_fn(t)[:, None]
 
         self._rgb[idx] = np.clip(
-            (self._lerp_prev[idx] + (self._lerp_target[idx] - self._lerp_prev[idx]) * eased), 
+            (self._lerp_prev[idx] + (self._lerp_target[idx] - self._lerp_prev[idx]) * eased),
             0,
             255,
         ).astype(np.uint8)
@@ -236,7 +235,7 @@ class CompoundFixture(Fixture):
         ...
 
 
-def height() -> float: 
+def height() -> float:
     """The height of the tree
 
     Examples:
@@ -305,7 +304,7 @@ def set_fps(fps: int):
         def draw():
             pass # called 30 times per second
         ```
-        
+
     """
     get_active_fixture()._fps = fps
 
