@@ -43,6 +43,8 @@ class WebServer:
         self.thread = None
         self.should_stop = False
 
+        self.request_queue.put(StartPattern("on"))
+
 
         ## util lights
 

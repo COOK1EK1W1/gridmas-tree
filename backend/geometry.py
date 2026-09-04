@@ -3,8 +3,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 import numpy as np
+from fixture import Fixture
 from colors import Color, Pixel
-from tree import tree
+from GMT2025back import tree
 
 class Shape(ABC):
     """Shape Contains a shape
@@ -40,7 +41,7 @@ class Sphere(Shape):
         Shape (Shape): Must be an instance of Shape
     """
     
-    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
+    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color, fixture: Fixture = tree):
         """__init__ Create a sphere
 
         Create an instance of Sphere
@@ -56,7 +57,7 @@ class Sphere(Shape):
         self.radius2 = radius * radius  # store squared radius
         self.inner_radius = radius / 1.73205  # for inscribed cube
         self.color = color
-        tree._shapes.append(self)
+        fixture._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         center = np.array([self.x, self.y, self.z])
@@ -69,14 +70,14 @@ class Sphere(Shape):
         return mask, colors
 
 class Box(Shape):
-    def __init__(self, pos: tuple[float, float, float], length: float, color: Color):
+    def __init__(self, pos: tuple[float, float, float], length: float, color: Color, fixture: Fixture=tree):
         self.pos = pos
         self.x = pos[0]
         self.y = pos[1]
         self.z = pos[2]
         self.length = length
         self.color = color
-        tree._shapes.append(self)
+        fixture._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         center = np.array([self.x, self.y, self.z])
@@ -96,7 +97,7 @@ class Line(Shape):
     Args:
         Shape (Shape): Must be an instance of Shape
     """
-    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color):
+    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color, fixture: Fixture=tree):
         """__init__ Create a line
 
         Create a new instance of Line
@@ -119,7 +120,7 @@ class Line(Shape):
         self.vz = self.bz - self.az
         self.len2 = self.vx*self.vx + self.vy*self.vy + self.vz*self.vz
 
-        tree._shapes.append(self)
+        fixture._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         a = np.array([self.ax, self.ay, self.az])

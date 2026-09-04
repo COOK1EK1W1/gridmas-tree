@@ -6,10 +6,10 @@ from types import GeneratorType, ModuleType
 import os
 from typing import Generator
 import attribute
+from pixel_driver import DriverRegistry
 from util import tcolors
 import math
 import importlib
-from tree import tree
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -67,7 +67,7 @@ class PatternManager:
         This module is intended for internal use only. You do not need to use any of this in your pattern code
     """
     
-    def __init__(self, pattern_dir: str):
+    def __init__(self, pattern_dir: str, driver_registry: DriverRegistry):
         """__init__ Initialise the pattern manager
 
         Create a new instance of the pattern manager and load the `on` pattern
@@ -81,6 +81,8 @@ class PatternManager:
         self.currentPattern = self.patterns["on"]
 
         self.generator = None
+    
+        self.driver_registry = driver_registry
 
 
     def load_patterns(self, pattern_dir: str):
@@ -116,28 +118,6 @@ class PatternManager:
         attribute.Store.get_store().reset()
         self.patterns = patterns
 
-
-    def draw_current(self):
-        """draw_current Draw the current pattern
-
-        Takes the currently loaded pattern and runs it, if no pattern is loaded then nothing will happen
-        """
-        if self.currentPattern != None:
-            try:
-                if self.generator:
-                    next(self.generator)
-                else:
-                    res: Generator[None, None, None] | None = self.currentPattern.draw()
-                    if isinstance(res, GeneratorType):
-                        self.generator = res
-            except Exception as e:
-                print(f"Current pattern in draw_current:{self.currentPattern}")
-                print(e)
-                
-                self.generator = None
-                self.currentPattern = None
-                # print("There was an error", e)
-
     def load_pattern(self, name: str):
         """load_pattern Loads a pattern
 
@@ -166,6 +146,8 @@ class PatternManager:
 
         self.generator = None
         print(attribute.Store.get_store().store)
+
+        self.driver_registry.update_draw(self.currentPattern.draw)
 
     def unload_pattern(self):
         """unload_pattern Resets the manager state

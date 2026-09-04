@@ -15,11 +15,12 @@ class PixelDriver(ABC):
 
 
     def run(self):
-        cur_fps = 45
+        cur_fps = 2
         start_time = time.perf_counter()
         self.init()
 
         while True:
+            print(cur_fps)
             try:
                 data = self.queue.get(timeout=0.04)
                 if data is None:

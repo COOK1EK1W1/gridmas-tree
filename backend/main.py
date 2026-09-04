@@ -1,16 +1,7 @@
-"""This is the main entry point for GRIDmas Tree."""
-
-__author__ = "Cairan Cook"
-"""Code Author"""
-
-__documenter__ = "Owen Plimer"
-"""Documentation author"""
-
 #!/usr/bin/python3
 
-from renderer import Renderer
+from pixel_driver import driver_registry, NetworkPixelDriver
 from pattern_manager import PatternManager
-from tree import tree
 from web_server import DrawFrame, StartPattern, StopPattern, WebServer, RandomPattern
 import argparse
 import signal
@@ -44,16 +35,12 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    # initialise tree
-    tree.init(args.tree_file or "tree.csv")
+    driver_registry.register(NetworkPixelDriver("localhost", 10, "D1", 2))
+    driver_registry.register(NetworkPixelDriver("localhost", 10, "D2", 3))
 
     # Start pattern manager and load patterns
-    patternManager = PatternManager(args.pattern_dir or "patterns/")
-
-    tree._fps = 45
-
-    # Initialise the rendering pipeline
-    renderer = Renderer(tree._coords)
+    patternManager = PatternManager(args.pattern_dir or "patterns/", driver_registry)
+    
 
     # Web server
     is_rate_limit = False
@@ -76,7 +63,6 @@ if __name__ == '__main__':
     t = 0
     last_change = time.time()
 
-    print(auto_pattern)
     ## main loop
     try:
         while True:
@@ -93,19 +79,11 @@ if __name__ == '__main__':
                         patternManager.unload_pattern()
 
                     case StartPattern(name=name):
-                        tree._pattern_reset()
                         patternManager.load_pattern(name)
                         last_change = time.time() + 300 
                         # Make user selected patterns run for 5 mins from the point they start
 
-                    case DrawFrame(frame=frame):
-                        patternManager.unload_pattern()
-                        for i, pixel in enumerate(frame):
-                            if (pixel != None):
-                                tree._pixels[i].set_rgb(pixel[0], pixel[1], pixel[2])
-
                     case RandomPattern():
-                        tree._pattern_reset()
                         patternManager.unload_pattern()
                         a = list(patternManager.patterns.keys())
                         random.shuffle(a)
@@ -116,15 +94,8 @@ if __name__ == '__main__':
                         pass
                 req = web_server.get_next_request()
 
-            # 2. call draw()
-            patternManager.draw_current()
-
-            # 3. get pixels from tree instance
-            frame = tree._request_frame()
-            fps = tree._fps
-
             # 4. send to pixel driver | blocks until space
-            renderer.add_to_queue(frame, fps)
+            driver_registry.draw_and_flush_drivers()
 
     except KeyboardInterrupt:
         print("\nShutting down gracefully...")
