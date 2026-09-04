@@ -128,12 +128,13 @@ sys.stdout = JSWriter()
 sys.stderr = JSWriter()`)
 
           // initialize the tree so that pixels() etc. are available
+          // (tree is already constructed by GMT2025back.py's `Volume.from_csv` at import time)
           pyodide.runPython(`
 import sys
+import time
 import importlib
 from gridmas import *
 Store.instance = None
-tree.init("tree.csv")
 `)
           setLibsReady(true)
 

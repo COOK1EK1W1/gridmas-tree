@@ -151,8 +151,11 @@ except Exception as e:
     print_to_react(f"Error in pattern execution: {e}", 0)
     pattern_generator = None
 
-# Get the current tree state after pattern execution
-tree._request_frame()
+# Hand the freshly-drawn frame to pi1 (the web driver, auto-selected by
+# GMT2025back.py) tagged with "now" as its presentation time, then pull back
+# whichever buffered frame is currently due, same interface the pygame driver uses.
+pi1.flush(tree._request_frame(), time.time())
+pi1.pop_due_frame()
 `)
 
             const l = res.toJs()

@@ -1,15 +1,30 @@
+import math
+import time
 from typing import Callable, Optional, Union, overload
 from util import linear
 from colors import Color
 from fixture import Volume
 from pixel_driver import NetworkPixelDriver, driver_registry
-from pygame_driver import PygamePixelDriver
 import numpy as np
 
 tree = Volume.from_csv("tree.csv")
 
+
+def _pick_driver(pixel_count: int, name: str, fps: int):
+    """Pick the pygame driver on a desktop dev machine, or the web driver when
+    running inside Pyodide (pygame/PyOpenGL aren't available there)."""
+    try:
+        from pygame_driver import PygamePixelDriver
+
+        return PygamePixelDriver(pixel_count, name, fps)
+    except ImportError:
+        from web_driver import WebPixelDriver
+
+        return WebPixelDriver(pixel_count, name, fps)
+
+
 # pi1 = NetworkPixelDriver("pi1.local", 1000, "pi1", 3)
-pi1 = PygamePixelDriver(tree._num_pixels, "pi1", 45)
+pi1 = _pick_driver(tree._num_pixels, "pi1", 45)
 
 pi1.add_fixture(tree, 0)
 
