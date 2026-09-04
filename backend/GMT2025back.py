@@ -3,10 +3,13 @@ from util import linear
 from colors import Color
 from fixture import Volume
 from pixel_driver import NetworkPixelDriver, driver_registry
+from pygame_driver import PygamePixelDriver
 import numpy as np
 
-pi1 = NetworkPixelDriver("pi1.local", 1000, "pi1", 3)
 tree = Volume.from_csv("tree.csv")
+
+# pi1 = NetworkPixelDriver("pi1.local", 1000, "pi1", 3)
+pi1 = PygamePixelDriver(tree._num_pixels, "pi1", 45)
 
 pi1.add_fixture(tree, 0)
 

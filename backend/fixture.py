@@ -42,7 +42,7 @@ class Fixture(ABC):
         self._lerp_fn = linear
         
 
-        self._pixels: list[Pixel] = [Pixel(i, self._coords[i]) for i in range(self._num_pixels)]
+        self._pixels: list[Pixel] = [Pixel(i, self) for i in range(self._num_pixels)]
         """The list of all pixels on the tree"""
 
 
@@ -124,7 +124,7 @@ class Fixture(ABC):
         self._advance_all_lerps()
 
         self._frame += 1
-        return packed
+        return rgb
 
 
     def _advance_all_lerps(self):

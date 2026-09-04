@@ -7,8 +7,8 @@ import time
 from fixture import Fixture
 
 
-PREROLL = 2
-BUFFER = 3
+PREROLL = 1
+BUFFER = 1
 
 class PixelDriver(ABC):
 
@@ -36,13 +36,13 @@ class PixelDriver(ABC):
                 print(fixture)
                 if fixture.draw_fn is not None:
                     fixture.draw_fn()
-                    fixture._request_frame()
-            self.flush(self.last_frame_time)
+                    frame = fixture._request_frame()
+                    self.flush(frame, self.last_frame_time)
             print(f"{self.name} frame for {self.last_frame_time}, generated at {time.time()}")
 
 
     @abstractmethod
-    def flush(self, t: float):
+    def flush(self, frame, t: float):
         ...
 
     def update_draw(self, draw_fn: Callable):
@@ -55,9 +55,9 @@ class NetworkPixelDriver(PixelDriver):
         super().__init__(pixel_count, name, fps)
         self._address = address
 
-    def flush(self, t: float):
+    def flush(self, frame, t: float):
         for fixture, offset in self.fixtures:
-            for pixel in fixture._pixels:
+            for pixel in frame:
                 print(f"({pixel.r}, {pixel.g}, {pixel.b}) ", end="")
             print()
 
