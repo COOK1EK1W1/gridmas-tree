@@ -1,17 +1,7 @@
 """A PixelDriver for the browser (Pyodide) build of the web editor.
 
-The desktop drivers (pygame_driver.py) render frames using the timing model in
-PixelDriver.draw_and_flush_driver(): frames are computed ahead of real time and
-tagged with the wall-clock time they should be shown, then displayed whenever
-that time comes due. In the browser, treevis.tsx's requestAnimationFrame loop
-drives frame computation itself one step at a time, so this driver just needs
-to hand back whichever buffered frame is due each time it's polled - there's
-no separate process pulling frames on its own schedule.
-
-Kept in its own module (rather than pixel_driver.py) so the desktop path never
-has to import it, and vice versa - pygame_driver.py fails to import under
-Pyodide (no pygame/PyOpenGL there), which is exactly what GMT2025back.py uses
-to fall back to this driver automatically.
+Unlike the network driver, the javascript polls the frames directly,
+so this driver only needs to hand back frame when it's polled.
 """
 
 import time
@@ -42,8 +32,7 @@ class WebPixelDriver(PixelDriver):
         """Advance to the newest buffered frame that is now due, and return it.
 
         If several frames have become due since the last poll, skip straight to
-        the newest one rather than replaying the backlog - matches
-        PygamePixelDriver._play_due_frames().
+        the newest one rather than replaying the backlog.
         """
         now = time.time()
         while self._frame_buffer and self._frame_buffer[0][0] <= now:

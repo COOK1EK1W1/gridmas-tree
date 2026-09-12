@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Generator, Literal, Optional
 import numpy as np
-from dataclasses import dataclass
 import time
+
+from numpy._core.numeric import ndarray
 
 from fixture import Fixture
 
@@ -20,58 +21,69 @@ class PixelDriver(ABC):
         self.fps = fps
         self.name = name
 
+        # once-a-second effective-fps log, so the compute rate is visible
+        # without a print() on every single frame
+        self._frames_since_log = 0
+        self._last_log_at = time.time()
+
     def add_fixture(self, f: Fixture, index: int):
         self.fixtures.append((f, index))
         len(f.pixels())
 
-    def draw_and_flush_driver(self):
+    def draw_and_flush_driver(self) -> bool:
+        """Generate and flush one frame if the lookahead horizon calls for it.
+
+        Returns:
+            bool: True if a frame was generated this call, False if we're
+                already computed far enough ahead of real time. The caller uses
+                this to decide whether to sleep - spinning here would starve the
+                driver's own network sender threads of the GIL.
+        """
         now = time.time()
         needs_frame = self.last_frame_time < (now + PREROLL + BUFFER)
-        if needs_frame:
-            if self.last_frame_time == 0:
-                self.last_frame_time = now + 1
-            else:
-                self.last_frame_time += 1 / self.fps
-            for (fixture, offset) in self.fixtures:
-                print(fixture)
-                if fixture.draw_fn is not None:
-                    fixture.draw_fn()
-                    frame = fixture._request_frame()
-                    self.flush(frame, self.last_frame_time)
-            print(f"{self.name} frame for {self.last_frame_time}, generated at {time.time()}")
+        if not needs_frame:
+            return False
+
+        if self.last_frame_time == 0:
+            self.last_frame_time = now + 1
+        else:
+            self.last_frame_time += 1 / self.fps
+        for fixture, _ in self.fixtures:
+            if fixture.draw_fn is not None:
+                fixture.draw_fn()
+                frame = fixture._request_frame()
+                self.flush(frame, self.last_frame_time)
+
+        self._frames_since_log += 1
+        elapsed = now - self._last_log_at
+        if elapsed >= 1.0:
+            print(f"[{self.name}] generating {self._frames_since_log / elapsed:.1f} fps")
+            self._frames_since_log = 0
+            self._last_log_at = now
+        return True
 
 
     @abstractmethod
-    def flush(self, frame, t: float):
+    def flush(self, frame: ndarray[tuple[int, Literal[3]], np.dtype[np.unsignedinteger]], t: float):
         ...
 
-    def update_draw(self, draw_fn: Callable):
+    def update_draw(self, draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
         for fixture, _ in self.fixtures: 
             fixture.draw_fn = draw_fn
-
-
-class NetworkPixelDriver(PixelDriver):
-    def __init__(self, address: str, pixel_count: int, name: str, fps: int):
-        super().__init__(pixel_count, name, fps)
-        self._address = address
-
-    def flush(self, frame, t: float):
-        for fixture, offset in self.fixtures:
-            for pixel in frame:
-                print(f"({pixel.r}, {pixel.g}, {pixel.b}) ", end="")
-            print()
-
 
 
 class DriverRegistry:
     def __init__(self):
         self._registry: list[PixelDriver] = []
 
-    def draw_and_flush_drivers(self):
+    def draw_and_flush_drivers(self) -> bool:
+        """Returns True if any driver generated a frame this call."""
+        produced = False
         for driver in self._registry:
-            driver.draw_and_flush_driver()
+            produced |= driver.draw_and_flush_driver()
+        return produced
 
-    def update_draw(self, draw_fn: Callable):
+    def update_draw(self, draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
         for driver in self._registry:
             driver.update_draw(draw_fn)
 

@@ -5,7 +5,7 @@ import numpy as np
 from util import  linear, read_tree_csv
 import time
 from colors import Pixel
-from typing import TYPE_CHECKING, Callable, Optional, TypeVar
+from typing import TYPE_CHECKING, Callable, Generator, Optional, TypeVar
 if TYPE_CHECKING:
     from geometry import Shape
 
@@ -73,7 +73,7 @@ class Fixture(ABC):
         self._background = None
         self._fps = 2
 
-        self.draw_fn: Optional[Callable] = None
+        self.draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
 
 
     def _pattern_reset(self):
@@ -171,6 +171,9 @@ class Fixture(ABC):
             list(zip(sorted_pixels[i], sorted_dists[i]))
             for i in range(self._num_pixels)
         ]
+    
+    def pixels(self):
+        return self._pixels
 
 
 V = TypeVar('V', bound='Volume')
@@ -187,9 +190,6 @@ class Volume(Fixture):
     @classmethod
     def from_grid(cls: type[V], dim: tuple[int, int, int], pitch: float) -> V:
         ...
-
-    def pixels(self):
-        return self._pixels
 
 W = TypeVar('W', bound='Wall')
 class Wall(Fixture):

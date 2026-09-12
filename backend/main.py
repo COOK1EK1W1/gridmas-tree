@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from pixel_driver import driver_registry, NetworkPixelDriver
+from pixel_driver import driver_registry
 from pattern_manager import PatternManager
-from web_server import DrawFrame, StartPattern, StopPattern, WebServer, RandomPattern
+from web_server import StartPattern, StopPattern, WebServer, RandomPattern
 import argparse
 import signal
 import sys
@@ -34,9 +34,6 @@ if __name__ == '__main__':
     # Set up signal handling for clean shutdown
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-
-    driver_registry.register(NetworkPixelDriver("localhost", 10, "D1", 2))
-    driver_registry.register(NetworkPixelDriver("localhost", 10, "D2", 3))
 
     # Start pattern manager and load patterns
     patternManager = PatternManager(args.pattern_dir or "patterns/", driver_registry)
@@ -73,6 +70,7 @@ if __name__ == '__main__':
 
             # 1 handle web request queue
             req = web_server.get_next_request()
+            handled_request = req is not None
             while req != None:
                 match req:
                     case StopPattern():
@@ -94,8 +92,12 @@ if __name__ == '__main__':
                         pass
                 req = web_server.get_next_request()
 
-            # 4. send to pixel driver | blocks until space
-            driver_registry.draw_and_flush_drivers()
+            # 4. send to pixel driver
+            produced_frame = driver_registry.draw_and_flush_drivers()
+
+            # yield instead of busyloop just incase
+            if not handled_request and not produced_frame:
+                time.sleep(0.0001)
 
     except KeyboardInterrupt:
         print("\nShutting down gracefully...")
