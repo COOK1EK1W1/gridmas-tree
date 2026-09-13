@@ -17,7 +17,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("--port", type=int, required=False, help="The port to host the Web Server")
-parser.add_argument("--tree-file", type=str, required=False, help="Specify where to find the tree.csv file")
 parser.add_argument("--rate-limit", action="store_true", required=False, help="Use this to enable rate limiting on the web server")
 parser.add_argument("--pattern-dir", type=str, required=False, help="Specify the directory where pattern files are stored")
 parser.add_argument("--auto-pattern", type=int, required=False, help="Automatically run through random patterns at the interval you set")

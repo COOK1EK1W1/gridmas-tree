@@ -7,6 +7,7 @@ from colors import Color
 from fixture import Volume
 from pixel_driver import PixelDriver, driver_registry
 import numpy as np
+import geometry
 
 tree = Volume.from_csv("tree.csv")
 
@@ -325,6 +326,18 @@ def _pick_driver(pixel_count: int, name: str, fps: int) -> PixelDriver:
         return WebPixelDriver(pixel_count, name, fps)
 
     return NetworkPixelDriver("localhost", pixel_count, name, fps, 8420)
+
+class Sphere(geometry.Sphere):
+    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
+        super().__init__(pos, radius, color, tree)
+
+class Box(geometry.Box):
+    def __init__(self, pos: tuple[float, float, float], length: float, color: Color):
+        super().__init__(pos, length, color, tree)
+
+class Line(geometry.Line):
+    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color):
+        super().__init__(a, b, stroke, color, tree)
 
 driver = _pick_driver(num_pixels(), "pixel_driver", 45)
 driver.add_fixture(tree, 0)

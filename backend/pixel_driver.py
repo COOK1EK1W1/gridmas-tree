@@ -75,10 +75,14 @@ class PixelDriver(ABC):
 class DriverRegistry:
     def __init__(self):
         self._registry: list[PixelDriver] = []
+        self.last_print = 0
 
     def draw_and_flush_drivers(self) -> bool:
         """Returns True if any driver generated a frame this call."""
         produced = False
+        if len(self._registry) == 0 and time.time() > self.last_print + 1:
+            print("No drivers found")
+            self.last_print = time.time()
         for driver in self._registry:
             produced |= driver.draw_and_flush_driver()
         return produced

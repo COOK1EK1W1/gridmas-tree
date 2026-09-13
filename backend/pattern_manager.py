@@ -2,9 +2,9 @@
     A collection of the pattern manager class and its helper functions
 """
 
-from types import GeneratorType, ModuleType
 import os
-from typing import Generator
+from types import ModuleType
+from typing import Iterable
 import attribute
 from pixel_driver import DriverRegistry
 from util import tcolors
@@ -57,120 +57,50 @@ def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
 
 
 
-
 class PatternManager:
-    """ Manages patterns for the tree
-
-    The pattern manager is in charge of loading, parsing, storing and recalling pattern files
-    
-    Warning:
-        This module is intended for internal use only. You do not need to use any of this in your pattern code
-    """
-    
     def __init__(self, pattern_dir: str, driver_registry: DriverRegistry):
-        """__init__ Initialise the pattern manager
+        self.pattern_dir = pattern_dir
 
-        Create a new instance of the pattern manager and load the `on` pattern
-
-        Args:
-            pattern_dir (str): The directory to search for pattern files. The search is carried out automatically
-        """
-        self.patterns: dict[str, ModuleType] = {}
-        self.load_patterns(pattern_dir)
-
-        self.currentPattern = self.patterns["on"]
-
-        self.generator = None
+        self.current_pattern_module: ModuleType | None = None
     
         self.driver_registry = driver_registry
 
+    def list_patterns(self) -> Iterable[str]:
+        pattern_files = [f for f in os.listdir(self.pattern_dir) if f.endswith(".py")]
+        return map(lambda x: x[:-3], pattern_files)
 
-    def load_patterns(self, pattern_dir: str):
-        """load_patterns Loads the patterns from the pattern_dir
-
-        Searches for .py files inside the patterns directory, and then tries to import them
-
-        Args:
-            pattern_dir (str): The directory to search in
-        """
-
-        print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
-
-        pattern_files = [f for f in os.listdir(pattern_dir) if f.endswith(".py")]
-        patterns: dict[str, ModuleType] = {}
-        for file in pattern_files:
-            print("loading pattern from " + file + "        ", end="\r")
-            try:
-                module_name = os.path.splitext(file)[0]
-                module = __import__("patterns." + module_name)
-                pattern_module = getattr(module, module_name)
-
-                pattern_module.draw
-                name = module_name
-                print_tabulated(name, "", "", 20)
-                patterns[name] = pattern_module
-
-            except Exception as e:
-                print(f"{tcolors.FAIL}skipping {file} | wrong configuration | {e} {tcolors.ENDC}")
-
-        print(f"{tcolors.OKBLUE}{print_message_centered('Loading Patterns', 60, '#')}{tcolors.ENDC}")
+    def load_pattern(self, name: str) -> bool:
+        """ load a pattern, true if success, false if failure """
 
         attribute.Store.get_store().reset()
-        self.patterns = patterns
+        self.driver_registry.clear()
 
-    def load_pattern(self, name: str):
-        """load_pattern Loads a pattern
+        module_string = self.pattern_dir.replace("/", ".") + f"{name}"
+        print(f"Attempting to load pattern: {module_string}")
 
-        Load the pattern with a given name from the patterns directory
-
-        Args:
-            name (str): _description_
-            
-        Note:
-            TODO fix so people cant just inject whatever name they want from client side :skull:
-        """
-        attribute.Store.get_store().reset()
-        print(f"Attempting to load pattern: {name}")
         try:
-            module = __import__("patterns." + name)
-        except:
-            return 
-        
+            module = __import__(module_string)
+        except Exception as e:
+            print(e)
+            return False
+
         pattern_module = getattr(module, name)
         importlib.reload(pattern_module)
 
-        tempVar = self.patterns.get(name)
-        if tempVar is None:
-            return    
-        self.currentPattern = tempVar
+        draw_function = pattern_module.draw
 
-        self.generator = None
-        print(attribute.Store.get_store().store)
+        if draw_function is None:
+            print("pattern does not have draw function")
+            return False
 
-        self.driver_registry.update_draw(self.currentPattern.draw)
+        self.current_pattern_module = pattern_module
+        self.driver_registry.update_draw(draw_function)
+
+        return True
 
     def unload_pattern(self):
-        """unload_pattern Resets the manager state
-
-        Reset the current pattern and generator variables to effectively restart the manager
-        """
-        
-        self.currentPattern = None
+        self.current_pattern = None
         self.generator = None
 
-    def get(self, name: str):
-        """get Gets a pattern
-
-        Fetches the pattern with a given name from the internal pattern list, then returns it
-
-        Args:
-            name (str): The name of the pattern you want to fetch
-
-        Returns:
-            code (str): Returns the python code of the pattern
-        """
-        
-        try:
-            return self.patterns[name]
-        except:
-            return "#No Pattern"
+    def get_current_module(self) -> None | ModuleType:
+        return self.current_pattern_module

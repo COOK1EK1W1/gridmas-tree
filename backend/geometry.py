@@ -5,7 +5,6 @@ from typing import Optional
 import numpy as np
 from fixture import Fixture
 from colors import Color, Pixel
-from GMT2025back import tree
 
 class Shape(ABC):
     """Shape Contains a shape
@@ -41,7 +40,7 @@ class Sphere(Shape):
         Shape (Shape): Must be an instance of Shape
     """
     
-    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color, fixture: Fixture = tree):
+    def __init__(self, pos: tuple[float, float, float], radius: float, color: Color, fixture: Fixture):
         """__init__ Create a sphere
 
         Create an instance of Sphere
@@ -70,7 +69,7 @@ class Sphere(Shape):
         return mask, colors
 
 class Box(Shape):
-    def __init__(self, pos: tuple[float, float, float], length: float, color: Color, fixture: Fixture=tree):
+    def __init__(self, pos: tuple[float, float, float], length: float, color: Color, fixture: Fixture):
         self.pos = pos
         self.x = pos[0]
         self.y = pos[1]
@@ -97,7 +96,7 @@ class Line(Shape):
     Args:
         Shape (Shape): Must be an instance of Shape
     """
-    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color, fixture: Fixture=tree):
+    def __init__(self, a: tuple[float, float, float], b: tuple[float, float, float], stroke: float, color: Color, fixture: Fixture):
         """__init__ Create a line
 
         Create a new instance of Line
