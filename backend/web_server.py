@@ -116,8 +116,7 @@ class WebServer:
         def pattern(pattern: str):
             self.request_queue.put(StartPattern(pattern))
             time.sleep(0.1)
-            print(manager.get())
-            return render_template('pattern_config.html', pattern=manager.get(), attributes=Store.get_store())
+            return render_template('pattern_config.html', pattern=manager.get_current_module(), attributes=Store.get_store())
 
         ## Web interface
 

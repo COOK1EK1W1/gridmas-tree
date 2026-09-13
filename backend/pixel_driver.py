@@ -3,7 +3,7 @@ from typing import Callable, Generator, Literal, Optional
 import numpy as np
 import time
 
-from numpy._core.numeric import ndarray
+from numpy import ndarray
 
 from fixture import Fixture
 
