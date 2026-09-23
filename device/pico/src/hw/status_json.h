@@ -13,6 +13,6 @@
  * written (excluding the NUL terminator), or 0 if buf_len was too small. */
 size_t status_json_build(char *buf, size_t buf_len, const frame_buffer_t *fb,
                           bool synced, int64_t last_sync_offset_us, int64_t last_sync_delay_us,
-                          uint32_t uptime_s, int64_t now_us);
+                          uint32_t uptime_s, int64_t now_us, uint32_t frames_dropped_presync);
 
 #endif

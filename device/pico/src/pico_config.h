@@ -17,25 +17,6 @@
 #define PICO_FRAME_SLOT_COUNT 90  /* ~2s at 45fps, matching the controller's PREROLL+BUFFER lookahead */
 #define PICO_LATE_GRACE_US 250000 /* drop, don't show, a frame shown later than this past its due time */
 
-/* -- Chunking (mirrors backend/network_driver.py's PIXELS_PER_CHUNK) - see
- * docs/docs/network-pixel-protocol.md for the wire format this sizes. */
-#define PICO_PIXELS_PER_CHUNK 480
-#define PICO_MAX_CHUNKS_PER_FRAME (((PICO_MAX_PIXELS_TOTAL) + (PICO_PIXELS_PER_CHUNK) - 1) / (PICO_PIXELS_PER_CHUNK))
-
-/* -- Gap detection / retransmission (docs/docs/network-pixel-protocol.md
- * "Gap detection and retransmission") --
- *
- * PICO_MAX_PENDING_FRAMES is deliberately much smaller than
- * PICO_FRAME_SLOT_COUNT: each pending slot pre-allocates a full
- * PICO_MAX_PIXELS_TOTAL*3-byte payload buffer for reassembly, and in
- * practice only a handful of frames are ever mid-reassembly at once (a
- * frame is at most PICO_MAX_CHUNKS_PER_FRAME chunks, which normally
- * resolves in well under one frame interval). Doubling frame_buffer_t's
- * footprint to match PICO_FRAME_SLOT_COUNT here isn't worth the SRAM. */
-#define PICO_STALL_AFTER 3        /* later frames completed before a gap is NAK'd */
-#define PICO_MAX_PENDING_FRAMES 8 /* frames mid-reassembly at once */
-#define PICO_NAK_QUEUE_CAPACITY (PICO_MAX_PENDING_FRAMES * PICO_MAX_CHUNKS_PER_FRAME)
-
 /* -- Time sync -- */
 #define PICO_SNTP_RESYNC_INTERVAL_S 300 /* 5 minutes - starting point, tune against measured drift */
 #define PICO_SNTP_BURST_SAMPLES 6       /* exchanges per resync; lowest-round-trip-delay one wins */
@@ -48,14 +29,13 @@
 
 /* -- Networking --
  *
- * PICO_HTTP_PORT is used for both transports: the TCP listener for
- * GET /status and POST /clear (hw/http_server.c), and the UDP socket for
- * frame data + NAKs (hw/udp_frame_server.c) - TCP and UDP port numbers are
- * independent namespaces, and the controller likewise reuses one port
- * number for both (see backend/network_driver.py). */
+ * PICO_HTTP_PORT serves GET /status and POST /clear (hw/http_server.c).
+ * PICO_WS_PORT is a separate TCP listener for the WebSocket data plane
+ * (hw/ws_frame_server.c) - see docs/docs/network-pixel-protocol.md. */
 #define PICO_HTTP_PORT 8420
-#define PICO_MAX_CONCURRENT_CONNS 4 /* keep-alive HTTP connections accepted at once (status/clear only -
-                                     * frame data no longer goes over TCP) */
+#define PICO_WS_PORT (PICO_HTTP_PORT + 1)
+#define PICO_MAX_CONCURRENT_CONNS 4 /* keep-alive HTTP connections accepted at once (status/clear only) */
+#define PICO_WS_CREDIT_HEARTBEAT_MS 250 /* resend a CREDIT snapshot at least this often even if unchanged */
 
 /* -- Resilience --
  *

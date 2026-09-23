@@ -10,17 +10,17 @@
 
 /* Hand-rolled HTTP/1.1 server on lwIP's raw tcp_pcb API, implementing
  * docs/docs/network-pixel-protocol.md's control plane: GET /status and
- * POST /clear. Frame data (and NAK-based retransmission) is UDP, not
- * HTTP - see hw/udp_frame_server.c. Supports keep-alive (see
- * docs/docs/pico-device.md's Q4) - a connection stays open across
- * multiple requests instead of forcing a handshake per request.
+ * POST /clear. Frame data is WebSocket, not HTTP - see
+ * hw/ws_frame_server.c, on its own port. Supports keep-alive (see
+ * docs/docs/pico-device.md) - a connection stays open across multiple
+ * requests instead of forcing a handshake per request.
  *
  * Runs entirely from lwIP's callback context on core0 - see main.c.
  * /clear crosses into the frame_buffer shared with core1 (and with
- * hw/udp_frame_server.c's access from the same lwIP callback context) via
+ * hw/ws_frame_server.c's access from the same lwIP callback context) via
  * `fb_lock`, since frame_buffer.c is not thread-safe on its own. main.c
  * owns the one critical_section_t and passes the same pointer to
- * http_server_init(), udp_frame_server_init(), and core1's own frame_buffer
+ * http_server_init(), ws_frame_server_init(), and core1's own frame_buffer
  * calls - each module creating its own critical_section_t here would claim
  * separate hardware spinlocks that don't exclude each other at all. */
 

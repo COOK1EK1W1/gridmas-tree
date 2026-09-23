@@ -2,6 +2,7 @@
 #define HW_WIFI_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Brings up Wi-Fi (cyw43/lwIP), disables power-save, and joins the hardcoded
  * network from wifi_secrets.h. Blocks (retrying indefinitely) until the
@@ -18,5 +19,12 @@
 void wifi_init_and_connect_blocking(void);
 void wifi_poll(void);
 bool wifi_is_up(void);
+
+/* Current signal strength (dBm, negative - closer to 0 is stronger) to the
+ * associated AP, or 0 if not connected. A weak/marginal RSSI is a common
+ * cause of intermittent connect timeouts on the CYW43439's small onboard
+ * antenna that has nothing to do with this firmware's protocol logic -
+ * surfaced in main.c's periodic diagnostic line for that reason. */
+int32_t wifi_rssi(void);
 
 #endif

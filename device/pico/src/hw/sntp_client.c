@@ -4,6 +4,7 @@
 
 #include "lwip/ip_addr.h"
 #include "lwip/udp.h"
+#include "pico/cyw43_arch.h"
 #include "pico/time.h"
 
 #include "core/sntp_offset.h"
@@ -67,13 +68,28 @@ static void recv_cb(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_add
 
 void sntp_client_init(const char *server_ip) {
     ip4addr_aton(server_ip, &g_server_addr);
+    /* This "threadsafe_background" cyw43_arch variant services lwIP from a
+     * low-priority IRQ context; per pico/cyw43_arch.h's own documentation,
+     * any lwIP call made from outside of an lwIP-invoked callback (recv_cb
+     * below is one and needs no bracketing) must be bracketed with
+     * cyw43_arch_lwip_begin()/_end() or it races that background processing
+     * - this is what actually caused the "tcp_receive: valid queue len"
+     * PANIC in hw/http_server.c and hw/ws_frame_server.c, which had the
+     * same gap. init()/send_request() here are both called from main()'s
+     * loop, not from a callback, so both need it too. */
+    cyw43_arch_lwip_begin();
     g_pcb = udp_new();
     udp_recv(g_pcb, recv_cb, NULL);
+    cyw43_arch_lwip_end();
 }
 
 static void send_request(void) {
+    cyw43_arch_lwip_begin();
     struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, NTP_PACKET_LEN, PBUF_RAM);
-    if (!p) return;
+    if (!p) {
+        cyw43_arch_lwip_end();
+        return;
+    }
     memset(p->payload, 0, NTP_PACKET_LEN);
     ((uint8_t *)p->payload)[0] = 0x23; /* LI=0, VN=4, Mode=3 (client) */
 
@@ -83,6 +99,7 @@ static void send_request(void) {
 
     udp_sendto(g_pcb, p, &g_server_addr, NTP_PORT);
     pbuf_free(p);
+    cyw43_arch_lwip_end();
 }
 
 void sntp_client_start_sync(void) {

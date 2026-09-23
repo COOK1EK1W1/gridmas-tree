@@ -8,7 +8,7 @@
 
 size_t status_json_build(char *buf, size_t buf_len, const frame_buffer_t *fb,
                           bool synced, int64_t last_sync_offset_us, int64_t last_sync_delay_us,
-                          uint32_t uptime_s, int64_t now_us) {
+                          uint32_t uptime_s, int64_t now_us, uint32_t frames_dropped_presync) {
     pico_unique_board_id_t id;
     pico_get_unique_board_id(&id);
     char id_hex[2 * PICO_UNIQUE_BOARD_ID_SIZE_BYTES + 1];
@@ -26,14 +26,14 @@ size_t status_json_build(char *buf, size_t buf_len, const frame_buffer_t *fb,
         "\"clock\":%.6f,"
         "\"synced\":%s,"
         "\"sync\":{\"offset_us\":%lld,\"delay_us\":%lld},"
-        "\"queue\":{\"depth\":%u,\"capacity\":%d},"
+        "\"queue\":{\"depth\":%u,\"capacity\":%d,\"free_slots\":%u},"
         "\"stats\":{"
           "\"frames_received\":%u,"
           "\"frames_shown\":%u,"
           "\"frames_dropped_late\":%u,"
           "\"frames_dropped_queue_full\":%u,"
-          "\"naks_sent\":%u,"
-          "\"chunks_rejected\":%u"
+          "\"frames_rejected_bad_payload\":%u,"
+          "\"frames_dropped_presync\":%u"
         "}"
         "}",
         id_hex,
@@ -42,9 +42,9 @@ size_t status_json_build(char *buf, size_t buf_len, const frame_buffer_t *fb,
         now_us / 1e6,
         synced ? "true" : "false",
         (long long)last_sync_offset_us, (long long)last_sync_delay_us,
-        frame_buffer_depth(fb), PICO_FRAME_SLOT_COUNT,
+        frame_buffer_depth(fb), PICO_FRAME_SLOT_COUNT, frame_buffer_free_slots(fb),
         fb->frames_received, fb->frames_shown, fb->frames_dropped_late, fb->frames_dropped_queue_full,
-        fb->naks_sent, fb->chunks_rejected);
+        fb->frames_rejected_bad_payload, frames_dropped_presync);
 
     if (n < 0 || (size_t)n >= buf_len) return 0;
     return (size_t)n;

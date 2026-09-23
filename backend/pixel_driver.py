@@ -8,8 +8,8 @@ from numpy import ndarray
 from fixture import Fixture
 
 
-PREROLL = 1
-BUFFER = 1
+PREROLL = 0.2
+BUFFER = 0.2
 
 class PixelDriver(ABC):
 

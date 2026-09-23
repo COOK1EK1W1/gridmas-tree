@@ -40,14 +40,30 @@ void wifi_init_and_connect_blocking(void) {
     cyw43_wifi_pm(&cyw43_state, CYW43_NO_POWERSAVE_MODE);
 
     printf("wifi: connecting to \"%s\"...\n", WIFI_SSID);
-    while (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK,
-                                               WIFI_CONNECT_ATTEMPT_TIMEOUT_MS) != 0) {
-        printf("wifi: connect failed, retrying\n");
+    int rc;
+    while ((rc = cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK,
+                                                     WIFI_CONNECT_ATTEMPT_TIMEOUT_MS)) != 0) {
+        /* The SDK already distinguishes these three cases - surfacing which
+         * one it is turns "just keeps retrying" into an actual diagnosis:
+         * BADAUTH means the credentials/auth type are wrong (won't fix
+         * itself by retrying); TIMEOUT means the AP never responded in time
+         * at all (weak signal - see wifi_rssi() in main.c's diagnostic line
+         * -, wrong channel/band, or a congested AP); CONNECT_FAILED covers
+         * everything else the SDK doesn't split out further (e.g. a DHCP
+         * lease that never completed). Previously all three printed the
+         * same "connect failed, retrying" line. */
+        const char *reason = rc == PICO_ERROR_TIMEOUT      ? "timed out - AP didn't respond in time (weak signal, wrong band/channel, or busy AP)"
+                            : rc == PICO_ERROR_BADAUTH      ? "bad auth - check SSID/password/auth type"
+                            : rc == PICO_ERROR_CONNECT_FAILED ? "connect failed (e.g. DHCP never completed)"
+                                                             : "unknown failure";
+        printf("wifi: connect attempt failed (rc=%d): %s - retrying\n", rc, reason);
         /* each attempt is individually bounded (WIFI_CONNECT_ATTEMPT_TIMEOUT_MS),
          * but retrying indefinitely here - by design, see
          * docs/docs/pico-device.md's "never yet connected" policy - must not
          * itself starve the general watchdog armed by main.c before this
          * function was called */
+        watchdog_update();
+        sleep_ms(250); /* let the radio settle before immediately retrying - see docs/docs/pico-device.md */
         watchdog_update();
     }
 
@@ -92,4 +108,10 @@ void wifi_poll(void) {
 
 bool wifi_is_up(void) {
     return cyw43_tcpip_link_status(&cyw43_state, CYW43_ITF_STA) == CYW43_LINK_UP;
+}
+
+int32_t wifi_rssi(void) {
+    int32_t rssi = 0;
+    cyw43_wifi_get_rssi(&cyw43_state, &rssi); /* leaves rssi at 0 (its initial value) on failure */
+    return rssi;
 }

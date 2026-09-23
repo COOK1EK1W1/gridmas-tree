@@ -70,6 +70,10 @@ static void parse_header_line(http_parser_t *p) {
     } else if (starts_with_ci(name, "X-Frame-Time")) {
         p->request.frame_time_s = strtod(value, NULL);
         p->request.have_frame_time = true;
+    } else if (starts_with_ci(name, "Sec-WebSocket-Key")) {
+        strncpy(p->request.ws_key, value, sizeof(p->request.ws_key) - 1);
+        p->request.ws_key[sizeof(p->request.ws_key) - 1] = '\0';
+        p->request.have_ws_key = true;
     }
     /* any other header is accepted and silently ignored */
 }

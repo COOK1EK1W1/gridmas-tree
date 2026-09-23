@@ -2,6 +2,7 @@ import math
 import os
 import time
 from typing import Callable, Optional, Union, overload
+from network_driver import NetworkPixelDriver
 from util import linear
 from colors import Color
 from fixture import Volume
@@ -325,7 +326,7 @@ def _pick_driver(pixel_count: int, name: str, fps: int) -> PixelDriver:
 
         return WebPixelDriver(pixel_count, name, fps)
 
-    return NetworkPixelDriver("localhost", pixel_count, name, fps, 8420)
+    return NetworkPixelDriver("localhost", pixel_count, name, fps)
 
 class Sphere(geometry.Sphere):
     def __init__(self, pos: tuple[float, float, float], radius: float, color: Color):
@@ -341,4 +342,10 @@ class Line(geometry.Line):
 
 driver = _pick_driver(num_pixels(), "pixel_driver", 45)
 driver.add_fixture(tree, 0)
+driver2 = NetworkPixelDriver("192.168.1.143", 1000, "pico", 45)
+driver2.add_fixture(tree, 0)
+pi1 = NetworkPixelDriver("192.168.1.187", 1000, "pi1", 45)
+pi1.add_fixture(tree, 0)
 driver_registry.register(driver)
+driver_registry.register(driver2)
+driver_registry.register(pi1)

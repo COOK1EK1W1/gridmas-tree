@@ -27,9 +27,10 @@ add_executable(gridmas-pico
     src/core/frame_buffer.c
     src/core/http_parser.c
     src/core/sntp_offset.c
+    src/core/ws_handshake.c
     src/hw/wifi.c
     src/hw/http_server.c
-    src/hw/udp_frame_server.c
+    src/hw/ws_frame_server.c
     src/hw/sntp_client.c
     src/hw/status_json.c
     src/hw/ws2812_output.c

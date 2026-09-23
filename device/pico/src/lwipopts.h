@@ -17,14 +17,13 @@
 #define MEM_ALIGNMENT               4
 #define MEM_SIZE                    (16 * 1024)
 
-/* a couple of headroom slots above PICO_MAX_CONCURRENT_CONNS (see
- * pico_config.h) for the listening pcb and any pcb briefly in TIME_WAIT */
-#define MEMP_NUM_TCP_PCB            6
-#define MEMP_NUM_TCP_PCB_LISTEN     1
+/* PICO_MAX_CONCURRENT_CONNS (see pico_config.h) HTTP conns + 1 WS conn +
+ * a couple of headroom slots for pcbs briefly in TIME_WAIT */
+#define MEMP_NUM_TCP_PCB            7
+#define MEMP_NUM_TCP_PCB_LISTEN     2 /* hw/http_server.c + hw/ws_frame_server.c */
 #define MEMP_NUM_TCP_SEG            32
-/* one headroom slot above the two in active use (hw/sntp_client.c,
- * hw/udp_frame_server.c) */
-#define MEMP_NUM_UDP_PCB            3
+/* one headroom slot above the one in active use (hw/sntp_client.c) */
+#define MEMP_NUM_UDP_PCB            2
 #define MEMP_NUM_PBUF               24
 #define PBUF_POOL_SIZE              24
 

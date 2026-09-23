@@ -5,10 +5,12 @@
 
 #include "lwip/tcp.h"
 #include "pico/critical_section.h"
+#include "pico/cyw43_arch.h"
 #include "pico/time.h"
 
 #include "core/http_parser.h"
 #include "hw/status_json.h"
+#include "hw/ws_frame_server.h"
 #include "pico_config.h"
 
 typedef struct {
@@ -21,7 +23,7 @@ typedef struct {
 
 static http_conn_t conns[PICO_MAX_CONCURRENT_CONNS];
 static frame_buffer_t *g_fb;
-static critical_section_t *g_fb_lock; /* owned by main.c - shared with core1 and udp_frame_server.c */
+static critical_section_t *g_fb_lock; /* owned by main.c - shared with core1 and ws_frame_server.c */
 
 static volatile bool g_synced = false;
 static volatile int64_t g_sync_offset_us = 0;
@@ -37,6 +39,25 @@ static http_conn_t *conn_alloc(void) {
         }
     }
     return NULL;
+}
+
+/* tcp_close() can fail (return non-ERR_OK, e.g. ERR_MEM) if it can't
+ * complete synchronously - the pcb is then NOT freed, stays registered, and
+ * keeps calling back into whatever tcp_arg() last pointed it at. Every close
+ * site here used to tcp_close(tpcb) and immediately mark the http_conn_t
+ * slot free for reuse by conn_alloc() regardless - a pcb that lingered this
+ * way kept firing recv_cb/err_cb with `arg` pointing at a struct now handed
+ * to a *different* accepted connection, corrupting both. That's what
+ * surfaced as lwIP's "tcp_receive: valid queue length" PANIC (ws_frame_server.c
+ * had the identical bug - see its close_conn()). Detaching every callback
+ * *before* tcp_close() guarantees this pcb can never call back into our code
+ * again, however long it actually takes to finish closing. */
+static void close_http_conn(struct tcp_pcb *pcb, http_conn_t *c) {
+    tcp_arg(pcb, NULL);
+    tcp_recv(pcb, NULL);
+    tcp_err(pcb, NULL);
+    tcp_close(pcb);
+    c->in_use = false;
 }
 
 static err_t send_response(http_conn_t *c, int status, const char *status_text,
@@ -68,7 +89,7 @@ static err_t handle_status(http_conn_t *c) {
     int64_t now_us = (int64_t)time_us_64() + (g_synced ? g_sync_offset_us : 0);
     uint32_t uptime_s = (uint32_t)(absolute_time_diff_us(g_boot_time, get_absolute_time()) / 1000000);
     size_t len = status_json_build(body, sizeof(body), g_fb, g_synced, g_sync_offset_us, g_sync_delay_us,
-                                    uptime_s, now_us);
+                                    uptime_s, now_us, ws_frame_server_frames_dropped_presync());
     return send_response(c, 200, "OK", body, len, "application/json");
 }
 
@@ -86,11 +107,28 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
     http_conn_t *c = (http_conn_t *)arg;
     (void)err;
 
-    if (!p) { /* remote closed */
-        tcp_close(tpcb);
-        c->in_use = false;
+    /* Shouldn't happen now that close_http_conn() detaches tcp_arg() before
+     * tcp_close() - kept as cheap insurance against ever repeating the
+     * stale-callback class of bug this file just got bitten by. */
+    if (!c) {
+        if (p) pbuf_free(p);
         return ERR_OK;
     }
+
+    if (!p) { /* remote closed */
+        close_http_conn(tpcb, c);
+        return ERR_OK;
+    }
+
+    /* Once we tcp_close(tpcb) below, the pcb may be freed and its memory
+     * reused for a different connection before this function returns -
+     * calling tcp_recved(tpcb, ...) on it afterwards (as the `done:` label
+     * used to do unconditionally) corrupts whichever unrelated connection
+     * got that memory next. Track whether we closed it and skip that call
+     * if so - see docs/docs/pico-device.md and the PANIC this caused
+     * ("unsent_oversize mismatch") once a connection was actually closed
+     * from an error path under load. */
+    bool closed = false;
 
     struct pbuf *cur = p;
 
@@ -107,8 +145,8 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
             if (r == HTTP_PARSE_ERROR) {
                 printf("http: malformed request, closing connection - 400\n");
                 respond_simple(c, 400, "bad request");
-                tcp_close(tpcb);
-                c->in_use = false;
+                close_http_conn(tpcb, c);
+                closed = true;
                 goto done;
             }
             if (r == HTTP_PARSE_HEADERS_DONE) {
@@ -126,8 +164,8 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
                 http_parser_reset(&c->parser);
 
                 if (werr != ERR_OK) {
-                    tcp_close(tpcb);
-                    c->in_use = false;
+                    close_http_conn(tpcb, c);
+                    closed = true;
                     goto done;
                 }
             }
@@ -138,7 +176,7 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
     }
 
 done:
-    tcp_recved(tpcb, p->tot_len);
+    if (!closed) tcp_recved(tpcb, p->tot_len);
     pbuf_free(p);
     return ERR_OK;
 }
@@ -179,10 +217,21 @@ void http_server_init(frame_buffer_t *fb, critical_section_t *fb_lock) {
     g_fb_lock = fb_lock;
     g_boot_time = get_absolute_time();
 
+    /* This "threadsafe_background" cyw43_arch variant services lwIP from a
+     * low-priority IRQ context; per pico/cyw43_arch.h's own documentation,
+     * any lwIP call made from outside of an lwIP-invoked callback (accept_cb/
+     * recv_cb/err_cb below all qualify and need no bracketing) must be
+     * bracketed with cyw43_arch_lwip_begin()/_end() or it races that
+     * background processing. This file (and ws_frame_server.c) missed that
+     * entirely, which is what actually caused the "tcp_receive: valid queue
+     * len" PANIC - not the pcb-lifecycle bug fixed earlier, which was real
+     * but a different issue. */
+    cyw43_arch_lwip_begin();
     struct tcp_pcb *pcb = tcp_new();
     tcp_bind(pcb, IP_ADDR_ANY, PICO_HTTP_PORT);
     pcb = tcp_listen_with_backlog(pcb, PICO_MAX_CONCURRENT_CONNS);
     tcp_accept(pcb, accept_cb);
+    cyw43_arch_lwip_end();
 }
 
 void http_server_poll(void) {

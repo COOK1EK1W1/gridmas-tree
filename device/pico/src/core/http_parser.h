@@ -6,9 +6,10 @@
 #include <stdint.h>
 
 /* Minimal incremental HTTP/1.1 request-line + header parser, used by
- * hw/http_server.c for the two endpoints it now serves (GET /status,
- * POST /clear - see docs/docs/network-pixel-protocol.md; frame data moved
- * to UDP, see hw/udp_frame_server.c). Deliberately not general-purpose:
+ * hw/http_server.c for the two endpoints it serves (GET /status,
+ * POST /clear) and by hw/ws_frame_server.c to parse the WebSocket upgrade
+ * request's Sec-WebSocket-Key (see docs/docs/network-pixel-protocol.md).
+ * Deliberately not general-purpose:
  * fixed small buffers, no chunked encoding, no multi-value headers.
  *
  * The content_length/frame_seq/frame_time_s fields below date from when
@@ -43,6 +44,9 @@ typedef struct {
 
     bool     have_frame_time;
     double   frame_time_s; /* unix epoch seconds, as sent in X-Frame-Time */
+
+    bool     have_ws_key;
+    char     ws_key[32]; /* Sec-WebSocket-Key, base64 - always 24 chars in practice */
 } http_request_t;
 
 typedef enum {

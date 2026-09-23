@@ -2,8 +2,8 @@
 see docs/docs/network-pixel-protocol.md for the wire spec and
 backend/network_driver.py for the client.
 
-Frame data (and NAK-based retransmission) is UDP, not HTTP - see
-udp_frame.py. This module only ever serves GET /status and POST /clear.
+Frame data (and the device's readiness signal) is WebSocket, not HTTP -
+see ws_server.py. This module only ever serves GET /status and POST /clear.
 """
 
 from __future__ import annotations

@@ -8,10 +8,12 @@
 #include "core/frame_buffer.h"
 #include "hw/http_server.h"
 #include "hw/sntp_client.h"
-#include "hw/udp_frame_server.h"
 #include "hw/wifi.h"
 #include "hw/ws2812_output.h"
+#include "hw/ws_frame_server.h"
 #include "pico_config.h"
+
+#define PICO_DIAG_LOG_INTERVAL_MS 5000
 
 /* See docs/docs/pico-device.md for the full design this implements. */
 
@@ -20,9 +22,9 @@ static frame_buffer_t g_frame_buffer;
 /* frame_buffer.c is not thread/core-safe on its own (see its header
  * comment). This is the one critical_section_t protecting g_frame_buffer,
  * shared by core1 (below) and both core0 users (http_server.c's /clear,
- * udp_frame_server.c's frame submission and NAK draining) - each of those
- * creating its own critical_section_t instead would claim separate
- * hardware spinlocks that don't exclude each other at all. */
+ * ws_frame_server.c's frame submission) - each of those creating its own
+ * critical_section_t instead would claim separate hardware spinlocks that
+ * don't exclude each other at all. */
 static critical_section_t g_frame_buffer_lock;
 
 /* Written by core1 every loop iteration, read by core0 to gate the hardware
@@ -87,16 +89,17 @@ int main(void) {
 
     sntp_client_init(CONTROLLER_TIME_SERVER_IP);
     http_server_init(&g_frame_buffer, &g_frame_buffer_lock);
-    udp_frame_server_init(&g_frame_buffer, &g_frame_buffer_lock);
+    ws_frame_server_init(&g_frame_buffer, &g_frame_buffer_lock);
 
     multicore_launch_core1(core1_entry);
 
     absolute_time_t next_resync = get_absolute_time(); /* sync immediately on boot */
+    absolute_time_t next_diag_log = make_timeout_time_ms(PICO_DIAG_LOG_INTERVAL_MS);
 
     while (true) {
         wifi_poll();
         http_server_poll();
-        udp_frame_server_poll();
+        ws_frame_server_poll();
 
         if (!sntp_client_burst_in_progress() && absolute_time_diff_us(get_absolute_time(), next_resync) <= 0) {
             sntp_client_start_sync();
@@ -107,7 +110,7 @@ int main(void) {
             bool was_synced = sntp_client_synced();
             sntp_client_finish_burst();
             http_server_set_synced(sntp_client_synced(), sntp_client_offset_us(), sntp_client_last_delay_us());
-            udp_frame_server_set_synced(sntp_client_synced());
+            ws_frame_server_set_synced(sntp_client_synced());
 
             if (!was_synced && sntp_client_synced()) {
                 printf("gridmas-pico: first time sync complete - now accepting frames\n");
@@ -123,6 +126,30 @@ int main(void) {
                 printf("gridmas-pico: sync attempt got no replies - %s\n",
                        was_synced ? "keeping the previous offset" : "still not accepting frames");
             }
+        }
+
+        /* Periodic diagnostic summary - lets "connected but no LEDs" be
+         * distinguished at a glance from a serial console alone: are frames
+         * even arriving, is the clock synced (frames are silently discarded
+         * until it is - see ws_frame_server.c), and are they being shown or
+         * dropped once buffered. Same counters as GET /status. */
+        if (absolute_time_diff_us(get_absolute_time(), next_diag_log) <= 0) {
+            critical_section_enter_blocking(&g_frame_buffer_lock);
+            uint32_t depth = frame_buffer_depth(&g_frame_buffer);
+            uint32_t received = g_frame_buffer.frames_received;
+            uint32_t shown = g_frame_buffer.frames_shown;
+            uint32_t dropped_late = g_frame_buffer.frames_dropped_late;
+            uint32_t dropped_full = g_frame_buffer.frames_dropped_queue_full;
+            uint32_t rejected_bad = g_frame_buffer.frames_rejected_bad_payload;
+            critical_section_exit(&g_frame_buffer_lock);
+
+            printf("gridmas-pico: synced=%s wifi_rssi=%ddBm queue=%u/%d received=%u shown=%u "
+                   "dropped_late=%u dropped_full=%u dropped_presync=%u rejected_bad=%u\n",
+                   sntp_client_synced() ? "yes" : "no", (int)wifi_rssi(), depth, PICO_FRAME_SLOT_COUNT,
+                   received, shown, dropped_late, dropped_full,
+                   ws_frame_server_frames_dropped_presync(), rejected_bad);
+
+            next_diag_log = make_timeout_time_ms(PICO_DIAG_LOG_INTERVAL_MS);
         }
 
         /* feed the watchdog only while core1 has also proven it's alive

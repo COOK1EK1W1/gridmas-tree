@@ -1,5 +1,7 @@
 #include "hw/ws2812_output.h"
 
+#include <stdio.h>
+
 #include "hardware/dma.h"
 #include "hardware/pio.h"
 
@@ -39,6 +41,12 @@ void ws2812_output_init(void) {
         channel_config_set_write_increment(&cfg, false);
         channel_config_set_dreq(&cfg, pio_get_dreq(c->pio, c->sm, true));
         dma_channel_configure(c->dma_chan, &cfg, &c->pio->txf[c->sm], NULL, 0, false);
+
+        /* one-time, core0-only - confirms the PIO/DMA setup actually ran and
+         * which physical pin each channel drives, before anything else could
+         * mask a hardware init failure as "no LEDs" further down the line */
+        printf("ws2812: channel %d on GPIO %u (pio%d sm%u, dma chan %d)\n",
+               i, LED_PINS[i], c->pio == pio0 ? 0 : 1, c->sm, c->dma_chan);
     }
 
     ws2812_output_blank();

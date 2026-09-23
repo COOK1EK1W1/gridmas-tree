@@ -73,7 +73,6 @@ class PatternManager:
         """ load a pattern, true if success, false if failure """
 
         attribute.Store.get_store().reset()
-        self.driver_registry.clear()
 
         module_string = self.pattern_dir.replace("/", ".") + f"{name}"
         print(f"Attempting to load pattern: {module_string}")

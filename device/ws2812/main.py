@@ -3,7 +3,7 @@
 
 Runs on the Raspberry Pi wired to the LED strip(s), not on the pattern-computing
 controller. It hosts the protocol from docs/docs/network-pixel-protocol.md -
-a UDP frame receiver (../common/udp_frame.py) plus an HTTP server for
+a WebSocket frame server (../common/ws_server.py) plus an HTTP server for
 /status and /clear (../common/app.py) - buffers incoming frames, and plays
 each one back at its tagged wall-clock time. Rendering (strip.py) runs on
 its own thread (../common/scheduler.py) so it never blocks, or is blocked
@@ -35,11 +35,13 @@ def parse_channel(value: str) -> "tuple[int, int]":
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="gridmas-device",
-        description="WS2812 device server - receives timestamped frames over UDP and drives 1-2 LED strips via DMA.",
+        description="WS2812 device server - receives timestamped frames over WebSocket and drives 1-2 LED strips via DMA.",
     )
     p.add_argument("--channel", type=parse_channel, action="append", required=True, metavar="PIN:COUNT",
                    help="GPIO pin and pixel count for one output channel, e.g. 18:500. Pass once or twice.")
-    p.add_argument("--port", type=int, default=8420, help="Port to listen on (default: 8420)")
+    p.add_argument("--port", type=int, default=8420, help="HTTP port for /status and /clear (default: 8420)")
+    p.add_argument("--ws-port", type=int, default=None,
+                   help="WebSocket port for frame data (default: --port + 1)")
     p.add_argument("--name", default="gridmas-device", help="Device name reported in /status")
     p.add_argument("--dma", type=int, default=10, help="DMA channel for signal generation (default: 10)")
     p.add_argument("--fps", type=int, default=45,
@@ -56,12 +58,13 @@ def main():
     args = parser.parse_args()
     if len(args.channel) > 2:
         parser.error("at most 2 --channel arguments are supported")
+    ws_port = args.ws_port if args.ws_port is not None else args.port + 1
 
     # imported here, after arg parsing, so --help works without the hardware libs
     from app import create_app
     from scheduler import FrameScheduler
     from strip import Ws2812Strip
-    from udp_frame import UdpFrameServer
+    from ws_server import WsFrameServer
     from wsgi import serve
 
     strip = Ws2812Strip(args.channel, dma_channel=args.dma)
@@ -70,12 +73,12 @@ def main():
         capacity=max(1, int(args.fps * args.buffer_seconds)),
         late_grace_s=args.late_grace,
     )
-    udp_server = UdpFrameServer(scheduler, args.port)
-    udp_server.start()
+    ws_server = WsFrameServer(scheduler, ws_port)
+    ws_server.start()
 
     def shutdown(*_):
         print("\nshutting down...")
-        udp_server.stop()
+        ws_server.stop()
         scheduler.stop()
         strip.close()
         sys.exit(0)
@@ -85,7 +88,7 @@ def main():
 
     channels = ", ".join(f"gpio{pin}x{count}" for pin, count in args.channel)
     print(f"{args.name}: {strip.pixel_count} pixels ({channels}), "
-          f"frames on udp:{args.port}, status/clear on http:{args.port}")
+          f"frames on ws:{ws_port}, status/clear on http:{args.port}")
     serve(create_app(strip, scheduler, args.name, args.fps), host="0.0.0.0", port=args.port)
 
 
