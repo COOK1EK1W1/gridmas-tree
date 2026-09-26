@@ -20,6 +20,7 @@
 
 from util import *
 from colors import *
+from fixture import *
 from fizzle import *
 from attribute import *
-from fixture import *
+from geometry import *

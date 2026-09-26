@@ -28,7 +28,7 @@ class PixelDriver(ABC):
 
     def add_fixture(self, f: Fixture, index: int):
         self.fixtures.append((f, index))
-        len(f.pixels())
+        len(f._pixels)
 
     def draw_and_flush_driver(self) -> bool:
         """Generate and flush one frame if the lookahead horizon calls for it.

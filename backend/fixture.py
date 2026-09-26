@@ -71,7 +71,6 @@ class Fixture(ABC):
         """The list of shapes that the tree can draw"""
         
         self._background = None
-        self._fps = 2
 
         self.draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
 
@@ -107,13 +106,11 @@ class Fixture(ABC):
 
         # pack the whole array at once. vectorized!
         rgb = self._rgb.astype(np.uint32, copy=False)
-        packed = (rgb[:, 0] << 8) | (rgb[:, 1] << 16) | rgb[:, 2]
 
         changed = self._changed_arr
 
         if self._background:
-            bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-            packed[~changed] = bg
+            rgb[~changed] = self._background
 
         # Reset lerps
         self._lerp_prev[changed] = rgb[changed]
@@ -171,9 +168,6 @@ class Fixture(ABC):
             list(zip(sorted_pixels[i], sorted_dists[i]))
             for i in range(self._num_pixels)
         ]
-    
-    def pixels(self):
-        return self._pixels
 
 
 _active_fixture: Optional[Fixture] = None
@@ -422,3 +416,94 @@ def millis() -> int:
             ```
     """
     return math.floor((time.time() - _active_fixture._pattern_started_at) * 1000)
+
+
+def _rotated_z(theta: float, alpha: float) -> np.ndarray:
+    """Compute the rotated Z coordinate for every pixel at once.
+    Helper function for wipe() functions
+    Args:
+        theta (float): Angle in radians
+        alpha (float): Angle in radians
+    Returns:
+        np.ndarray: An (N,) array of rotated Z values, one per pixel, in the
+            same order as coords()/pixels()
+    """
+    xyz = np.asarray(coords(), dtype=np.float64)
+    x, y, z = xyz[:, 0], xyz[:, 1], xyz[:, 2]
+    return np.sin(theta) * (x * np.sin(alpha) + y * np.cos(alpha)) + z * np.cos(theta)
+
+
+def _set_masked(mask: np.ndarray, color: Color) -> None:
+    """Vectorised equivalent of `[set_pixel(i, color) for i in idx]`.
+    Directly writes the color into the tree's underlying rgb array for every
+    pixel where mask is True, and flags those pixels as changed.
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel should be set
+        color (Color): The color to set the masked pixels to
+    """
+    if not np.any(mask):
+        return
+
+    rgb = np.asarray(color.to_tuple(), dtype=np.uint8)
+    _active_fixture._rgb[mask] = rgb
+    _active_fixture._changed_arr[mask] = True
+
+
+def _lerp_masked(mask: np.ndarray, color: Color, frames: int, fn: Callable[[float], float] = linear) -> None:
+    """Vectorised equivalent of `[pixels(i).lerp(color, frames, fn=fn) for i in idx]`.
+    Mirrors tree.py's module level lerp(), but scoped to only the pixels selected by mask
+    instead of the whole tree. Only (re)starts the interpolation for pixels whose target/duration
+    actually changed, matching Color.set_lerp()'s no-op-if-unchanged behaviour.
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel should start/continue lerping
+        color (Color): The target color to lerp to
+        frames (int): The number of frames to lerp over
+        fn (Callable[[float], float], optional): Timing function from the Util module. Defaults to linear.
+    """
+    if not np.any(mask):
+        return
+
+    target = np.asarray(color.to_tuple(), dtype=np.uint8)
+
+    changed = mask & (
+        np.any(_active_fixture._lerp_target != target, axis=1)
+        | (_active_fixture._lerp_total != frames)
+    )
+
+    if not np.any(changed):
+        return
+
+    _active_fixture._lerp_prev[changed] = tree._rgb[changed]
+    _active_fixture._lerp_step[changed] = 0
+    _active_fixture._lerp_target[changed] = target
+    _active_fixture._lerp_total[changed] = frames
+    _active_fixture._lerp_fn = fn
+
+
+def _cont_lerp_masked(mask: np.ndarray) -> None:
+    """Vectorised equivalent of `[pixels(i).cont_lerp() for i in idx]`.
+    Mirrors tree.py's Tree._advance_all_lerps(), but scoped to only the pixels
+    selected by mask instead of every pixel on the tree.
+    Args:
+        mask (np.ndarray): An (N,) boolean array, True where the pixel's lerp should advance one step
+    """
+    active = mask & (_active_fixture._lerp_step < _active_fixture._lerp_total)
+    if not np.any(active):
+        return
+
+    idx = np.flatnonzero(active)
+    _active_fixture._lerp_step[idx] += 1
+
+    step = _active_fixture._lerp_step[idx].astype(np.float64)
+    total = _active_fixture._lerp_total[idx].astype(np.float64)
+
+    t = np.divide(step, total, out=np.ones_like(step), where=total != 0)
+    t = np.clip(t, 0.0, 1.0)
+
+    eased = _active_fixture._lerp_fn(t)[:, None]
+
+    _active_fixture._rgb[idx] = np.clip(
+        (_active_fixture._lerp_prev[idx] + (_active_fixture._lerp_target[idx] - _active_fixture._lerp_prev[idx]) * eased),
+        0,
+        255,
+    ).astype(np.uint8)
