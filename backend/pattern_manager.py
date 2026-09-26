@@ -3,8 +3,10 @@
 """
 
 import os
+import sys
 from types import ModuleType
 from typing import Iterable
+import traceback
 import attribute
 from pixel_driver import DriverRegistry
 from util import tcolors
@@ -74,26 +76,37 @@ class PatternManager:
 
         attribute.Store.get_store().reset()
 
+        # A display module registers its fixtures and drivers as a side effect
+        # of being imported, so the outgoing display's drivers have to be shut
+        # down before the incoming ones dial the device - a device only serves
+        # one controller at a time.
+        self.driver_registry.clear()
+
         module_string = self.pattern_dir.replace("/", ".") + f"{name}"
         print(f"Attempting to load pattern: {module_string}")
 
         try:
-            module = __import__(module_string)
+            existing = sys.modules.get(module_string)
+            if existing is None:
+                pattern_module = importlib.import_module(module_string)
+            else:
+                # Exactly one execution per load, either way. `__import__`
+                # followed by `reload` ran the module body twice, which for a
+                # display module meant two of every driver - both then fighting
+                # over the device's single controller slot.
+                pattern_module = importlib.reload(existing)
         except Exception as e:
-            print(e)
+            traceback.print_exception(e)
             return False
 
-        pattern_module = getattr(module, name)
-        importlib.reload(pattern_module)
+        draw_function = None
 
-        draw_function = pattern_module.draw
-
-        if draw_function is None:
+        if draw_function is None and False:
             print("pattern does not have draw function")
             return False
 
         self.current_pattern_module = pattern_module
-        self.driver_registry.update_draw(draw_function)
+        #self.driver_registry.update_draw(draw_function)
 
         return True
 

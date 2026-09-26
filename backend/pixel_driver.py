@@ -5,7 +5,7 @@ import time
 
 from numpy import ndarray
 
-from fixture import Fixture
+from fixture import Fixture, setActiveFixture
 
 
 PREROLL = 0.2
@@ -50,9 +50,11 @@ class PixelDriver(ABC):
             self.last_frame_time += 1 / self.fps
         for fixture, _ in self.fixtures:
             if fixture.draw_fn is not None:
+                setActiveFixture(fixture)
                 fixture.draw_fn()
                 frame = fixture._request_frame()
                 self.flush(frame, self.last_frame_time)
+        setActiveFixture(None)
 
         self._frames_since_log += 1
         elapsed = now - self._last_log_at
@@ -70,6 +72,14 @@ class PixelDriver(ABC):
     def update_draw(self, draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
         for fixture, _ in self.fixtures: 
             fixture.draw_fn = draw_fn
+
+    def close(self):
+        """Release anything this driver owns (sockets, threads).
+
+        A no-op for drivers that hold no resources; NetworkPixelDriver
+        overrides it. Called when a display is torn down - see
+        DriverRegistry.clear().
+        """
 
 
 class DriverRegistry:
@@ -92,6 +102,19 @@ class DriverRegistry:
             driver.update_draw(draw_fn)
 
     def clear(self):
+        """Drop every registered driver, closing each one first.
+
+        Closing is the point: a NetworkPixelDriver owns a connection thread
+        that keeps reconnecting for the life of the object, and a device
+        serves one controller at a time. A driver that were merely dropped
+        would go on fighting its own replacement for that single slot -
+        each new connection tearing down the other's.
+        """
+        for driver in self._registry:
+            try:
+                driver.close()
+            except Exception as e:
+                print(f"[{driver.name}] error while closing: {e}")
         self._registry = []
 
     def register(self, driver: PixelDriver):
