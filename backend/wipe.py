@@ -6,7 +6,7 @@ P.P.S please do not actually wipe the tree, the LEDs do not like being wet and m
 from typing import Callable, Optional
 import numpy as np
 from gridmas import *
-from tree import _rotated_z, _set_masked, _lerp_masked, _cont_lerp_masked
+from fixture import _rotated_z, _set_masked, _lerp_masked, _cont_lerp_masked
 
 
 def wipe(theta: float, alpha: float, color: Color, speed: int, fade: Optional[Color] = None):

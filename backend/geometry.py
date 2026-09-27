@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Optional
-from fixture import Fixture, _active_fixture
+from fixture import Fixture, get_active_fixture
 import numpy as np
 from colors import Color, Pixel
 
@@ -56,7 +56,7 @@ class Sphere(Shape):
         self.radius2 = radius * radius  # store squared radius
         self.inner_radius = radius / 1.73205  # for inscribed cube
         self.color = color
-        _active_fixture._shapes.append(self)
+        get_active_fixture()._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         center = np.array([self.x, self.y, self.z])
@@ -76,7 +76,7 @@ class Box(Shape):
         self.z = pos[2]
         self.length = length
         self.color = color
-        _active_fixture._shapes.append(self)
+        get_active_fixture()._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         center = np.array([self.x, self.y, self.z])
@@ -119,7 +119,7 @@ class Line(Shape):
         self.vz = self.bz - self.az
         self.len2 = self.vx*self.vx + self.vy*self.vy + self.vz*self.vz
 
-        _active_fixture._shapes.append(self)
+        get_active_fixture()._shapes.append(self)
 
     def does_draw(self, positions: np.ndarray):
         a = np.array([self.ax, self.ay, self.az])

@@ -49,13 +49,7 @@ class PixelDriver(ABC):
             self.last_frame_time = now + 1
         else:
             self.last_frame_time += 1 / self.fps
-        for fixture, _ in self.fixtures:
-            if fixture.draw_fn is not None:
-                setActiveFixture(fixture)
-                fixture.draw_fn()
-                frame = fixture._request_frame()
-                self.flush(frame, self.last_frame_time)
-        setActiveFixture(None)
+        self._draw_fixtures(self.last_frame_time)
 
         self._frames_since_log += 1
         elapsed = now - self._last_log_at
@@ -66,13 +60,16 @@ class PixelDriver(ABC):
         return True
 
 
+    def _draw_fixtures(self, t: float):
+        for fixture, _ in self.fixtures:
+            setActiveFixture(fixture)
+            if fixture._draw_fn is not None:
+                self.flush(fixture._request_frame(), t)
+        setActiveFixture(None)
+
     @abstractmethod
     def flush(self, frame: ndarray[tuple[int, Literal[3]], np.dtype[np.unsignedinteger]], t: float):
         ...
-
-    def update_draw(self, draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
-        for fixture, _ in self.fixtures: 
-            fixture.draw_fn = draw_fn
 
     def close(self):
         """Release anything this driver owns (sockets, threads).
@@ -97,10 +94,6 @@ class DriverRegistry:
         for driver in self._registry:
             produced |= driver.draw_and_flush_driver()
         return produced
-
-    def update_draw(self, draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
-        for driver in self._registry:
-            driver.update_draw(draw_fn)
 
     def clear(self):
         """Drop every registered driver, closing each one first.

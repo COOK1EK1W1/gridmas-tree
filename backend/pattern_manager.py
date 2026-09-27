@@ -5,10 +5,12 @@
 from types import ModuleType
 import os
 import sys
-from typing import Iterable
+from typing import Callable, Iterable
 import traceback
 import attribute
 from pixel_driver import DriverRegistry
+from fixture import setActiveFixture
+import legacy_display
 from util import tcolors
 import math
 import importlib
@@ -64,6 +66,7 @@ class PatternManager:
         self.pattern_dir = pattern_dir
 
         self.current_pattern_module: ModuleType | None = None
+        self.display_update: Callable[[], None] | None = None
 
         self.driver_registry = driver_registry
 
@@ -78,13 +81,14 @@ class PatternManager:
         """ load a pattern, true if success, false if failure """
 
         attribute.Store.get_store().reset()
-
-        # the pattern now defined drivers, clear them before loading
-        self.driver_registry.clear()
+        self.unload_pattern()
 
         module_string = self.pattern_dir.replace("/", ".") + f"{name}"
-        print(f"Attempting to load pattern: {module_string}")
 
+        # patterns run module-level API calls (coords(), set_fps(), ...) on import,
+        # before we know whether they are a display or a draw()-only pattern
+        legacy_display.tree.set_draw_fn(None)
+        setActiveFixture(legacy_display.tree)
         try:
             existing = sys.modules.get(module_string)
             if existing is None:
@@ -94,26 +98,36 @@ class PatternManager:
         except Exception as e:
             traceback.print_exception(e)
             return False
+        finally:
+            setActiveFixture(None)
 
-        draw_function = pattern_module.update
+        display_update = getattr(pattern_module, "display_update", None)
+        draw = getattr(pattern_module, "draw", None)
 
-        if draw_function is None:
-            print("pattern does not have draw function")
+        if display_update is not None and draw is not None:
+            print(f"{name} defines both draw() and display_update(), it must be either a pattern or a display")
+            return False
+        if display_update is None and draw is None:
+            print(f"{name} defines neither draw() nor display_update()")
             return False
 
-        self.current_pattern_module = pattern_module
+        if draw is not None:
+            legacy_display.attach(draw)
 
+        self.current_pattern_module = pattern_module
+        self.display_update = display_update
         return True
 
     def run_display_update(self):
         now = time.perf_counter()
-        if self.current_pattern_module is not None and now > self.display_last_update + self.display_fps:
-            self.current_pattern_module.update()
+        if self.display_update is not None and now > self.display_last_update + self.display_fps:
+            self.display_update()
             self.display_last_update = now
 
     def unload_pattern(self):
-        self.current_pattern = None
-        self.generator = None
+        self.driver_registry.clear()
+        self.current_pattern_module = None
+        self.display_update = None
 
     def get_current_module(self) -> None | ModuleType:
         return self.current_pattern_module

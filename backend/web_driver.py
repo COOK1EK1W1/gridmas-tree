@@ -28,6 +28,11 @@ class WebPixelDriver(PixelDriver):
         packed = (r << 8) | (g << 16) | b
         self._frame_buffer.append((t, packed))
 
+    def draw_now(self) -> np.ndarray:
+        """Draw a frame for immediate display, bypassing the lookahead schedule so attribute changes show without delay."""
+        self._draw_fixtures(time.time())
+        return self.pop_due_frame()
+
     def pop_due_frame(self) -> np.ndarray:
         """Advance to the newest buffered frame that is now due, and return it.
 

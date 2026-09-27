@@ -88,7 +88,7 @@ export default function TreeVis({
         // Query FPS from Python tree every frame (it can change dynamically)
         let targetFps = currentFps; // Default fallback
         try {
-          const fpsValue = pyodide.runPython(`tree._fps`)
+          const fpsValue = pyodide.runPython(`legacy_display.tree._fps`)
           if (typeof fpsValue === 'number' && fpsValue > 0) {
             targetFps = fpsValue
             if (targetFps !== currentFps) {
@@ -130,34 +130,7 @@ export default function TreeVis({
             }
 
 
-            // Use the new generator-based system
-            const res: any = pyodide.runPython(`
-try:
-    # Check if we have a generator in the global scope
-    if 'pattern_generator' not in globals() or pattern_generator is None:
-        # Create a new generator from the pattern
-        pattern_generator = curPattern.draw()
-    else:
-        # If we have a generator, call next() on it
-        try:
-            next(pattern_generator)
-        except StopIteration:
-            # Generator is exhausted, create a new one
-            pattern_generator = curPattern.draw()
-        except Exception as e:
-            print_to_react(f"Error in pattern generator: {e}", 0)
-            pattern_generator = None
-except Exception as e:
-    print_to_react(f"Error in pattern execution: {e}", 0)
-    pattern_generator = None
-
-# Hand the freshly-drawn frame to pi1 (the web driver, auto-selected by
-# GMT2025back.py) tagged with "now" as its presentation time, then pull back
-# whichever buffered frame is currently due, same interface the pygame driver uses.
-driver.flush(tree._request_frame(), time.time())
-driver.pop_due_frame()
-`)
-
+            const res: any = pyodide.runPython(`web_frame()`)
             const l = res.toJs()
 
             // Update the material colors for each tree node

@@ -14,14 +14,13 @@ from patterns.Caduceus import draw as fireworks_draw
 setActiveFixture(None)
 
 
-it=60
+it=120
 i = 0
-def update():
+def display_update():
     global i
     i += 1
-    print(i)
     if i % it > it/2:
-        tree.draw_fn = on_draw
+        tree.set_draw_fn(on_draw)
     else:
-        tree.draw_fn = fireworks_draw
+        tree.set_draw_fn(fireworks_draw)
 

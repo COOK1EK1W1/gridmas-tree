@@ -24,3 +24,4 @@ from fixture import *
 from fizzle import *
 from attribute import *
 from geometry import *
+from wipe import *
