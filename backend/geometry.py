@@ -2,9 +2,9 @@
 
 from abc import ABC, abstractmethod
 from typing import Optional
-from fixture import Fixture, get_active_fixture
 import numpy as np
 from colors import Color, Pixel
+from fixture import Fixture, get_active_fixture
 
 class Shape(ABC):
     """Shape Contains a shape

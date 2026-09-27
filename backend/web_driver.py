@@ -20,11 +20,11 @@ class WebPixelDriver(PixelDriver):
         self._frame_buffer: deque[tuple[float, np.ndarray]] = deque()
         self._current_frame = np.zeros(pixel_count, dtype=np.uint32)
 
-    def flush(self, frame: np.ndarray, t: float):
+    def flush(self, t: float):
         """Buffer a frame of (r, g, b) triples, packed into GRB ints, for pop_due_frame()."""
-        r = frame[:, 0].astype(np.uint32)
-        g = frame[:, 1].astype(np.uint32)
-        b = frame[:, 2].astype(np.uint32)
+        r = self.pixel_buffer[:, 0].astype(np.uint32)
+        g = self.pixel_buffer[:, 1].astype(np.uint32)
+        b = self.pixel_buffer[:, 2].astype(np.uint32)
         packed = (r << 8) | (g << 16) | b
         self._frame_buffer.append((t, packed))
 

@@ -2,7 +2,7 @@
 """Pygame-window stand-in for a physical WS2812 device.
 
 Speaks the exact same network pixel protocol as ../ws2812/main.py's real
-device server (../common/app.py, ../common/scheduler.py, ../common/ws_server.py)
+device server (../common/server.py, ../common/scheduler.py)
 - only the strip differs: sim_strip.py draws to a window instead of driving
 GPIO/DMA. A NetworkPixelDriver on the controller can't tell the two apart.
 No root and no Pi hardware needed - run as many instances as you like, each
@@ -18,16 +18,13 @@ import argparse
 import csv
 import os
 import sys
-import threading
 
 # protocol code shared by every device type - see device/common/
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
 
-from app import create_app
 from scheduler import FrameScheduler
+from server import DeviceServer
 from sim_strip import SimStrip
-from ws_server import WsFrameServer
-from wsgi import serve
 
 
 def read_tree_csv(path: str) -> list[tuple[float, float, float]]:
@@ -41,9 +38,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="Pygame-window device server - stands in for a physical WS2812 device over the network pixel protocol.",
     )
     p.add_argument("--tree-file", default="tree.csv", help="Path to the LED coordinate map (default: tree.csv)")
-    p.add_argument("--port", type=int, default=8420, help="HTTP port for /status and /clear (default: 8420)")
-    p.add_argument("--ws-port", type=int, default=None,
-                   help="WebSocket port for frame data (default: --port + 1)")
+    p.add_argument("--port", type=int, default=8420,
+                   help="Port for both the WebSocket frame stream and HTTP /status, /clear (default: 8420)")
     p.add_argument("--name", default="gridmas-sim", help="Device name reported in /status and the window title")
     p.add_argument("--fps", type=int, default=45,
                    help="Expected frame rate; sizes the buffer and is reported in /status (default: 45)")
@@ -57,7 +53,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main():
     args = build_parser().parse_args()
-    ws_port = args.ws_port if args.ws_port is not None else args.port + 1
 
     strip = SimStrip(read_tree_csv(args.tree_file), name=args.name, window_size=tuple(args.window_size))
     scheduler = FrameScheduler(
@@ -66,21 +61,17 @@ def main():
         late_grace_s=args.late_grace,
     )
 
-    ws_server = WsFrameServer(scheduler, ws_port)
-    ws_server.start()
+    server = DeviceServer(strip, scheduler, args.name, args.fps, args.port)
+    server.start()
+    print(f"{args.name}: {strip.pixel_count} pixels, listening on :{args.port}")
 
-    app = create_app(strip, scheduler, args.name, args.fps)
-    threading.Thread(target=serve, args=(app, "0.0.0.0", args.port), daemon=True).start()
-    print(f"{args.name}: {strip.pixel_count} pixels, "
-          f"frames on ws:{ws_port}, status/clear on http:{args.port}")
-
-    # pygame/OpenGL need the window on the main thread; the HTTP/WS servers run above it
+    # pygame/OpenGL need the window on the main thread; the server runs on its own threads
     try:
         strip.run()
     except KeyboardInterrupt:
         pass
     finally:
-        ws_server.stop()
+        server.stop()
         scheduler.stop()
 
 

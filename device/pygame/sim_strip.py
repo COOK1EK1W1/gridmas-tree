@@ -2,7 +2,7 @@
 window instead of driving real hardware.
 
 Lets a `device/pygame/simulate.py` process stand in for a physical device - it
-speaks the exact same network pixel protocol (../common/app.py,
+speaks the exact same network pixel protocol (../common/server.py,
 ../common/scheduler.py), so a NetworkPixelDriver on the controller can't tell
 the two apart. Run as many instances as you like, each with its own --port, to
 simulate several devices/fixtures at once.

@@ -7,7 +7,6 @@
 #include "pico/cyw43_arch.h"
 #include "pico/time.h"
 
-#include "core/http_parser.h"
 #include "core/ws_handshake.h"
 #include "pico_config.h"
 
@@ -30,8 +29,6 @@
 typedef struct {
     struct tcp_pcb *pcb;
     bool in_use;
-    bool handshake_done;
-    http_parser_t handshake_parser;
 
     uint8_t buf[WS_RECV_BUF_LEN];
     size_t  buf_len;
@@ -92,7 +89,7 @@ static void send_ws_binary(struct tcp_pcb *pcb, const uint8_t *payload, size_t l
 }
 
 static void send_credit(uint32_t free_slots) {
-    if (!g_conn.in_use || !g_conn.handshake_done) return;
+    if (!g_conn.in_use) return;
     uint8_t msg[CREDIT_MSG_LEN];
     msg[0] = TYPE_CREDIT;
     write_u32(&msg[1], free_slots);
@@ -199,6 +196,39 @@ static void close_conn(ws_conn_t *c) {
     memset(c, 0, sizeof(*c));
 }
 
+/* Buffers and dispatches WS bytes for c. Drains incrementally rather than
+ * requiring a whole chunk to fit before processing anything: the controller
+ * legitimately bursts many frames back-to-back once it has credit (its own
+ * PREROLL+BUFFER lookahead queue draining all at once), and lwIP is free to
+ * coalesce several of those into one incoming chunk bigger than one
+ * message. Fill up to whatever room is currently free, drain every complete
+ * frame that unblocks, and repeat - only a single frame that alone can't fit
+ * even in an empty buffer is a real error. Returns false if it closed the
+ * connection (the caller must not touch the pcb again). */
+static bool consume(ws_conn_t *c, const uint8_t *data, size_t avail) {
+    while (avail > 0) {
+        size_t room = sizeof(c->buf) - c->buf_len;
+        if (room == 0) {
+            printf("ws: message too large, closing\n");
+            close_conn(c);
+            return false;
+        }
+        size_t take = avail < room ? avail : room;
+        memcpy(c->buf + c->buf_len, data, take);
+        c->buf_len += take;
+        data += take;
+        avail -= take;
+
+        ws_frame_result_t r;
+        while ((r = process_one_ws_frame(c)) == WS_FRAME_GOT) { }
+        if (r == WS_FRAME_ERROR) {
+            close_conn(c);
+            return false;
+        }
+    }
+    return true;
+}
+
 static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err) {
     ws_conn_t *c = (ws_conn_t *)arg;
     (void)err;
@@ -217,107 +247,21 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
         return ERR_OK;
     }
 
-    /* Once close_conn() below calls tcp_close(c->pcb), the pcb may be freed
-     * and its memory reused for a different connection before this function
-     * returns - calling tcp_recved(tpcb, ...) on it afterwards (as the
-     * `done:` label used to do unconditionally) corrupts whichever
-     * unrelated connection got that memory next. That's what caused the
-     * "PANIC: unsent_oversize mismatch" crash: under a burst of frames this
-     * path closes connections often, and each stray post-close tcp_recved()
-     * silently corrupted the next accepted pcb until one eventually
-     * asserted. Track whether we closed it and skip that call if so. */
-    bool closed = false;
-
-    struct pbuf *cur = p;
-    while (cur) {
-        const uint8_t *data = (const uint8_t *)cur->payload;
-        size_t avail = cur->len;
-
-        if (!c->handshake_done) {
-            while (avail > 0) {
-                size_t consumed = 0;
-                http_parse_result_t r = http_parser_feed(&c->handshake_parser, data, avail, &consumed);
-                data += consumed;
-                avail -= consumed;
-
-                if (r == HTTP_PARSE_ERROR) {
-                    printf("ws: malformed handshake, closing\n");
-                    close_conn(c);
-                    closed = true;
-                    goto done;
-                }
-                if (r == HTTP_PARSE_HEADERS_DONE) {
-                    const http_request_t *req = http_parser_request(&c->handshake_parser);
-                    if (req->method != HTTP_METHOD_GET || !req->have_ws_key) {
-                        printf("ws: not a websocket upgrade request, closing\n");
-                        close_conn(c);
-                        closed = true;
-                        goto done;
-                    }
-
-                    char accept[29];
-                    ws_compute_accept_key(req->ws_key, accept);
-                    char resp[192];
-                    int n = snprintf(resp, sizeof(resp),
-                        "HTTP/1.1 101 Switching Protocols\r\n"
-                        "Upgrade: websocket\r\n"
-                        "Connection: Upgrade\r\n"
-                        "Sec-WebSocket-Accept: %s\r\n\r\n", accept);
-                    if (n < 0 || (size_t)n >= sizeof(resp)) {
-                        close_conn(c);
-                        closed = true;
-                        goto done;
-                    }
-                    tcp_write(tpcb, resp, (u16_t)n, TCP_WRITE_FLAG_COPY);
-                    tcp_output(tpcb);
-                    c->handshake_done = true;
-                    printf("ws: handshake complete\n");
-
-                    critical_section_enter_blocking(g_fb_lock);
-                    uint32_t free_slots = frame_buffer_free_slots(g_fb);
-                    critical_section_exit(g_fb_lock);
-                    send_credit(free_slots);
-                    break; /* any remaining `avail` bytes are WS frame bytes, handled below */
-                }
-            }
-        }
-
-        /* Drain incrementally rather than requiring this whole chunk to fit
-         * before processing anything: the controller legitimately bursts
-         * many frames back-to-back once it has credit (its own PREROLL+
-         * BUFFER lookahead queue draining all at once), and lwIP is free to
-         * coalesce several of those into one incoming chunk bigger than one
-         * message. Fill up to whatever room is currently free, drain every
-         * complete frame that unblocks, and repeat - only a single frame
-         * that alone can't fit even in an empty buffer is a real error. */
-        while (c->handshake_done && avail > 0) {
-            size_t room = sizeof(c->buf) - c->buf_len;
-            if (room == 0) {
-                printf("ws: message too large, closing\n");
-                close_conn(c);
-                closed = true;
-                goto done;
-            }
-            size_t take = avail < room ? avail : room;
-            memcpy(c->buf + c->buf_len, data, take);
-            c->buf_len += take;
-            data += take;
-            avail -= take;
-
-            ws_frame_result_t r;
-            while ((r = process_one_ws_frame(c)) == WS_FRAME_GOT) { }
-            if (r == WS_FRAME_ERROR) {
-                close_conn(c);
-                closed = true;
-                goto done;
-            }
-        }
-
-        cur = cur->next;
+    /* Once close_conn() calls tcp_close(c->pcb), the pcb may be freed and
+     * its memory reused for a different connection before this function
+     * returns - calling tcp_recved(tpcb, ...) on it afterwards corrupts
+     * whichever unrelated connection got that memory next. That's what
+     * caused the "PANIC: unsent_oversize mismatch" crash: under a burst of
+     * frames this path closes connections often, and each stray post-close
+     * tcp_recved() silently corrupted the next accepted pcb until one
+     * eventually asserted. Track whether we closed it and skip that call if
+     * so. */
+    bool open = true;
+    for (struct pbuf *cur = p; cur && open; cur = cur->next) {
+        open = consume(c, (const uint8_t *)cur->payload, cur->len);
     }
 
-done:
-    if (!closed) tcp_recved(tpcb, p->tot_len);
+    if (open) tcp_recved(tpcb, p->tot_len);
     pbuf_free(p);
     return ERR_OK;
 }
@@ -328,52 +272,55 @@ static void err_cb(void *arg, err_t err) {
     if (c) memset(c, 0, sizeof(*c)); /* lwIP has already freed the pcb by the time this fires - don't tcp_close() it */
 }
 
-static err_t accept_cb(void *arg, struct tcp_pcb *newpcb, err_t err) {
-    (void)arg;
-    (void)err;
-
+bool ws_frame_server_adopt(struct tcp_pcb *pcb, const char *ws_key) {
     if (g_conn.in_use) {
         printf("ws: new connection from %s:%u replaces the current one\n",
-               ipaddr_ntoa(&newpcb->remote_ip), newpcb->remote_port);
+               ipaddr_ntoa(&pcb->remote_ip), pcb->remote_port);
         close_conn(&g_conn);
     }
 
-    printf("ws: connection from %s:%u\n", ipaddr_ntoa(&newpcb->remote_ip), newpcb->remote_port);
-    g_conn.pcb = newpcb;
+    char accept[29];
+    ws_compute_accept_key(ws_key, accept);
+    char resp[192];
+    int n = snprintf(resp, sizeof(resp),
+        "HTTP/1.1 101 Switching Protocols\r\n"
+        "Upgrade: websocket\r\n"
+        "Connection: Upgrade\r\n"
+        "Sec-WebSocket-Accept: %s\r\n\r\n", accept);
+    if (n < 0 || (size_t)n >= sizeof(resp) ||
+        tcp_write(pcb, resp, (u16_t)n, TCP_WRITE_FLAG_COPY) != ERR_OK) {
+        return false;
+    }
+    tcp_output(pcb);
+
+    g_conn.pcb = pcb;
     g_conn.in_use = true;
-    http_parser_reset(&g_conn.handshake_parser);
-    tcp_arg(newpcb, &g_conn);
-    tcp_recv(newpcb, recv_cb);
-    tcp_err(newpcb, err_cb);
-    return ERR_OK;
+    tcp_arg(pcb, &g_conn);
+    tcp_recv(pcb, recv_cb);
+    tcp_err(pcb, err_cb);
+    printf("ws: handshake complete with %s:%u\n", ipaddr_ntoa(&pcb->remote_ip), pcb->remote_port);
+
+    critical_section_enter_blocking(g_fb_lock);
+    uint32_t free_slots = frame_buffer_free_slots(g_fb);
+    critical_section_exit(g_fb_lock);
+    send_credit(free_slots);
+    return true;
+}
+
+bool ws_frame_server_feed(const uint8_t *data, size_t len) {
+    if (!g_conn.in_use) return false;
+    return consume(&g_conn, data, len);
 }
 
 void ws_frame_server_init(frame_buffer_t *fb, critical_section_t *fb_lock) {
     g_fb = fb;
     g_fb_lock = fb_lock;
     memset(&g_conn, 0, sizeof(g_conn));
-
-    /* This "threadsafe_background" cyw43_arch variant services lwIP from a
-     * low-priority IRQ context; per pico/cyw43_arch.h's own documentation,
-     * ANY lwIP call made from outside of an lwIP-invoked callback (accept_cb/
-     * recv_cb/err_cb below all qualify and need no bracketing - init() and
-     * poll() below are the two places that don't) must be bracketed with
-     * cyw43_arch_lwip_begin()/_end() or it races that background processing.
-     * This file (and http_server.c) missed that entirely, which is what
-     * actually caused the "tcp_receive: valid queue len" PANIC - not the
-     * pcb-lifecycle bug fixed earlier, which was real but a different issue. */
-    cyw43_arch_lwip_begin();
-    struct tcp_pcb *pcb = tcp_new();
-    tcp_bind(pcb, IP_ADDR_ANY, PICO_WS_PORT);
-    pcb = tcp_listen_with_backlog(pcb, 1);
-    tcp_accept(pcb, accept_cb);
-    cyw43_arch_lwip_end();
-
     g_next_heartbeat = make_timeout_time_ms(PICO_WS_CREDIT_HEARTBEAT_MS);
 }
 
 void ws_frame_server_poll(void) {
-    if (!g_conn.in_use || !g_conn.handshake_done) return;
+    if (!g_conn.in_use) return;
 
     critical_section_enter_blocking(g_fb_lock);
     uint32_t free_slots = frame_buffer_free_slots(g_fb);
@@ -382,7 +329,11 @@ void ws_frame_server_poll(void) {
     if (free_slots != g_last_sent_free_slots || absolute_time_diff_us(get_absolute_time(), g_next_heartbeat) <= 0) {
         /* send_credit() -> tcp_write()/tcp_output() - called from core0's
          * plain main loop, not from an lwIP callback, so it must be
-         * bracketed (see ws_frame_server_init()'s comment above). */
+         * bracketed: this "threadsafe_background" cyw43_arch variant
+         * services lwIP from a low-priority IRQ, and per pico/cyw43_arch.h
+         * any lwIP call made outside an lwIP-invoked callback races it
+         * otherwise - that race is what caused the "tcp_receive: valid
+         * queue len" PANIC. */
         cyw43_arch_lwip_begin();
         send_credit(free_slots);
         cyw43_arch_lwip_end();

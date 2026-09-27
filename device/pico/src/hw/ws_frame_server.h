@@ -2,18 +2,21 @@
 #define HW_WS_FRAME_SERVER_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+
+#include "lwip/tcp.h"
 
 #include "pico/critical_section.h"
 
 #include "core/frame_buffer.h"
 
 /* WebSocket side of docs/docs/network-pixel-protocol.md's data plane: the
- * controller connects in as the WS client, this device is the WS server, on
- * its own TCP listener (PICO_WS_PORT) separate from hw/http_server.c's
- * GET /status and POST /clear. Replaces the old UDP+NAK data plane entirely
- * - TCP's reliable, ordered delivery (under WS) removes the need for
- * chunking, gap detection, and retransmission.
+ * controller connects in as the WS client, this device is the WS server.
+ * There's no listener here - hw/http_server.c owns the device's one TCP
+ * port, and hands a connection over via ws_frame_server_adopt() once its
+ * request turns out to be a WebSocket upgrade. From then on this module owns
+ * that pcb's callbacks.
  *
  * Only one controller connects at a time - a new WS connection replaces
  * whatever was previously connected. Runs entirely from lwIP's callback
@@ -22,6 +25,20 @@
  * main.c hands to http_server_init(). */
 
 void ws_frame_server_init(frame_buffer_t *fb, critical_section_t *fb_lock);
+
+/* Takes over `pcb` (whose HTTP request was a GET carrying Sec-WebSocket-Key
+ * `ws_key`): sends the 101 Switching Protocols response, installs this
+ * module's lwIP callbacks, and sends the initial CREDIT snapshot. Must be
+ * called from lwIP callback context. Returns false (without touching the
+ * pcb's callbacks) if the handshake response couldn't be queued - the caller
+ * still owns the pcb then and should close it. */
+bool ws_frame_server_adopt(struct tcp_pcb *pcb, const char *ws_key);
+
+/* Feeds WS bytes that arrived in the same segment as the upgrade request,
+ * after its headers - hw/http_server.c's recv_cb already has them in hand.
+ * Returns false if this closed the connection (the caller must not touch the
+ * pcb again). */
+bool ws_frame_server_feed(const uint8_t *data, size_t len);
 
 /* Call from core0's loop alongside wifi_poll()/http_server_poll() - sends a
  * CREDIT snapshot (frame_buffer_free_slots()) to the connected controller,

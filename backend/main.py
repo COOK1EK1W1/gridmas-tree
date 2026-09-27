@@ -91,9 +91,10 @@ if __name__ == '__main__':
                         pass
                 req = web_server.get_next_request()
 
+            # 2. update the display
             patternManager.run_display_update()
 
-            # 4. send to pixel driver
+            # 3. draw fixtures and send to pixel driver
             produced_frame = driver_registry.draw_and_flush_drivers()
 
             # yield instead of busyloop just incase

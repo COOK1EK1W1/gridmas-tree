@@ -1,5 +1,4 @@
-"""A PixelDriver that streams frames to a physical LED controller (e.g. a
-Raspberry Pi driving a WS2812 strip) over the network.
+"""A PixelDriver that streams frames to a device over the network.
 
 The device is the WebSocket server; this driver is the client. The wire
 format is specified in docs/docs/network-pixel-protocol.md - this module is
@@ -8,10 +7,7 @@ data and the device's readiness signal ride one WebSocket connection,
 `/status` and `/clear` stay plain HTTP.
 
 Kept in its own module (rather than pixel_driver.py) so that `requests` is
-only required when a NetworkPixelDriver is actually used. GMT2025back.py
-imports pixel_driver.py unconditionally, including under Pyodide (the web
-editor), where `requests` isn't installed.
-"""
+only required when a NetworkPixelDriver is actually used."""
 
 import base64
 import os
@@ -28,7 +24,6 @@ from requests.adapters import HTTPAdapter
 
 from pixel_driver import BUFFER, PREROLL, PixelDriver
 
-# -- Wire format (docs/docs/network-pixel-protocol.md) --
 TYPE_FRAME = 0x01
 TYPE_CREDIT = 0x02
 
@@ -37,7 +32,6 @@ _FRAME_HEADER = struct.Struct(">BIq")
 # Big-endian: type(1) free_slots(4)
 _CREDIT = struct.Struct(">BI")
 
-_WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 _OPCODE_BINARY = 0x2
 _OPCODE_CLOSE = 0x8
 
@@ -83,7 +77,6 @@ def _ws_connect(address: str, port: int, timeout: float) -> socket.socket:
 
 
 def _send_ws_frame(sock: socket.socket, opcode: int, payload: bytes):
-    """Client-to-server frames must be masked (RFC 6455 5.1)."""
     length = len(payload)
     if length <= 125:
         header = bytes([0x80 | opcode, 0x80 | length])
@@ -124,24 +117,14 @@ def _recv_ws_frame(sock: socket.socket) -> "tuple[int, bytes]":
 class NetworkPixelDriver(PixelDriver):
     """Sends frames to a device speaking the GRIDmas network pixel protocol.
 
-    flush() never blocks on the network - it hands each frame to a
-    background connection thread over a small bounded queue, so a slow or
-    unreachable device can't stall pattern computation for every other
-    registered driver. If the queue is full, the *oldest* queued frame is
-    dropped in favour of the new one; a frame whose presentation time has
-    already passed (plus a small grace) is dropped rather than sent, since
-    the device would only drop it as late anyway.
-
-    The device reports how many frames it currently has room for (a
-    CREDIT message - see docs/docs/network-pixel-protocol.md); this driver
+    The device reports how many frames it currently has room for this driver
     only sends up to that many frames ahead, decrementing its local copy as
     it sends and topping up whenever a new CREDIT snapshot arrives. A fresh
     or reconnected connection starts at zero credit until the device's
     first snapshot.
     """
 
-    DEFAULT_HTTP_PORT = 8420
-    DEFAULT_WS_PORT = 8421
+    DEFAULT_PORT = 8420
     HTTP_TIMEOUT_S = 0.5
     # A lost initial SYN over Wi-Fi is routine, not exceptional - the OS's own
     # default initial SYN retransmit timeout (RFC 6298) is ~1s, so a 1.0s
@@ -149,7 +132,7 @@ class NetworkPixelDriver(PixelDriver):
     # time (confirmed: failures landed at exactly ~1.00s, i.e. no response at
     # all rather than a fast refusal). 3s comfortably covers one retransmit.
     CONNECT_TIMEOUT_S = 3.0
-    RECV_TIMEOUT_S = 2.0  # several heartbeat intervals - see ws_server.py's _HEARTBEAT_S
+    RECV_TIMEOUT_S = 2.0  # several heartbeat intervals - see device/common/server.py's _HEARTBEAT_S
     RECONNECT_BACKOFF_S = 1.0
 
     # A frame more than this many seconds past its presentation time is
@@ -157,19 +140,11 @@ class NetworkPixelDriver(PixelDriver):
     # late-grace window.
     LATE_GRACE_S = 0.25
 
-    def __init__(
-        self,
-        address: str,
-        pixel_count: int,
-        name: str,
-        fps: int,
-        http_port: int = DEFAULT_HTTP_PORT,
-        ws_port: int = DEFAULT_WS_PORT,
-    ):
+    def __init__( self, address: str, pixel_count: int, name: str, fps: int, port: int=DEFAULT_PORT):
         super().__init__(pixel_count, name, fps)
         self._address = address
-        self._ws_port = ws_port
-        self._base_url = f"http://{address}:{http_port}"
+        self.port = port
+        self._base_url = f"http://{address}:{port}"
         self._seq = 0
 
         self._session = self._make_http_session()
@@ -208,14 +183,21 @@ class NetworkPixelDriver(PixelDriver):
         with self._stats_lock:
             self._stats[key] += n
 
-    def flush(self, frame: np.ndarray, t: float):
+    def flush(self, t: float):
         """Queue a frame to be sent to the device.
 
+        never blocks on the network - it hands each frame to a
+        background connection thread over a small bounded queue, so a slow or
+        unreachable device can't stall pattern computation for every other
+        registered driver. If the queue is full, the *oldest* queued frame is
+        dropped in favour of the new one; a frame whose presentation time has
+        already passed (plus a small grace) is dropped rather than sent, since
+        the device would only drop it as late anyway.
+
         Args:
-            frame (np.ndarray): An (N, 3) array of uint8 RGB triples, one per pixel.
             t (float): The unix timestamp (seconds) this frame should be shown at.
         """
-        payload = np.asarray(frame, dtype=np.uint8).tobytes()
+        payload = np.asarray(self.pixel_buffer, dtype=np.uint8).tobytes()
         self._seq += 1
         item = (self._seq, t, payload)
         try:
@@ -287,7 +269,7 @@ class NetworkPixelDriver(PixelDriver):
         consecutive_failures = 0
         while not self._stop.is_set():
             try:
-                sock = _ws_connect(self._address, self._ws_port, self.CONNECT_TIMEOUT_S)
+                sock = _ws_connect(self._address, self.port, self.CONNECT_TIMEOUT_S)
             except OSError as e:
                 consecutive_failures += 1
                 print(f"[{self.name}] connect failed ({consecutive_failures} in a row): {e}")

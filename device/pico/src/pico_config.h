@@ -29,12 +29,12 @@
 
 /* -- Networking --
  *
- * PICO_HTTP_PORT serves GET /status and POST /clear (hw/http_server.c).
- * PICO_WS_PORT is a separate TCP listener for the WebSocket data plane
- * (hw/ws_frame_server.c) - see docs/docs/network-pixel-protocol.md. */
-#define PICO_HTTP_PORT 8420
-#define PICO_WS_PORT (PICO_HTTP_PORT + 1)
-#define PICO_MAX_CONCURRENT_CONNS 4 /* keep-alive HTTP connections accepted at once (status/clear only) */
+ * PICO_PORT is the device's single TCP listener (hw/http_server.c): plain
+ * HTTP GET /status and POST /clear, plus the WebSocket data plane, which
+ * starts life as an HTTP upgrade request on that same port and is then
+ * handed to hw/ws_frame_server.c - see docs/docs/network-pixel-protocol.md. */
+#define PICO_PORT 8420
+#define PICO_MAX_CONCURRENT_CONNS 4 /* HTTP connections at once, not counting the (upgraded) WS one */
 #define PICO_WS_CREDIT_HEARTBEAT_MS 250 /* resend a CREDIT snapshot at least this often even if unchanged */
 
 /* -- Resilience --

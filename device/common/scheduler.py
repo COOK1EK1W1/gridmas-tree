@@ -1,7 +1,7 @@
 """Buffers timestamped frames and plays each one back at the moment it's due.
 
 Runs on its own thread so strip renders never block, or are blocked by, the
-WebSocket thread receiving frames in ws_server.py. Frames are held in a
+WebSocket thread receiving frames in server.py. Frames are held in a
 min-heap keyed on presentation time - reordering isn't a concern over a
 reliable, ordered WebSocket connection, but the heap's structure is kept
 since a future feature may want to replace an already-buffered frame by
@@ -29,7 +29,7 @@ class FrameScheduler:
 
     Submitting past capacity evicts the earliest-due slot rather than
     declining the new frame - a last-resort safety net, since the
-    controller's credit-based flow control (see ws_server.py) is what's
+    controller's credit-based flow control (see server.py) is what's
     meant to keep the buffer from ever actually filling.
 
     A frame dequeued more than late_grace_s past its presentation time is

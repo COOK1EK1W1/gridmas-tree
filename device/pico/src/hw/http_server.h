@@ -8,12 +8,13 @@
 
 #include "core/frame_buffer.h"
 
-/* Hand-rolled HTTP/1.1 server on lwIP's raw tcp_pcb API, implementing
- * docs/docs/network-pixel-protocol.md's control plane: GET /status and
- * POST /clear. Frame data is WebSocket, not HTTP - see
- * hw/ws_frame_server.c, on its own port. Supports keep-alive (see
- * docs/docs/pico-device.md) - a connection stays open across multiple
- * requests instead of forcing a handshake per request.
+/* Hand-rolled HTTP/1.1 server on lwIP's raw tcp_pcb API - the device's only
+ * TCP listener (PICO_PORT). Serves docs/docs/network-pixel-protocol.md's
+ * control plane itself (GET /status, POST /clear) and hands any WebSocket
+ * upgrade request (a GET carrying Sec-WebSocket-Key) over to
+ * hw/ws_frame_server.c, which owns that connection from then on. Supports
+ * keep-alive (see docs/docs/pico-device.md) - a connection stays open across
+ * multiple requests instead of forcing a handshake per request.
  *
  * Runs entirely from lwIP's callback context on core0 - see main.c.
  * /clear crosses into the frame_buffer shared with core1 (and with

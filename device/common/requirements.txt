@@ -1,2 +1,1 @@
-flask
-waitress
+# device/common/ is stdlib-only - nothing to install

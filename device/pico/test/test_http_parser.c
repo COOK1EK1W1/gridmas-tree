@@ -60,6 +60,29 @@ int main(void) {
     assert(req->method == HTTP_METHOD_POST);
     assert(strcmp(req->path, "/clear") == 0);
 
+    /* WebSocket upgrade on the same listener - recognised by its key, with
+     * any bytes after the headers (the first WS frame) left unconsumed */
+    http_parser_reset(&p);
+    const char *upgrade =
+        "GET / HTTP/1.1\r\n"
+        "Host: pico:8420\r\n"
+        "Upgrade: websocket\r\n"
+        "Connection: Upgrade\r\n"
+        "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+        "Sec-WebSocket-Version: 13\r\n"
+        "\r\n"
+        "\x82\x85";
+    assert(feed_all(&p, upgrade, &consumed) == HTTP_PARSE_HEADERS_DONE);
+    req = http_parser_request(&p);
+    assert(req->method == HTTP_METHOD_GET);
+    assert(req->have_ws_key && strcmp(req->ws_key, "dGhlIHNhbXBsZSBub25jZQ==") == 0);
+    assert(strlen(upgrade) - consumed == 2);
+
+    /* a plain GET /status carries no key, so it isn't mistaken for one */
+    http_parser_reset(&p);
+    assert(feed_all(&p, "GET /status HTTP/1.1\r\n\r\n", NULL) == HTTP_PARSE_HEADERS_DONE);
+    assert(!http_parser_request(&p)->have_ws_key);
+
     /* unknown method -> error */
     http_parser_reset(&p);
     assert(feed_all(&p, "PUT /frame HTTP/1.1\r\n\r\n", NULL) == HTTP_PARSE_ERROR);

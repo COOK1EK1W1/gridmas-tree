@@ -7,8 +7,8 @@
 
 /* Minimal incremental HTTP/1.1 request-line + header parser, used by
  * hw/http_server.c for the two endpoints it serves (GET /status,
- * POST /clear) and by hw/ws_frame_server.c to parse the WebSocket upgrade
- * request's Sec-WebSocket-Key (see docs/docs/network-pixel-protocol.md).
+ * POST /clear) and to spot a WebSocket upgrade request by its
+ * Sec-WebSocket-Key (see docs/docs/network-pixel-protocol.md).
  * Deliberately not general-purpose:
  * fixed small buffers, no chunked encoding, no multi-value headers.
  *

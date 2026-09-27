@@ -1,16 +1,13 @@
 from abc import ABC, abstractmethod
-from re import Pattern
-from typing import Callable, Generator, Literal, Optional
+from typing import Literal
 import numpy as np
 import time
+from fixture import Fixture
 
-from numpy import ndarray
-
-from fixture import Fixture, setActiveFixture
-
-
-PREROLL = 0.2
-BUFFER = 0.2
+# the pattern is running this far ahead of future
+PREROLL = 0.1
+# add extra buffer past preroll
+BUFFER = 0.1
 
 class PixelDriver(ABC):
 
@@ -22,23 +19,30 @@ class PixelDriver(ABC):
         self.fps = fps
         self.name = name
 
-        # once-a-second effective-fps log, so the compute rate is visible
-        # without a print() on every single frame
+        # logging variables
         self._frames_since_log = 0
-        self._last_log_at = time.time()
+        self._last_log_at = 0
 
-    def add_fixture(self, f: Fixture, index: int):
-        self.fixtures.append((f, index))
-        len(f._pixels)
+    def add_fixture(self, new_fixture: Fixture, index: int):
+        """ Add a fixture to registry, with index offset into pixel strip. 
+        ValueError if overlapping pixels with another fixture"""
+        new_start = index
+        new_end = index + len(new_fixture._pixels)
+        for fixture, start in self.fixtures:
+            end = start + len(fixture._pixels)
+            if new_start < end and start < new_end:
+                raise ValueError(
+                f"LEDs {new_start}-{new_end - 1} overlap an existing "
+                f"fixture at {start}-{end - 1}"
+            )
+        self.fixtures.append((new_fixture, index))
 
     def draw_and_flush_driver(self) -> bool:
         """Generate and flush one frame if the lookahead horizon calls for it.
 
         Returns:
             bool: True if a frame was generated this call, False if we're
-                already computed far enough ahead of real time. The caller uses
-                this to decide whether to sleep - spinning here would starve the
-                driver's own network sender threads of the GIL.
+                already computed far enough ahead of real time.
         """
         now = time.time()
         needs_frame = self.last_frame_time < (now + PREROLL + BUFFER)
@@ -46,7 +50,7 @@ class PixelDriver(ABC):
             return False
 
         if self.last_frame_time == 0:
-            self.last_frame_time = now + 1
+            self.last_frame_time = now + PREROLL
         else:
             self.last_frame_time += 1 / self.fps
         self._draw_fixtures(self.last_frame_time)
@@ -61,23 +65,18 @@ class PixelDriver(ABC):
 
 
     def _draw_fixtures(self, t: float):
-        for fixture, _ in self.fixtures:
-            setActiveFixture(fixture)
+        for fixture, offset in self.fixtures:
             if fixture._draw_fn is not None:
-                self.flush(fixture._request_frame(), t)
-        setActiveFixture(None)
+                self.pixel_buffer[offset:] = fixture._request_frame()
+        self.flush(t)
 
     @abstractmethod
-    def flush(self, frame: ndarray[tuple[int, Literal[3]], np.dtype[np.unsignedinteger]], t: float):
-        ...
+    def flush(self, t: float):
+        """Send the self.pixel_buffer to the device for display at time t"""
 
     def close(self):
-        """Release anything this driver owns (sockets, threads).
-
-        A no-op for drivers that hold no resources; NetworkPixelDriver
-        overrides it. Called when a display is torn down - see
-        DriverRegistry.clear().
-        """
+        """Release anything this driver owns (sockets, threads). 
+        A no-op for drivers that hold no resources"""
 
 
 class DriverRegistry:
@@ -88,22 +87,16 @@ class DriverRegistry:
     def draw_and_flush_drivers(self) -> bool:
         """Returns True if any driver generated a frame this call."""
         produced = False
-        if len(self._registry) == 0 and time.time() > self.last_print + 1:
+        now = time.time()
+        if len(self._registry) == 0 and now > self.last_print + 1:
             print("No drivers found")
-            self.last_print = time.time()
+            self.last_print = now
         for driver in self._registry:
             produced |= driver.draw_and_flush_driver()
         return produced
 
     def clear(self):
-        """Drop every registered driver, closing each one first.
-
-        Closing is the point: a NetworkPixelDriver owns a connection thread
-        that keeps reconnecting for the life of the object, and a device
-        serves one controller at a time. A driver that were merely dropped
-        would go on fighting its own replacement for that single slot -
-        each new connection tearing down the other's.
-        """
+        """Drop every registered driver, closing each one first"""
         for driver in self._registry:
             try:
                 driver.close()

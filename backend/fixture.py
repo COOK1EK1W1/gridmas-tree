@@ -1,13 +1,14 @@
 """Contains all the methods you need to change the tree. (Where the magic happens)"""
 
+import math
 from abc import ABC
 from types import GeneratorType
 import numpy as np
+from typing import Callable, Generator, Optional, TypeVar, Union, overload
 from util import  linear, read_tree_csv
 import time
-import math
 from colors import Color, Pixel
-from typing import TYPE_CHECKING, Callable, Generator, Optional, TypeVar, Union, overload
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from geometry import Shape
 
@@ -109,6 +110,7 @@ class Fixture(ABC):
 
 
     def _request_frame(self):
+        setActiveFixture(self)
         if self._draw_generator is not None:
             try:
                 next(self._draw_generator)
@@ -137,6 +139,7 @@ class Fixture(ABC):
         self._advance_all_lerps()
 
         self._frame += 1
+        setActiveFixture(None)
         return rgb
 
 

@@ -129,12 +129,23 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
      * ("unsent_oversize mismatch") once a connection was actually closed
      * from an error path under load. */
     bool closed = false;
+    /* set once this connection is handed to ws_frame_server.c - any bytes
+     * after the upgrade request's headers are WS frames, not HTTP */
+    bool upgraded = false;
 
     struct pbuf *cur = p;
 
     while (cur) {
         const uint8_t *data = (const uint8_t *)cur->payload;
         size_t avail = cur->len;
+
+        if (upgraded && avail > 0) {
+            if (!ws_frame_server_feed(data, avail)) {
+                closed = true;
+                goto done;
+            }
+            avail = 0;
+        }
 
         while (avail > 0) {
             size_t consumed = 0;
@@ -153,7 +164,24 @@ static err_t recv_cb(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
                 const http_request_t *req = http_parser_request(&c->parser);
                 err_t werr;
 
-                if (req->method == HTTP_METHOD_GET && strcmp(req->path, "/status") == 0) {
+                if (req->method == HTTP_METHOD_GET && req->have_ws_key) {
+                    /* WebSocket upgrade - the pcb (and its callbacks) move
+                     * to ws_frame_server.c, and this slot is freed without
+                     * closing it */
+                    if (!ws_frame_server_adopt(tpcb, req->ws_key)) {
+                        printf("http: couldn't send WS handshake response, closing\n");
+                        close_http_conn(tpcb, c);
+                        closed = true;
+                        goto done;
+                    }
+                    c->in_use = false;
+                    upgraded = true;
+                    if (avail > 0 && !ws_frame_server_feed(data, avail)) {
+                        closed = true;
+                        goto done;
+                    }
+                    break;
+                } else if (req->method == HTTP_METHOD_GET && strcmp(req->path, "/status") == 0) {
                     werr = handle_status(c);
                 } else if (req->method == HTTP_METHOD_POST && strcmp(req->path, "/clear") == 0) {
                     werr = handle_clear(c);
@@ -194,8 +222,9 @@ static err_t accept_cb(void *arg, struct tcp_pcb *newpcb, err_t err) {
     http_conn_t *c = conn_alloc();
     if (!c) {
         /* connection cap reached (PICO_MAX_CONCURRENT_CONNS) - refuse
-         * cleanly. /status and /clear are the only routes left on this
-         * listener, so this should be rare; if it shows up often, raise
+         * cleanly. A WS connection gives its slot back as soon as it's
+         * upgraded, so only concurrent /status and /clear callers count
+         * here and this should be rare; if it shows up often, raise
          * PICO_MAX_CONCURRENT_CONNS. */
         printf("http: refusing connection from %s:%u - at PICO_MAX_CONCURRENT_CONNS (%d)\n",
                ipaddr_ntoa(&newpcb->remote_ip), newpcb->remote_port, PICO_MAX_CONCURRENT_CONNS);
@@ -222,13 +251,13 @@ void http_server_init(frame_buffer_t *fb, critical_section_t *fb_lock) {
      * any lwIP call made from outside of an lwIP-invoked callback (accept_cb/
      * recv_cb/err_cb below all qualify and need no bracketing) must be
      * bracketed with cyw43_arch_lwip_begin()/_end() or it races that
-     * background processing. This file (and ws_frame_server.c) missed that
+     * background processing. This file (and ws_frame_server.c) once missed that
      * entirely, which is what actually caused the "tcp_receive: valid queue
      * len" PANIC - not the pcb-lifecycle bug fixed earlier, which was real
      * but a different issue. */
     cyw43_arch_lwip_begin();
     struct tcp_pcb *pcb = tcp_new();
-    tcp_bind(pcb, IP_ADDR_ANY, PICO_HTTP_PORT);
+    tcp_bind(pcb, IP_ADDR_ANY, PICO_PORT);
     pcb = tcp_listen_with_backlog(pcb, PICO_MAX_CONCURRENT_CONNS);
     tcp_accept(pcb, accept_cb);
     cyw43_arch_lwip_end();
