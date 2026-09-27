@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from re import Pattern
 from typing import Callable, Generator, Literal, Optional
 import numpy as np
 import time

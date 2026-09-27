@@ -358,7 +358,7 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
         return
 
     # Save the current RGB values as the interpolation starting point.
-    _active_fixture._lerp_prev[changed] = tree._rgb[changed]
+    _active_fixture._lerp_prev[changed] = _active_fixture._rgb[changed]
 
     # Reset interpolation progress.
     _active_fixture._lerp_step[changed] = 0
@@ -398,7 +398,7 @@ def frame() -> int:
                 print(f"{f} frames since the pattern started")
             ```
 """
-    return tree._frame
+    return _active_fixture._frame
 
 def seconds() -> int:
     """The number of seconds since the start of the pattern"""

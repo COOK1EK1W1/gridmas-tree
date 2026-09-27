@@ -2,9 +2,9 @@
     A collection of the pattern manager class and its helper functions
 """
 
+from types import ModuleType
 import os
 import sys
-from types import ModuleType
 from typing import Iterable
 import traceback
 import attribute
@@ -12,6 +12,7 @@ from pixel_driver import DriverRegistry
 from util import tcolors
 import math
 import importlib
+import time
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -58,14 +59,16 @@ def print_message_centered(msg: str, min_len: int, padding: str = " ") -> str:
     return padding * l_padding + msg + padding * r_padding
 
 
-
 class PatternManager:
     def __init__(self, pattern_dir: str, driver_registry: DriverRegistry):
         self.pattern_dir = pattern_dir
 
         self.current_pattern_module: ModuleType | None = None
-    
+
         self.driver_registry = driver_registry
+
+        self.display_last_update = 0
+        self.display_fps = 1/60
 
     def list_patterns(self) -> Iterable[str]:
         pattern_files = [f for f in os.listdir(self.pattern_dir) if f.endswith(".py")]
@@ -76,10 +79,7 @@ class PatternManager:
 
         attribute.Store.get_store().reset()
 
-        # A display module registers its fixtures and drivers as a side effect
-        # of being imported, so the outgoing display's drivers have to be shut
-        # down before the incoming ones dial the device - a device only serves
-        # one controller at a time.
+        # the pattern now defined drivers, clear them before loading
         self.driver_registry.clear()
 
         module_string = self.pattern_dir.replace("/", ".") + f"{name}"
@@ -90,25 +90,26 @@ class PatternManager:
             if existing is None:
                 pattern_module = importlib.import_module(module_string)
             else:
-                # Exactly one execution per load, either way. `__import__`
-                # followed by `reload` ran the module body twice, which for a
-                # display module meant two of every driver - both then fighting
-                # over the device's single controller slot.
                 pattern_module = importlib.reload(existing)
         except Exception as e:
             traceback.print_exception(e)
             return False
 
-        draw_function = None
+        draw_function = pattern_module.update
 
-        if draw_function is None and False:
+        if draw_function is None:
             print("pattern does not have draw function")
             return False
 
         self.current_pattern_module = pattern_module
-        #self.driver_registry.update_draw(draw_function)
 
         return True
+
+    def run_display_update(self):
+        now = time.perf_counter()
+        if self.current_pattern_module is not None and now > self.display_last_update + self.display_fps:
+            self.current_pattern_module.update()
+            self.display_last_update = now
 
     def unload_pattern(self):
         self.current_pattern = None

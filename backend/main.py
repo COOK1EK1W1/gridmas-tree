@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
                     case RandomPattern():
                         patternManager.unload_pattern()
-                        a = list(patternManager.patterns.keys())
+                        a = list(patternManager.list_patterns())
                         random.shuffle(a)
                         patternManager.load_pattern(a[0])
                         last_change = time.time()
@@ -90,6 +90,8 @@ if __name__ == '__main__':
                     case _: 
                         pass
                 req = web_server.get_next_request()
+
+            patternManager.run_display_update()
 
             # 4. send to pixel driver
             produced_frame = driver_registry.draw_and_flush_drivers()

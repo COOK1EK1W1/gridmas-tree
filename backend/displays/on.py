@@ -10,8 +10,18 @@ driver_registry.register(pygame)
 
 setActiveFixture(tree)
 from patterns.on import draw as on_draw
-tree.draw_fn = on_draw
+from patterns.Caduceus import draw as fireworks_draw
 setActiveFixture(None)
+
+
+it=60
+i = 0
 def update():
-    pass
+    global i
+    i += 1
+    print(i)
+    if i % it > it/2:
+        tree.draw_fn = on_draw
+    else:
+        tree.draw_fn = fireworks_draw
 
