@@ -1,18 +1,15 @@
 """A PixelDriver that streams frames to a device over the network.
 
-The device is the WebSocket server; this driver is the client. The wire
-format is specified in docs/docs/network-pixel-protocol.md - this module is
-the reference implementation of the controller side of that spec: frame
-data and the device's readiness signal ride one WebSocket connection,
+This driver is the client; The device is the WebSocket server. 
+
+The wire format is specified in docs/docs/network-pixel-protocol.md 
+Frame data and the device's readiness signal ride one WebSocket connection,
 `/status` and `/clear` stay plain HTTP.
 
-Kept in its own module (rather than pixel_driver.py) so that `requests` is
-only required when a NetworkPixelDriver is actually used."""
+Kept in its own module (rather than pixel_driver.py) so that `requests` and
+`websockets` are only required when a NetworkPixelDriver is actually used."""
 
-import base64
-import os
 import queue
-import socket
 import struct
 import threading
 import time
@@ -21,6 +18,8 @@ from typing import Optional
 import numpy as np
 import requests
 from requests.adapters import HTTPAdapter
+from websockets.exceptions import ConnectionClosed, WebSocketException
+from websockets.sync.client import ClientConnection, connect
 
 from pixel_driver import BUFFER, PREROLL, PixelDriver
 
@@ -31,87 +30,6 @@ TYPE_CREDIT = 0x02
 _FRAME_HEADER = struct.Struct(">BIq")
 # Big-endian: type(1) free_slots(4)
 _CREDIT = struct.Struct(">BI")
-
-_OPCODE_BINARY = 0x2
-_OPCODE_CLOSE = 0x8
-
-
-def _ws_connect(address: str, port: int, timeout: float) -> socket.socket:
-    """Open a TCP connection and perform the WS client handshake (RFC 6455 1.3).
-
-    Raises OSError (a plain socket.timeout/TimeoutError included) tagged with
-    which phase it happened in - "TCP connect" vs "WS handshake response" -
-    since both look identical from the caller's generic `except OSError`
-    otherwise, and they point at very different root causes (unreachable/
-    down device vs. a device that accepted the connection but is slow or
-    stuck to respond).
-    """
-    t0 = time.monotonic()
-    try:
-        sock = socket.create_connection((address, port), timeout=timeout)
-    except OSError as e:
-        raise OSError(f"TCP connect after {time.monotonic() - t0:.2f}s: {e}") from e
-
-    key = base64.b64encode(os.urandom(16)).decode()
-    request = (
-        f"GET / HTTP/1.1\r\nHost: {address}:{port}\r\n"
-        "Upgrade: websocket\r\nConnection: Upgrade\r\n"
-        f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n"
-    )
-    t1 = time.monotonic()
-    try:
-        sock.sendall(request.encode())
-        response = b""
-        while b"\r\n\r\n" not in response:
-            chunk = sock.recv(1024)
-            if not chunk:
-                raise ConnectionError("device closed connection during WS handshake")
-            response += chunk
-    except OSError as e:
-        sock.close()
-        raise OSError(f"WS handshake response after {time.monotonic() - t1:.2f}s: {e}") from e
-    if not response.startswith(b"HTTP/1.1 101"):
-        sock.close()
-        raise ConnectionError(f"WS handshake rejected: {response!r}")
-    return sock
-
-
-def _send_ws_frame(sock: socket.socket, opcode: int, payload: bytes):
-    length = len(payload)
-    if length <= 125:
-        header = bytes([0x80 | opcode, 0x80 | length])
-    elif length <= 0xFFFF:
-        header = bytes([0x80 | opcode, 0x80 | 126]) + struct.pack(">H", length)
-    else:
-        header = bytes([0x80 | opcode, 0x80 | 127]) + struct.pack(">Q", length)
-    mask = os.urandom(4)
-    masked = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
-    sock.sendall(header + mask + masked)
-
-
-def _recv_exact(sock: socket.socket, n: int) -> bytes:
-    buf = bytearray()
-    while len(buf) < n:
-        chunk = sock.recv(n - len(buf))
-        if not chunk:
-            raise ConnectionError("connection closed")
-        buf += chunk
-    return bytes(buf)
-
-
-def _recv_ws_frame(sock: socket.socket) -> "tuple[int, bytes]":
-    b1, b2 = _recv_exact(sock, 2)
-    opcode = b1 & 0x0F
-    length = b2 & 0x7F
-    if length == 126:
-        length = struct.unpack(">H", _recv_exact(sock, 2))[0]
-    elif length == 127:
-        length = struct.unpack(">Q", _recv_exact(sock, 8))[0]
-    mask = _recv_exact(sock, 4) if b2 & 0x80 else None
-    payload = _recv_exact(sock, length)
-    if mask:
-        payload = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
-    return opcode, payload
 
 
 class NetworkPixelDriver(PixelDriver):
@@ -132,7 +50,7 @@ class NetworkPixelDriver(PixelDriver):
     # time (confirmed: failures landed at exactly ~1.00s, i.e. no response at
     # all rather than a fast refusal). 3s comfortably covers one retransmit.
     CONNECT_TIMEOUT_S = 3.0
-    RECV_TIMEOUT_S = 2.0  # several heartbeat intervals - see device/common/server.py's _HEARTBEAT_S
+    RECV_TIMEOUT_S = 2.0
     RECONNECT_BACKOFF_S = 1.0
 
     # A frame more than this many seconds past its presentation time is
@@ -179,7 +97,7 @@ class NetworkPixelDriver(PixelDriver):
         session.mount("http://", adapter)
         return session
 
-    def _bump(self, key: str, n: int = 1):
+    def inc_stat(self, key: str, n: int = 1):
         with self._stats_lock:
             self._stats[key] += n
 
@@ -202,18 +120,18 @@ class NetworkPixelDriver(PixelDriver):
         item = (self._seq, t, payload)
         try:
             self._out_queue.put_nowait(item)
-            self._bump("queued")
+            self.inc_stat("queued")
         except queue.Full:
             try:
                 self._out_queue.get_nowait()
-                self._bump("dropped_queue_full")
+                self.inc_stat("dropped_queue_full")
             except queue.Empty:
                 pass
             try:
                 self._out_queue.put_nowait(item)
-                self._bump("queued")
+                self.inc_stat("queued")
             except queue.Full:
-                self._bump("dropped_queue_full")
+                self.inc_stat("dropped_queue_full")
 
     def stats(self) -> dict:
         """A snapshot of this driver's send counters, for diagnostics.
@@ -255,22 +173,19 @@ class NetworkPixelDriver(PixelDriver):
             pass
 
     def _connection_loop(self):
-        # The outer except Exception in each helper below is a deliberate
-        # safety net: these threads run for the life of the driver, and one
-        # bad/unexpected item must never silently kill frame delivery to a
-        # fixture for good.
-        #
-        # Frames queued while disconnected (or mid-handshake) are not
-        # explicitly purged on (re)connect - the per-frame late check in
-        # _send_loop already drops anything whose presentation time has
-        # passed by the time it's actually its turn to send, which is a
-        # more accurate staleness test than "which connection was this
-        # queued during".
+        """keeps the connection alive, dispatches recv threads and starts send thread"""
         consecutive_failures = 0
         while not self._stop.is_set():
             try:
-                sock = _ws_connect(self._address, self.port, self.CONNECT_TIMEOUT_S)
-            except OSError as e:
+                ws = connect(
+                    f"ws://{self._address}:{self.port}/",
+                    open_timeout=self.CONNECT_TIMEOUT_S,
+                    ping_interval=None, # TODO re-enable once devices can do this
+                    close_timeout=0.5,
+                    compression=None,
+                    max_size=None,
+                )
+            except (OSError, WebSocketException) as e:
                 consecutive_failures += 1
                 print(f"[{self.name}] connect failed ({consecutive_failures} in a row): {e}")
                 self._stop.wait(self.RECONNECT_BACKOFF_S)
@@ -280,27 +195,23 @@ class NetworkPixelDriver(PixelDriver):
                 print(f"[{self.name}] connected after {consecutive_failures} failed attempt(s)")
                 consecutive_failures = 0
 
-            sock.settimeout(self.RECV_TIMEOUT_S)
             with self._credit_cv:
                 self._credit = 0
 
             broken = threading.Event()
             recv_thread = threading.Thread(
-                target=self._recv_loop, args=(sock, broken), name=f"{self.name}-ws-recv", daemon=True
+                target=self._recv_loop, args=(ws, broken), name=f"{self.name}-ws-recv", daemon=True
             )
             recv_thread.start()
-            self._send_loop(sock, broken)
+            self._send_loop(ws, broken)
 
             broken.set()
-            try:
-                sock.close()
-            except OSError:
-                pass
+            ws.close()
             recv_thread.join(timeout=self.RECV_TIMEOUT_S)
             if not self._stop.is_set():
-                self._bump("reconnects")
+                self.inc_stat("reconnects")
 
-    def _send_loop(self, sock: socket.socket, broken: threading.Event):
+    def _send_loop(self, ws: ClientConnection, broken: threading.Event):
         while not self._stop.is_set() and not broken.is_set():
             try:
                 seq, t, payload = self._out_queue.get(timeout=0.1)
@@ -308,7 +219,7 @@ class NetworkPixelDriver(PixelDriver):
                 continue
 
             if t < time.time() - self.LATE_GRACE_S:
-                self._bump("dropped_late")
+                self.inc_stat("dropped_late")
                 continue
 
             with self._credit_cv:
@@ -320,22 +231,22 @@ class NetworkPixelDriver(PixelDriver):
 
             datagram = _FRAME_HEADER.pack(TYPE_FRAME, seq & 0xFFFFFFFF, int(t * 1_000_000)) + payload
             try:
-                _send_ws_frame(sock, _OPCODE_BINARY, datagram)
-                self._bump("sent")
-            except OSError as e:
-                self._bump("failed")
+                ws.send(datagram)
+                self.inc_stat("sent")
+            except (OSError, ConnectionClosed) as e:
+                self.inc_stat("failed")
                 print(f"[{self.name}] failed to send frame {seq}: {e}")
                 broken.set()
                 return
             except Exception as e:
-                self._bump("failed")
+                self.inc_stat("failed")
                 print(f"[{self.name}] unexpected error sending frame {seq}: {e}")
 
-    def _recv_loop(self, sock: socket.socket, broken: threading.Event):
+    def _recv_loop(self, ws: ClientConnection, broken: threading.Event):
         while not self._stop.is_set() and not broken.is_set():
             try:
-                opcode, payload = _recv_ws_frame(sock)
-            except (OSError, ConnectionError) as e:
+                msg = ws.recv(timeout=self.RECV_TIMEOUT_S)
+            except (OSError, ConnectionClosed) as e:
                 if not self._stop.is_set():
                     print(f"[{self.name}] WS recv failed: {e}")
                 break
@@ -343,12 +254,10 @@ class NetworkPixelDriver(PixelDriver):
                 print(f"[{self.name}] unexpected error handling a WS message: {e}")
                 break
 
-            if opcode == _OPCODE_CLOSE:
-                break
-            if opcode != _OPCODE_BINARY or len(payload) != _CREDIT.size or payload[0] != TYPE_CREDIT:
+            if not isinstance(msg, bytes) or len(msg) != _CREDIT.size or msg[0] != TYPE_CREDIT:
                 continue
 
-            _, free_slots = _CREDIT.unpack(payload)
+            _, free_slots = _CREDIT.unpack(msg)
             with self._credit_cv:
                 self._credit = free_slots
                 self._credit_cv.notify_all()
