@@ -135,7 +135,7 @@ export default function TreeVis({
 
             // Update the material colors for each tree node
             for (let i = 0; i < tree.length; i++) {
-              matRefs[i].current?.color.setRGB(((l[i] >> 8) & 255) / 255, ((l[i] >> 16) & 255) / 255, (l[i] & 255) / 255)
+              matRefs[i].current?.color.setRGB(l[i][0], l[i][1], l[i][2])
             }
           } catch (error: any) {
             // surface errors to the parent output panel

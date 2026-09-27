@@ -22,11 +22,7 @@ class WebPixelDriver(PixelDriver):
 
     def flush(self, t: float):
         """Buffer a frame of (r, g, b) triples, packed into GRB ints, for pop_due_frame()."""
-        r = self.pixel_buffer[:, 0].astype(np.uint32)
-        g = self.pixel_buffer[:, 1].astype(np.uint32)
-        b = self.pixel_buffer[:, 2].astype(np.uint32)
-        packed = (r << 8) | (g << 16) | b
-        self._frame_buffer.append((t, packed))
+        self._frame_buffer.append((t, self.pixel_buffer / 255))
 
     def draw_now(self) -> np.ndarray:
         """Draw a frame for immediate display, bypassing the lookahead schedule so attribute changes show without delay."""
