@@ -11,7 +11,7 @@ import math
 import colorsys
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from tree import Tree
+    from fixture import Fixture
 from typing import Callable
 
 from util import linear, clamp
@@ -502,7 +502,7 @@ class Pixel(Color):
        d: float: The polar distance from the Z axis (trunk)
     """
 
-    def __init__(self, id: int, tree: "Tree", color: Color = Color.black()):
+    def __init__(self, id: int, tree: "Fixture", color: Color = Color.black()):
         self._id = id
         self._tree = tree
 

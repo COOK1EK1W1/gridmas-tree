@@ -1,9 +1,10 @@
 """Contains all the methods you need to change the tree. (Where the magic happens)"""
 
-from math import dist
 import math
+from abc import ABC
+from types import GeneratorType
 import numpy as np
-from typing import Callable, Optional, Union, overload
+from typing import Callable, Generator, Optional, TypeVar, Union, overload
 from util import  linear, read_tree_csv
 import time
 from colors import Color, Pixel
@@ -12,18 +13,15 @@ if TYPE_CHECKING:
     from geometry import Shape
 
 
-class Tree():
+class Fixture(ABC):
     """This is a class which holds the tree data, it shouldn't be used directly """
 
-    def __init__(self):
-        pass
 
-
-    def init(self, tree_file: str):
+    def __init__(self, coords: list[tuple[float, float, float]]):
         """For internal use
         Initialise / reset the tree"""
         
-        self._coords = read_tree_csv(tree_file)
+        self._coords = coords
         """The coordinates of all lights on the tree"""
 
         self._num_pixels = int(len(self._coords))
@@ -76,15 +74,21 @@ class Tree():
         """The list of shapes that the tree can draw"""
         
         self._background = None
-        self._fps = 45
+
+        self._draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
+        self._draw_generator = None
 
 
-    def _pattern_reset(self):
+    def set_draw_fn(self, draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]]):
+        if self._draw_fn == draw_fn:
+            return
+        self._draw_fn = draw_fn
+        self._draw_generator = None
+
         self._pattern_started_at = time.time()
         self._frame = 0
         self._background = None
         self._fps = 45
-
 
     def _render_shapes(self):
         if len(self._shapes) == 0: return
@@ -106,17 +110,25 @@ class Tree():
 
 
     def _request_frame(self):
+        setActiveFixture(self)
+        if self._draw_generator is not None:
+            try:
+                next(self._draw_generator)
+            except StopIteration:
+                self._draw_generator = None
+        if self._draw_generator is None:
+            ret = self._draw_fn()
+            if isinstance(ret, GeneratorType):
+                self._draw_generator = ret
         self._render_shapes()
 
         # pack the whole array at once. vectorized!
         rgb = self._rgb.astype(np.uint32, copy=False)
-        packed = (rgb[:, 0] << 8) | (rgb[:, 1] << 16) | rgb[:, 2]
 
         changed = self._changed_arr
 
         if self._background:
-            bg = (self._background._r << 8) | (self._background._g << 16) | self._background._b
-            packed[~changed] = bg
+            rgb[~changed] = self._background
 
         # Reset lerps
         self._lerp_prev[changed] = rgb[changed]
@@ -127,7 +139,8 @@ class Tree():
         self._advance_all_lerps()
 
         self._frame += 1
-        return packed
+        setActiveFixture(None)
+        return rgb
 
 
     def _advance_all_lerps(self):
@@ -176,6 +189,53 @@ class Tree():
         ]
 
 
+_active_fixture: Optional[Fixture] = None
+def setActiveFixture(fixture: Optional[Fixture]):
+    global _active_fixture
+    _active_fixture = fixture
+
+def get_active_fixture():
+    return _active_fixture
+
+
+
+V = TypeVar('V', bound='Volume')
+class Volume(Fixture):
+
+    def __init__(self, coords: list[tuple[float, float, float]]):
+        super().__init__(coords)
+
+
+    @classmethod
+    def from_csv(cls: type[V], path: str) -> V:
+        return cls(read_tree_csv(path))
+
+    @classmethod
+    def from_grid(cls: type[V], dim: tuple[int, int, int], pitch: float) -> V:
+        ...
+
+W = TypeVar('W', bound='Wall')
+class Wall(Fixture):
+    @classmethod
+    def from_csv(cls: type[W], path: str) -> W:
+        return cls(read_tree_csv(path))
+
+    @classmethod
+    def from_grid(cls: type[W], dim: tuple[int, int], pitch: float) -> W:
+        ...
+
+
+E = TypeVar('E', bound='Graph')
+class Graph(Fixture):
+    @classmethod
+    def from_csv(cls: type[E], b: str) -> E:
+        ...
+
+class CompoundFixture(Fixture):
+    def add(self, f: Fixture, name: str):
+        ...
+
+
 def height() -> float: 
     """The height of the tree
 
@@ -184,11 +244,11 @@ def height() -> float:
             pixel.set_rgb(255, 255, 255)
 
     """
-    return tree._height
+    return get_active_fixture()._height
 
 def num_pixels() -> int:
     """The number of pixels, equivelant to len(pixels()) but faster"""
-    return tree._num_pixels
+    return get_active_fixture()._num_pixels
 
 @overload
 def pixels() -> list["Pixel"]: ...
@@ -208,11 +268,10 @@ def pixels(n: Optional[int] = None) -> Union["Pixel", list["Pixel"]]:
         for i in range(num_pixels()):
             pixels(i).set_rgb(255, 255, 255)
     """
-    global tree
     if n is None:
-        return tree._pixels
+        return get_active_fixture()._pixels
     else:
-        return tree._pixels[n]
+        return get_active_fixture()._pixels[n]
 
 def set_pixel(n: int, color: Color):
     """Set the Nth light in the strip to the specified color
@@ -226,11 +285,11 @@ def set_pixel(n: int, color: Color):
         set_pixel(2, Color.black())
         ```
     """
-    tree._rgb[n][0] = color._r
-    tree._rgb[n][1] = color._g
-    tree._rgb[n][2] = color._b
+    get_active_fixture()._rgb[n][0] = color._r
+    get_active_fixture()._rgb[n][1] = color._g
+    get_active_fixture()._rgb[n][2] = color._b
 
-    tree._changed_arr[n] = True
+    get_active_fixture()._changed_arr[n] = True
 
 
 def set_fps(fps: int):
@@ -248,7 +307,7 @@ def set_fps(fps: int):
         ```
         
     """
-    tree._fps = fps
+    get_active_fixture()._fps = fps
 
 
 def fade(n: int = 10):
@@ -279,7 +338,7 @@ def background(c: Color):
             set_pixel(1, Color.white())
         ```
     """
-    tree._background = c
+    get_active_fixture()._background = c
 
 
 def fill(color: Color):
@@ -290,8 +349,8 @@ def fill(color: Color):
     Args:
         color (Color): The color you want to set the tree to
     """
-    tree._rgb[:] = color
-    tree._changed_arr[:] = True
+    get_active_fixture()._rgb[:] = color.to_tuple()
+    get_active_fixture()._changed_arr[:] = True
 
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
@@ -313,23 +372,23 @@ def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
     target = np.asarray(color.to_tuple(), dtype=np.uint8)
 
     changed = (
-        np.any(tree._lerp_target != target, axis=1)
-        | (tree._lerp_total != frames)
+        np.any(get_active_fixture()._lerp_target != target, axis=1)
+        | (get_active_fixture()._lerp_total != frames)
     )
 
     if not np.any(changed):
         return
 
     # Save the current RGB values as the interpolation starting point.
-    tree._lerp_prev[changed] = tree._rgb[changed]
+    get_active_fixture()._lerp_prev[changed] = _active_fixture._rgb[changed]
 
     # Reset interpolation progress.
-    tree._lerp_step[changed] = 0
+    get_active_fixture()._lerp_step[changed] = 0
 
     # Set new interpolation state.
-    tree._lerp_target[changed] = target
-    tree._lerp_total[changed] = frames
-    tree._lerp_fn = fn
+    get_active_fixture()._lerp_target[changed] = target
+    get_active_fixture()._lerp_total[changed] = frames
+    get_active_fixture()._lerp_fn = fn
 
 
 def coords():
@@ -337,7 +396,7 @@ def coords():
     coords()[10] gives the xyz tuple of the 10th pixel in the strip
     equivelant to pixels(10).xyz
     """
-    return tree._coords
+    return get_active_fixture()._coords
 
 def sleep(n: int):
     """sleep for n frames
@@ -361,11 +420,11 @@ def frame() -> int:
                 print(f"{f} frames since the pattern started")
             ```
 """
-    return tree._frame
+    return get_active_fixture()._frame
 
 def seconds() -> int:
     """The number of seconds since the start of the pattern"""
-    return math.floor(time.time() - tree._pattern_started_at)
+    return math.floor(time.time() - get_active_fixture()._pattern_started_at)
 
 def millis() -> int:
     """The number of milliseconds since the start of the pattern
@@ -378,18 +437,15 @@ def millis() -> int:
                 print(f"{s}:{m} since the pattern started")
             ```
     """
-    return math.floor((time.time() - tree._pattern_started_at) * 1000)
+    return math.floor((time.time() - get_active_fixture()._pattern_started_at) * 1000)
 
-    
+
 def _rotated_z(theta: float, alpha: float) -> np.ndarray:
     """Compute the rotated Z coordinate for every pixel at once.
-
     Helper function for wipe() functions
-
     Args:
         theta (float): Angle in radians
         alpha (float): Angle in radians
-
     Returns:
         np.ndarray: An (N,) array of rotated Z values, one per pixel, in the
             same order as coords()/pixels()
@@ -401,10 +457,8 @@ def _rotated_z(theta: float, alpha: float) -> np.ndarray:
 
 def _set_masked(mask: np.ndarray, color: Color) -> None:
     """Vectorised equivalent of `[set_pixel(i, color) for i in idx]`.
-
     Directly writes the color into the tree's underlying rgb array for every
     pixel where mask is True, and flags those pixels as changed.
-
     Args:
         mask (np.ndarray): An (N,) boolean array, True where the pixel should be set
         color (Color): The color to set the masked pixels to
@@ -413,17 +467,15 @@ def _set_masked(mask: np.ndarray, color: Color) -> None:
         return
 
     rgb = np.asarray(color.to_tuple(), dtype=np.uint8)
-    tree._rgb[mask] = rgb
-    tree._changed_arr[mask] = True
+    get_active_fixture()._rgb[mask] = rgb
+    get_active_fixture()._changed_arr[mask] = True
 
 
 def _lerp_masked(mask: np.ndarray, color: Color, frames: int, fn: Callable[[float], float] = linear) -> None:
     """Vectorised equivalent of `[pixels(i).lerp(color, frames, fn=fn) for i in idx]`.
-
     Mirrors tree.py's module level lerp(), but scoped to only the pixels selected by mask
     instead of the whole tree. Only (re)starts the interpolation for pixels whose target/duration
     actually changed, matching Color.set_lerp()'s no-op-if-unchanged behaviour.
-
     Args:
         mask (np.ndarray): An (N,) boolean array, True where the pixel should start/continue lerping
         color (Color): The target color to lerp to
@@ -436,49 +488,44 @@ def _lerp_masked(mask: np.ndarray, color: Color, frames: int, fn: Callable[[floa
     target = np.asarray(color.to_tuple(), dtype=np.uint8)
 
     changed = mask & (
-        np.any(tree._lerp_target != target, axis=1)
-        | (tree._lerp_total != frames)
+        np.any(get_active_fixture()._lerp_target != target, axis=1)
+        | (get_active_fixture()._lerp_total != frames)
     )
 
     if not np.any(changed):
         return
 
-    tree._lerp_prev[changed] = tree._rgb[changed]
-    tree._lerp_step[changed] = 0
-    tree._lerp_target[changed] = target
-    tree._lerp_total[changed] = frames
-    tree._lerp_fn = fn
+    get_active_fixture()._lerp_prev[changed] = get_active_fixture()._rgb[changed]
+    get_active_fixture()._lerp_step[changed] = 0
+    get_active_fixture()._lerp_target[changed] = target
+    get_active_fixture()._lerp_total[changed] = frames
+    get_active_fixture()._lerp_fn = fn
 
 
 def _cont_lerp_masked(mask: np.ndarray) -> None:
     """Vectorised equivalent of `[pixels(i).cont_lerp() for i in idx]`.
-
     Mirrors tree.py's Tree._advance_all_lerps(), but scoped to only the pixels
     selected by mask instead of every pixel on the tree.
-
     Args:
         mask (np.ndarray): An (N,) boolean array, True where the pixel's lerp should advance one step
     """
-    active = mask & (tree._lerp_step < tree._lerp_total)
+    active = mask & (get_active_fixture()._lerp_step < _active_fixture._lerp_total)
     if not np.any(active):
         return
 
     idx = np.flatnonzero(active)
-    tree._lerp_step[idx] += 1
+    get_active_fixture()._lerp_step[idx] += 1
 
-    step = tree._lerp_step[idx].astype(np.float64)
-    total = tree._lerp_total[idx].astype(np.float64)
+    step = get_active_fixture()._lerp_step[idx].astype(np.float64)
+    total = get_active_fixture()._lerp_total[idx].astype(np.float64)
 
     t = np.divide(step, total, out=np.ones_like(step), where=total != 0)
     t = np.clip(t, 0.0, 1.0)
 
-    eased = tree._lerp_fn(t)[:, None]
+    eased = get_active_fixture()._lerp_fn(t)[:, None]
 
-    tree._rgb[idx] = np.clip(
-        (tree._lerp_prev[idx] + (tree._lerp_target[idx] - tree._lerp_prev[idx]) * eased),
+    get_active_fixture()._rgb[idx] = np.clip(
+        (get_active_fixture()._lerp_prev[idx] + (_active_fixture._lerp_target[idx] - _active_fixture._lerp_prev[idx]) * eased),
         0,
         255,
     ).astype(np.uint8)
-
-
-tree = Tree()

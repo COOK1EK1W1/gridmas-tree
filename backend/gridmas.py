@@ -20,7 +20,7 @@
 
 from util import *
 from colors import *
-from tree import *
+from fixture import *
 from wipe import *
 from fizzle import *
 from attribute import *

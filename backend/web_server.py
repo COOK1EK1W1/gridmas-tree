@@ -7,7 +7,7 @@ import json
 import time
 from flask import Flask, request, render_template, send_from_directory
 from queue import Queue
-from gridmas import *
+from attribute import Store
 
 
 class Request(ABC):
@@ -42,6 +42,8 @@ class WebServer:
         self.request_queue: Queue[Request] = Queue()
         self.thread = None
         self.should_stop = False
+
+        self.request_queue.put(StartPattern("on"))
 
 
         ## util lights
@@ -88,7 +90,7 @@ class WebServer:
 
         @app.route('/current/pattern', methods=['GET'])
         def getCurrentPattern():
-            pattern_dict = {"patternName": str(patternManager.currentPattern.__name__).replace("patterns.", "").title()}
+            pattern_dict = {"patternName": str(patternManager.current_pattern_module.__name__).replace("patterns.", "").title()}
             return pattern_dict
 
         @app.route('/all-patterns', methods=['GET'])
@@ -114,28 +116,13 @@ class WebServer:
         def pattern(pattern: str):
             self.request_queue.put(StartPattern(pattern))
             time.sleep(0.1)
-            return render_template('pattern_config.html', pattern=manager.get(pattern), attributes=Store.get_store())
-
-
-        @app.route('/setlights', methods=['POST'])
-        def setLights():
-            print("setting lights")
-            print(request.data)
-            data = json.loads(request.data)
-
-            value = data["color"]
-            color = Color.hex(value)
-            for i in range(num_pixels()):
-                tree.set_light(i, color)
-            tree.update()
-            return "bruh"
-
+            return render_template('pattern_config.html', pattern=manager.get_current_module(), attributes=Store.get_store())
 
         ## Web interface
 
         @app.route('/', methods=['GET'])
         def home():
-            return render_template('index.html', patterns=[x for x in manager.patterns.keys()])
+            return render_template('index.html', patterns=manager.list_patterns())
 
         @app.route('/ratelimit.js')
         def serve_js():

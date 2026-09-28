@@ -88,7 +88,7 @@ export default function TreeVis({
         // Query FPS from Python tree every frame (it can change dynamically)
         let targetFps = currentFps; // Default fallback
         try {
-          const fpsValue = pyodide.runPython(`tree._fps`)
+          const fpsValue = pyodide.runPython(`legacy_display.tree._fps`)
           if (typeof fpsValue === 'number' && fpsValue > 0) {
             targetFps = fpsValue
             if (targetFps !== currentFps) {
@@ -130,36 +130,12 @@ export default function TreeVis({
             }
 
 
-            // Use the new generator-based system
-            const res: any = pyodide.runPython(`
-try:
-    # Check if we have a generator in the global scope
-    if 'pattern_generator' not in globals() or pattern_generator is None:
-        # Create a new generator from the pattern
-        pattern_generator = curPattern.draw()
-    else:
-        # If we have a generator, call next() on it
-        try:
-            next(pattern_generator)
-        except StopIteration:
-            # Generator is exhausted, create a new one
-            pattern_generator = curPattern.draw()
-        except Exception as e:
-            print_to_react(f"Error in pattern generator: {e}", 0)
-            pattern_generator = None
-except Exception as e:
-    print_to_react(f"Error in pattern execution: {e}", 0)
-    pattern_generator = None
-
-# Get the current tree state after pattern execution
-tree._request_frame()
-`)
-
+            const res: any = pyodide.runPython(`web_frame()`)
             const l = res.toJs()
 
             // Update the material colors for each tree node
             for (let i = 0; i < tree.length; i++) {
-              matRefs[i].current?.color.setRGB(((l[i] >> 8) & 255) / 255, ((l[i] >> 16) & 255) / 255, (l[i] & 255) / 255)
+              matRefs[i].current?.color.setRGB(l[i][0], l[i][1], l[i][2])
             }
           } catch (error: any) {
             // surface errors to the parent output panel

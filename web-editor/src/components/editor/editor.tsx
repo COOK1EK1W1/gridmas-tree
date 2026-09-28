@@ -81,7 +81,7 @@ export default function PatternEditor({ userData }: { userData: any }) {
   // Initialize Pyodide when it's loaded
   useEffect(() => {
     if (pyodide && !loading) {
-      pyodide.globals.set("print_to_react", (s: string, frame: number) => appendOutput(s, frame));
+      pyodide.globals.set("print_to_react", (s: string, frame: number, isError = false) => appendOutput(s, frame, isError));
 
       const loadCoreLibraries = async () => {
         try {
@@ -117,23 +117,32 @@ export default function PatternEditor({ userData }: { userData: any }) {
 import sys
 
 class JSWriter:
+    def __init__(self, error):
+        self.error = error
+
     def write(self, s):
         if s.strip():
-            print_to_react(s, 0)
+            print_to_react(s, 0, self.error)
 
     def flush(self):
         pass
 
-sys.stdout = JSWriter()
-sys.stderr = JSWriter()`)
+sys.dont_write_bytecode = True
+sys.stdout = JSWriter(False)
+sys.stderr = JSWriter(True)`)
 
-          // initialize the tree so that pixels() etc. are available
           pyodide.runPython(`
-import sys
-import importlib
 from gridmas import *
-Store.instance = None
-tree.init("tree.csv")
+from pattern_manager import PatternManager
+from pixel_driver import driver_registry
+import legacy_display
+
+pattern_manager = PatternManager("", driver_registry)
+
+def web_frame():
+    pattern_manager.run_display_update()
+    driver, = driver_registry._registry
+    return driver.draw_now()
 `)
           setLibsReady(true)
 
@@ -188,17 +197,10 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
 
     try {
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
-      pyodide.runPython(`
-Store.instance = None
-tree._pattern_reset()
-if "curPattern" in sys.modules:
-    del sys.modules["curPattern"]
-curPattern = importlib.import_module("curPattern")
-
-
-if 'pattern_generator' in globals():
-    pattern_generator = None
-`)
+      if (!pyodide.runPython(`pattern_manager.load_pattern("curPattern")`)) {
+        setRunning(false)
+        return false
+      }
 
       // Query attributes after pattern is loaded
       queryAttributes()
@@ -217,31 +219,15 @@ if 'pattern_generator' in globals():
   }
 
   function handleRun() {
-    // stop running 
     if (running) {
       setRunning(false);
-      // Reset the generator when stopping
-      if (pyodide) {
-        pyodide.runPython(`
-if 'pattern_generator' in globals():
-    pattern_generator = None
-`)
-      }
       return
     }
 
-    // we want to start running
     // Clear console BEFORE loading the pattern so load-time prints are preserved
     setOutput([])
     if (updatePattern()) {
       setRunning(true)
-      // Reset the generator when starting
-      if (pyodide) {
-        pyodide.runPython(`
-if 'pattern_generator' in globals():
-    pattern_generator = None
-`)
-      }
     }
   }
 
