@@ -25,7 +25,8 @@ export async function GET() {
       "fizzle.py",
       "wipe.py",
       "attribute.py",
-      "geometry.py"
+      "geometry.py",
+      "music.py"
     ];
 
     const backendPath = path.join(process.cwd(), '../backend');

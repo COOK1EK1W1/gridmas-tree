@@ -67,6 +67,8 @@ poetry==2.1.1
 poetry-core==2.1.1
 pycparser==2.22
 Pygments==2.19.2
+sounddevice==0.5.2
+soundfile==0.13.1
 pymdown-extensions==10.17.2
 pyogrio==0.11.0
 pypiwin32==223

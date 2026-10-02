@@ -10,6 +10,7 @@
     5. fizzle
     6. attribute
     7. gemoetry
+    8. music (set_music)
 
 
     Use this at the top of your pattern:
@@ -25,3 +26,4 @@ from wipe import *
 from fizzle import *
 from attribute import *
 from geometry import *
+from music import *

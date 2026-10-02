@@ -8,3 +8,9 @@ scanning/results/
 *$py.class
 
 site/
+
+# pattern music, keep songs out of git
+backend/patterns/**/*.mp3
+backend/patterns/**/*.wav
+backend/patterns/**/*.flac
+backend/patterns/**/*.ogg

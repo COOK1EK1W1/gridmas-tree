@@ -86,6 +86,7 @@ class matrix():
 
 coords = coords()
 
+
 def draw():
     # Color are G R B
     palette: list[tuple[int, int, int]] = []
