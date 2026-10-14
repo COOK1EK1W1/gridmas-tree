@@ -104,7 +104,7 @@ class Fixture(ABC):
         self._shapes: list[Shape] = []
         """The list of shapes that the tree can draw"""
 
-        self._background = None
+        self._background: Optional[Color] = None
 
         self._draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
         self._draw_generator = None
@@ -169,7 +169,7 @@ class Fixture(ABC):
         changed = self._changed_arr
 
         if self._background:
-            rgb[~changed] = self._background
+            rgb[~changed] = self._background.to_tuple()
 
         # Reset lerps
         self._lerp_prev[changed] = rgb[changed]
