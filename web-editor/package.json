@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "bun run docs && prisma generate && next build",
-    "docs": "python3 -m pip install -q -r ../docs/requirements.txt && python3 -m mkdocs build -f ../mkdocs.yml -d web-editor/public/docs",
+    "docs": "uvx --with-requirements ../docs/requirements.txt mkdocs build -f ../mkdocs.yml -d web-editor/public/docs",
     "start": "next start",
     "lint": "next lint"
   },
