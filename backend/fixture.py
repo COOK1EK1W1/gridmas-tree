@@ -338,6 +338,7 @@ def set_pixel(n: int, color: Color):
     get_active_fixture()._rgb[n][2] = color._b
 
     get_active_fixture()._changed_arr[n] = True
+    get_active_fixture()._lerp_target[n] = color.to_tuple()
 
 
 def set_fps(fps: int):
@@ -403,6 +404,7 @@ def fill(color: Color):
     """
     get_active_fixture()._rgb[:] = color.to_tuple()
     get_active_fixture()._changed_arr[:] = True
+    get_active_fixture()._lerp_target[:] = color.to_tuple()
 
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
