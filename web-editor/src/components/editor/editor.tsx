@@ -139,10 +139,11 @@ import legacy_display
 
 pattern_manager = PatternManager("", driver_registry)
 
-def web_frame():
-    pattern_manager.run_display_update()
+def web_frame(steps=1):
+    for _ in range(steps):
+        driver_registry.step()
     driver, = driver_registry._registry
-    return driver.draw_now()
+    return driver.current_frame()
 `)
           setLibsReady(true)
 

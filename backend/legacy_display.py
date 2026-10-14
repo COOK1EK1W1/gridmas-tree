@@ -14,12 +14,12 @@ def _make_driver() -> PixelDriver:
     except ImportError:
         # the web editor's pyodide runtime has no requests, the browser pulls frames instead
         from web_driver import WebPixelDriver
-        return WebPixelDriver(tree._num_pixels, "tree", fps=45)
-    return NetworkPixelDriver("127.0.0.1", tree._num_pixels, "tree", fps=45)
-
+        return WebPixelDriver(tree._num_pixels, "tree")
+    return NetworkPixelDriver("127.0.0.1", tree._num_pixels, "tree")
 
 def attach(draw_fn: Callable[[], Optional[Generator[None, None, None]]]):
     driver = _make_driver()
     driver.add_fixture(tree, 0)
     driver_registry.register(driver)
     tree.set_draw_fn(draw_fn)
+    driver.fps = tree._fps
