@@ -3,11 +3,12 @@ import { tree } from "@/util/trees/2025";
 import { Billboard, Line, OrbitControls, Text } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Camera } from "lucide-react";
-import { useEffect, useMemo, useRef, createRef, useState } from "react";
+import { useEffect, useMemo, useRef, createRef } from "react";
 import { Button } from "../ui/button";
 import type { MeshStandardMaterial } from "three";
 import { useEditor } from "@/util/context/editorContext";
 
+const MAX_CATCHUP_STEPS = 4
 const treeHeight = Math.max(...tree.map((x) => x[2]))
 export default function TreeVis({
   pyodide,
@@ -24,7 +25,6 @@ export default function TreeVis({
   const fpsRef = useRef<any>(null)
   const canvasRef = useRef<any>(null)
   const frameRef = useRef<number>(0)
-  const [currentFps, setCurrentFps] = useState<number>(45) // Default to 45 FPS
 
   const addLoopTime = (t: number, targetFps: number) => {
     loopTimes.current.push(t)
@@ -80,30 +80,31 @@ export default function TreeVis({
       frameRef.current = 0
 
       let animationFrameId: number;
-      let lastFrameTime = 0;
+      let anchorTime = 0;
+      let anchorFps = 0;
+      let stepsDone = 0;
 
       function animate(currentTime: number) {
         if (!running) return;
 
         // Query FPS from Python tree every frame (it can change dynamically)
-        let targetFps = currentFps; // Default fallback
+        let targetFps = anchorFps || 45;
         try {
           const fpsValue = pyodide.runPython(`legacy_display.tree._fps`)
           if (typeof fpsValue === 'number' && fpsValue > 0) {
             targetFps = fpsValue
-            if (targetFps !== currentFps) {
-              setCurrentFps(targetFps)
-            }
           }
-        } catch (error) {
-          // Use previous FPS if query fails
-          targetFps = currentFps
+        } catch {}
+
+        let steps = Math.floor((currentTime - anchorTime) * targetFps / 1000) - stepsDone
+        if (targetFps !== anchorFps || steps > MAX_CATCHUP_STEPS) {
+          anchorTime = currentTime
+          anchorFps = targetFps
+          stepsDone = -1
+          steps = 1
         }
 
-        const targetFrameTime = 1000 / targetFps;
-        const deltaTime = currentTime - lastFrameTime;
-
-        if (deltaTime >= targetFrameTime) {
+        if (steps > 0) {
           const start = performance.now()
           try {
             // Read current values from attribute refs and update Python Store
@@ -130,7 +131,7 @@ export default function TreeVis({
             }
 
 
-            const res: any = pyodide.runPython(`web_frame()`)
+            const res: any = pyodide.runPython(`web_frame(${steps})`)
             const l = res.toJs()
 
             // Update the material colors for each tree node
@@ -142,11 +143,10 @@ export default function TreeVis({
             onLog?.(String(error), frameRef.current, true)
           } finally {
             const end = performance.now()
-            addLoopTime(end - start, targetFps)
-            frameRef.current += 1
+            addLoopTime((end - start) / steps, targetFps)
+            frameRef.current += steps
+            stepsDone += steps
           }
-
-          lastFrameTime = currentTime;
         }
 
         animationFrameId = requestAnimationFrame(animate);
@@ -160,7 +160,7 @@ export default function TreeVis({
         }
       }
     }
-  }, [running, pyodide, matRefs, onLog, attributes, attributeRefs, currentFps])
+  }, [running, pyodide, matRefs, onLog, attributes, attributeRefs])
 
 
   return (

@@ -56,7 +56,7 @@ class SimStrip:
 
         GL.glMatrixMode(GL.GL_PROJECTION)
         GLU.gluPerspective(45, self._window_size[0] / self._window_size[1], 0.1, 50.0)
-        GL.glTranslatef(0, -1, -5)
+        GL.glTranslatef(0, -1.8, -7)
         GL.glRotatef(-60, 1, 0, 0)
         GL.glMatrixMode(GL.GL_MODELVIEW)
 

@@ -139,8 +139,9 @@ import legacy_display
 
 pattern_manager = PatternManager("", driver_registry)
 
-def web_frame():
-    driver_registry.step()
+def web_frame(steps=1):
+    for _ in range(steps):
+        driver_registry.step()
     driver, = driver_registry._registry
     return driver.current_frame()
 `)
