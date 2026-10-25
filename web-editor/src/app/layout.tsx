@@ -16,6 +16,7 @@ export default function RootLayout({
         <link rel="preload" href="/api/send-scripts-zip" as="fetch" crossOrigin="anonymous" />
       </head>
       <body className={"bg-emerald-900 h-[100dvh] w-full select-none"}>
+        <StartModal />
         <Analytics />
         <SpeedInsights />
         {children}

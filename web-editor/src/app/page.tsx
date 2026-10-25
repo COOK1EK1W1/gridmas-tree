@@ -1,7 +1,6 @@
 import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
 import SignoutBit from "@/components/landing/signout";
-import Snow from "@/components/landing/snowLayer";
 import StartModal from "@/components/startModal";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";

@@ -186,7 +186,7 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
   function updatePattern() {
 
     if (!pyodide || !codeRef.current) {
-      setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
+      appendOutput("Pyodide is still loading", 0, true)
       return false;
     }
 
@@ -198,7 +198,6 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
     try {
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
       if (!pyodide.runPython(`pattern_manager.load_pattern("curPattern")`)) {
-        setRunning(false)
         return false
       }
 
@@ -207,15 +206,9 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
 
       return true;
     } catch (error: any) {
-      setRunning(false)
       setOutput([{ content: error.toString(), error: true, frame: 0 }]);
       return false;
     }
-  }
-
-  //update the pattern in the filesystem
-  function handleUpdate() {
-    updatePattern();
   }
 
   function handleRun() {
@@ -228,6 +221,8 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
     setOutput([])
     if (updatePattern()) {
       setRunning(true)
+    } else {
+      setRunning(false)
     }
   }
 

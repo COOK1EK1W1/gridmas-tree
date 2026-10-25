@@ -1,12 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { createReadStream } from 'fs';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
 import archiver from 'archiver';
 
-const pipelineAsync = promisify(pipeline);
 export const dynamic = 'force-static'
 export async function GET() {
   try {
@@ -37,7 +34,12 @@ export async function GET() {
 
     // Add each file to the archive
     for (const fileName of coreFiles) {
-      const filePath = path.join(backendPath, fileName);
+      let filePath;
+      if (fileName == "tree.csv") {
+        filePath = path.join(process.cwd(), '../point-clouds/grid-2025.csv');
+      } else {
+        filePath = path.join(backendPath, fileName);
+      }
 
       // Check if file exists before adding
       if (fs.existsSync(filePath)) {
