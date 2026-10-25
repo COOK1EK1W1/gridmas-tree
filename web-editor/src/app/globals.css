@@ -150,7 +150,6 @@
 
 .candy-frame {
   position: relative;
-  border-radius: 1.5rem; /* matches rounded-4xl */
   padding: 12px; /* space between border and content */
   border: 5px solid transparent;
   background:

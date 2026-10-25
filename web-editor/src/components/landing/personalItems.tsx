@@ -94,7 +94,7 @@ export function PersonalPattern({ patterns }: { patterns: Pick<Pattern, "title" 
           </DropdownMenu>
 
           <Link href={`/p/${pattern.id}`} prefetch={false}>
-            <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+            <div className="w-full h-20 rounded-xl overflow-hidden border-2 border-red-200/40 bg-gradient-to-b from-white to-red-50/60 transition">
               <div className="px-3 pt-7 pb-3">
                 <h4 className="text-center text-red-800 font-semibold text-sm leading-tight">{pattern.title}</h4>
                 <p className="text-center text-[11px] text-red-900/70 mt-1">{timeAgo(pattern.modifiedAt)}</p>
@@ -105,7 +105,7 @@ export function PersonalPattern({ patterns }: { patterns: Pick<Pattern, "title" 
       ))}
 
       <div className="relative w-[210px]" onClick={handleCreateNew} >
-        <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+        <div className="w-full h-20 rounded-xl overflow-hidden border-2 border-red-200/40 bg-gradient-to-b from-white to-red-50/60 transition">
           <div className="h-full p-2 text-red-800 flex flex-col items-center justify-around">
             <CirclePlus className={isPending ? "animate-spin" : ""} />
             <h4 className="text-center font-semibold text-sm leading-tight">New Pattern</h4>
@@ -140,7 +140,7 @@ export function NoPatterns() {
       <p className="text-black text-center w-full">You have no patterns yet!</p>
 
       <div className="relative w-[210px] pt-4" onClick={handleCreateNew} >
-        <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+        <div className="w-full h-20 rounded-xl overflow-hidden border-2 border-red-200/40 bg-gradient-to-b from-white to-red-50/60 transition">
           <div className="h-full p-2 text-red-800 flex flex-col items-center justify-around">
             <CirclePlus className={isPending ? "animate-spin" : ""} />
             <h4 className="text-center font-semibold text-sm leading-tight">New Pattern</h4>

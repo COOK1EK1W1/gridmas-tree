@@ -4,7 +4,7 @@ import Link from "next/link"
 function Example({ title, image, link }: { title: string, image: string, link: string }) {
   return (
     <Link href={link}>
-      <div className="rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+      <div className="rounded-xl overflow-hidden border-2 border-red-200/40 bg-gradient-to-b from-white to-red-50/60 transition">
         <Image width={210} height={500} src={image} alt="3dplasma tree" />
         <h4 className="text-center text-red-800 font-semibold py-1">{title}</h4>
       </div>
@@ -53,7 +53,7 @@ export default function ExampleProjects() {
       <div className="w-full"><Example title="Wandering Ball" image="/wanderingball.jpeg" link="/p/wanderingball" /></div>
       {others.map((x, i) => (
         < div key={i} className="relative w-[210px]" >
-          <div className="w-full h-20 rounded-xl overflow-hidden border border-red-200/40 bg-gradient-to-b from-white to-red-50/60 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.35)] hover:shadow-[0_12px_40px_-8px_rgba(220,38,38,0.55)] transition">
+          <div className="w-full h-20 rounded-xl overflow-hidden border-2 border-red-200/40 bg-gradient-to-b from-white to-red-50/60 transition">
             <Link prefetch={false} href={x.url} className="h-full p-2 text-red-800 flex flex-col items-center justify-around">
               <h4 className="text-center font-semibold text-sm leading-tight">{x.title}</h4>
             </Link>

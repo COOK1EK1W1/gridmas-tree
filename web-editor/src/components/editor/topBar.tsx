@@ -28,7 +28,7 @@ export default function TopBar({ user }: { user: any }) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (codeRef.current === null) return
-      
+
       const currentValue = codeRef.current.getValue()
       const hasChanges = currentValue !== lastSaved
       setHasUnsavedChanges(hasChanges)
@@ -81,22 +81,19 @@ export default function TopBar({ user }: { user: any }) {
   return (
     <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-900 flex flex-row w-full h-15 p-2 flex justify-between items-center">
       <h2 onClick={() => router.push("/")} className="font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 text-xl cursor-pointer">GRIDmas Tree</h2>
-      <div className="flex items-center">
-        <div className="inline text-white px-2 font-semibold">{patternTitle}</div>
-        {user ? (
-          <Button onClick={handleSave} variant="green">
-            <LoaderCircle className={cn('animate-spin', isPending ? "inline" : "hidden")} />
-            <Check className={!hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
-            <CloudUpload className={hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
-            <span>Save Now</span>
-          </Button>
-        ) : (
-          <Link href="/" className="text-white text-sm pl-2">
-            <div className="text-right">Sign in to</div>
-            <div className="text-right">save changes </div>
-          </Link>
-        )}
-      </div>
+      <div className="inline text-white px-2 font-semibold">{patternTitle}</div>
+      {user ? (
+        <Button onClick={handleSave} variant="green">
+          <LoaderCircle className={cn('animate-spin', isPending ? "inline" : "hidden")} />
+          <Check className={!hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
+          <CloudUpload className={hasUnsavedChanges && !isPending ? "inline" : "hidden"} />
+          <span>Save Now</span>
+        </Button>
+      ) : (
+        <Link href="/" className="text-white text-sm pl-2">
+          <Button variant="green">Save</Button>
+        </Link>
+      )}
     </div>
   )
 }

@@ -21,7 +21,7 @@ export default function SignoutBit({ userData }: { userData: any }) {
 
       <span className="flex font-semibold">
         <span className="hidden lg:inline">{userData.user.email} <Dot className="inline-block" /></span>
-        <span onClick={handleSignout}>Sign Out</span>
+        <span className="cursor-pointer" onClick={handleSignout}>Sign Out</span>
       </span>
     )
   } else return null

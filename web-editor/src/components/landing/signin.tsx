@@ -1,13 +1,14 @@
 "use client"
 
 import { signIn } from "@/util/auth-client";
+import { Button } from "../ui/button";
 
 export default function Login() {
   return (<div className="flex flex-col align-center">
 
-    <p className="text-black text-center"> You are not signed in yet</p>
+    <p className="text-black text-center text-red-800"> You are not signed in yet</p>
     <div className="grid p-4 gap-4 sm:grid-cols-2 grid-cols-1">
-      <button className="bg-white border-2 border-slate-200 rounded-xl p-2 w-[210px] text-black flex text-center text-red-800 font-semibold items-center justify-between"
+      <Button variant="outline"
         onClick={async () => {
           await signIn.social({
             provider: "google",
@@ -27,9 +28,9 @@ export default function Login() {
         </svg>
         Google
         <div className="w-1 h-2" />
-      </button>
-      <button
-        className="bg-white border-2 border-slate-200 rounded-xl p-2 w-[210px] flex text-black text-center text-red-800 font-semibold items-center justify-between"
+      </Button>
+      <Button variant="outline"
+        className="w-[210px]"
         onClick={async () => {
           await signIn.social({
             provider: "github",
@@ -49,7 +50,7 @@ export default function Login() {
         </svg>
         Github
         <div className="w-1 h-2" />
-      </button>
+      </Button>
     </div>
   </div >)
 }

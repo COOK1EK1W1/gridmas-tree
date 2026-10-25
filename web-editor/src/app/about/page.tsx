@@ -52,13 +52,13 @@ export default function About() {
           Created by Ciaran Cook in 2023, the tree became a friendly competition at Heriot-Watt University in 2024. This year a new API, better tools, and clear docs make it even easier to join in. Documentation is a team effort from Ciaran and Owen so you have everything you need in one place.
         </p>
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-emerald-950/40 p-4 border border-emerald-700/60">
+          <div className="rounded-2xl bg-emerald-950/40 p-4 border-2 border-emerald-700/60">
             <h3 className="text-xl font-semibold mb-2">If you just like lights</h3>
             <p>
               You don&apos;t need to know code. Think of the tree as a canvas of tiny bulbs you can color and animate. Explore patterns, tweak colors, and see the tree react in real time.
             </p>
           </div>
-          <div className="rounded-2xl bg-emerald-950/40 p-4 border border-emerald-700/60">
+          <div className="rounded-2xl bg-emerald-950/40 p-4 border-2 border-emerald-700/60">
             <h3 className="text-xl font-semibold mb-2">If you&apos;re a student</h3>
             <p>
               Ready to join the competition? Start with the docs, try the web editor, and experiment in the playground. You can build patterns in Python, preview them, and submit them for your chance to win a prize.
