@@ -8,6 +8,7 @@ import time
 from flask import Flask, request, render_template, send_from_directory
 from queue import Queue
 from attribute import Store
+import music
 
 
 class Request(ABC):
@@ -22,6 +23,10 @@ class RandomPattern(Request):
 class StartPattern(Request):
     def __init__(self, name: str):
         self.name = name
+
+class SetAudioOffset(Request):
+    def __init__(self, offset_ms: float):
+        self.offset_ms = offset_ms
 
 class DrawFrame(Request):
     def __init__(self, frame: list[tuple[int, int, int] | None]):
@@ -117,6 +122,21 @@ class WebServer:
             self.request_queue.put(StartPattern(pattern))
             time.sleep(0.1)
             return render_template('pattern_config.html', pattern=manager.get_current_module(), attributes=Store.get_store())
+
+        ## music
+
+        @app.route('/audio', methods=['GET'])
+        def audioStatus():
+            return music.player.status()
+
+        @app.route('/audio/offset/<offset_ms>', methods=['POST'])
+        def audioOffset(offset_ms: str):
+            try:
+                value = float(offset_ms)
+            except ValueError:
+                return "offset must be a number of milliseconds", 400
+            self.request_queue.put(SetAudioOffset(value))
+            return {"offset_ms": value}
 
         ## Web interface
 

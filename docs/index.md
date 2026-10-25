@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-![GRIDmas Tree](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/tree2.png?raw=true){width=400 loading=lazy align=right}
+![GRIDmas Tree](tree2.png){width=400 loading=lazy align=right}
 
 # GRIDmas Tree
 The GRIDmas Tree is a fully programmable christmas tree with 1000 RGB LEDs. Each LED has a 3D coordinate and can be individually addressed which allows you to create patterns or animations which run in 3D space.
@@ -25,9 +25,8 @@ Please see the table below for the different sections you can go to.
 
 <div class="grid cards" markdown>
 
-- :material-format-color-fill: __[Color](https://owen7000.github.io/gridmas-tree/docs/colors)__ for looks
-- :material-cog: __[Attributes](https://owen7000.github.io/gridmas-tree/docs/attributes)__ for pattern settings
-- :material-toolbox: __[Utils](https://owen7000.github.io/gridmas-tree/docs/util)__ for making life endurable
-- :material-check-decagram: __[Examples](https://owen7000.github.io/gridmas-tree/samples)__ for example patterns
+- :material-format-color-fill: __[Color](docs/colors.md)__ for looks
+- :material-cog: __[Attributes](docs/attributes.md)__ for pattern settings
+- :material-toolbox: __[Utils](docs/util.md)__ for making life endurable
 
 </div>

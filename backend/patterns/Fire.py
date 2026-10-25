@@ -1,5 +1,3 @@
-# 3D Fire
-```py linenums="1"
 from gridmas import *
 import math
 import random
@@ -88,6 +86,7 @@ class matrix():
 
 coords = coords()
 
+
 def draw():
     # Color are G R B
     palette: list[tuple[int, int, int]] = []
@@ -153,5 +152,3 @@ def draw():
                         workMat.set(x, y, z, 255)
                     else:
                         workMat.set(x, y, z, 0)
-
-```

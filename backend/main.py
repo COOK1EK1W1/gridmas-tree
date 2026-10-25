@@ -2,8 +2,10 @@
 
 from pixel_driver import driver_registry
 from pattern_manager import PatternManager
-from web_server import StartPattern, StopPattern, WebServer, RandomPattern
+from web_server import SetAudioOffset, StartPattern, StopPattern, WebServer, RandomPattern
+import music
 import argparse
+import os
 import signal
 import sys
 import time
@@ -20,6 +22,9 @@ parser.add_argument("--port", type=int, required=False, help="The port to host t
 parser.add_argument("--rate-limit", action="store_true", required=False, help="Use this to enable rate limiting on the web server")
 parser.add_argument("--pattern-dir", type=str, required=False, help="Specify the directory where pattern files are stored")
 parser.add_argument("--auto-pattern", type=int, required=False, help="Automatically run through random patterns at the interval you set")
+parser.add_argument("--audio-device", type=str, help="Play pattern music on this output device (index, name, or 'default'). Without it music is not played.")
+parser.add_argument("--list-audio-devices", action="store_true", help="Print the available audio output devices and exit")
+parser.add_argument("--audio-offset-ms", type=float, default=0, help="Delay the audio relative to the lights by this many ms (negative plays it earlier)")
 
 def signal_handler(sig, frame):
     print("\nShutting down gracefully...")
@@ -29,6 +34,12 @@ def signal_handler(sig, frame):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+
+    if args.list_audio_devices:
+        music.list_devices()
+        sys.exit(0)
+
+    music.player.configure(args.audio_device, args.audio_offset_ms)
 
     # Set up signal handling for clean shutdown
     signal.signal(signal.SIGINT, signal_handler)
@@ -87,14 +98,14 @@ if __name__ == '__main__':
                         patternManager.load_pattern(a[0])
                         last_change = time.time()
 
+                    case SetAudioOffset(offset_ms=offset_ms):
+                        music.player.set_offset_ms(offset_ms)
+
                     case _:
                         pass
                 req = web_server.get_next_request()
 
-            # 2. update the display
-            patternManager.run_display_update()
-
-            # 3. draw fixtures and send to pixel driver
+            # 2. run display_update() and draw fixtures, sending them to the pixel drivers
             produced_frame = driver_registry.draw_and_flush_drivers()
 
             # yield instead of busyloop just incase
