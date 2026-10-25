@@ -46,12 +46,46 @@ def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, in
     """
     return min(max(val, minv), maxv)
 
-def read_tree_csv(location: str) -> list[tuple[float, float, float]]:
-    with open(location, newline="") as csvfile:
-        reader = csv.reader(csvfile)
-        f = float
-        return [(f(a), f(b), f(c)) for a, b, c in reader]
-
+def read_tree_csv(location: str) -> tuple[list[tuple[float, float, float]], list[tuple[int, int]]]:
+    points: list[tuple[float, float, float]] = []
+    vertices: list[tuple[int, int]] = []
+    with open(location, newline="") as file:
+        prev = (0, 0, 0)
+        count = 1
+        line_count = 0
+        while line := file.readline():
+            line_count += 1
+            if line[0] == "l":
+                try:
+                    count = int(line[1:])
+                except:
+                    raise Exception(f"Invalid number in line {line_count} in file {location}")
+            if line[0] == "e":
+                parts = line[1:].split(" ")
+                if 2 != len(parts):
+                    raise Exception(f"Invalid edge in line {line_count} in file {location}")
+                try:
+                    vertices.append((int(parts[0]), int(parts[1])))
+                except:
+                    raise Exception(f"Invalid number in line {line_count} in file {location}")
+            else:
+                parts = line.split(",")
+                if 3 != len(parts):
+                    raise Exception(f"Invalid coordinate in line {line_count} in file {location}")
+                for i in range(count):
+                    norm = i / count
+                    inorm = 1 - norm
+                    try:
+                        points.append((
+                            prev[0] * inorm + float(parts[0]) * norm, 
+                            prev[1] * inorm + float(parts[1]) * norm, 
+                            prev[2] * inorm + float(parts[2]) * norm
+                        ))
+                    except:
+                        raise Exception(f"Invalid number in line {line_count} in file {location}")
+                count = 1
+                prev = (float(parts[0]), float(parts[1]), float(parts[2]))
+    return points, vertices
 
 def dist(a: Iterable[float], b: Iterable[float]) -> float:
     """The distance between two vectors

@@ -18,6 +18,7 @@ import argparse
 import csv
 import os
 import sys
+from pathlib import Path
 
 # protocol code shared by every device type - see device/common/
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
@@ -26,10 +27,8 @@ from scheduler import FrameScheduler
 from server import DeviceServer
 from sim_strip import SimStrip
 
-
-def read_tree_csv(path: str) -> list[tuple[float, float, float]]:
-    with open(path, newline="") as f:
-        return [(float(x), float(y), float(z)) for x, y, z in csv.reader(f)]
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "backend"))
+from util import read_tree_csv
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -54,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     args = build_parser().parse_args()
 
-    strip = SimStrip(read_tree_csv(args.tree_file), name=args.name, window_size=tuple(args.window_size))
+    strip = SimStrip(read_tree_csv(args.tree_file)[0], name=args.name, window_size=tuple(args.window_size))
     scheduler = FrameScheduler(
         strip,
         capacity=max(1, int(args.fps * args.buffer_seconds)),

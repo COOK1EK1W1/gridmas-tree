@@ -5,7 +5,7 @@ from fixture import Volume
 from pixel_driver import PixelDriver, driver_registry
 
 
-tree = Volume.from_csv("tree.csv")
+tree = Volume.from_csv("../point-clouds/grid-2025.csv")
 
 
 def _make_driver() -> PixelDriver:
