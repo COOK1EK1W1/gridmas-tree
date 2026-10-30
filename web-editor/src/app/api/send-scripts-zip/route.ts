@@ -5,6 +5,13 @@ import { createReadStream } from 'fs';
 import archiver from 'archiver';
 
 export const dynamic = 'force-static'
+
+class MissingCoreFilesError extends Error {
+  constructor(files: string[]) {
+    super(`Missing core files: ${files.join(', ')}`);
+  }
+}
+
 export async function GET() {
   try {
     // List of core Python files that need to be included
@@ -33,6 +40,8 @@ export async function GET() {
       zlib: { level: 9 } // Maximum compression
     });
 
+    const missingFiles: string[] = [];
+
     // Add each file to the archive
     for (const fileName of coreFiles) {
       let filePath;
@@ -42,13 +51,18 @@ export async function GET() {
         filePath = path.join(backendPath, fileName);
       }
 
-      // Check if file exists before adding
-      if (fs.existsSync(filePath)) {
-        const fileStream = createReadStream(filePath);
-        archive.append(fileStream, { name: fileName });
-      } else {
-        console.warn(`File not found: ${filePath}`);
+      // This route is prerendered, so a missing file must fail the build rather than ship a broken zip
+      if (!fs.existsSync(filePath)) {
+        missingFiles.push(filePath);
+        continue;
       }
+
+      const fileStream = createReadStream(filePath);
+      archive.append(fileStream, { name: fileName });
+    }
+
+    if (missingFiles.length > 0) {
+      throw new MissingCoreFilesError(missingFiles);
     }
 
     // Finalize the archive
@@ -85,6 +99,7 @@ export async function GET() {
     });
 
   } catch (error) {
+    if (error instanceof MissingCoreFilesError) throw error;
     console.error('Error creating zip archive:', error);
     return new NextResponse('Error creating zip archive', { status: 500 });
   }

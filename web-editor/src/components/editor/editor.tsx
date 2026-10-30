@@ -39,8 +39,7 @@ export default function PatternEditor({ userData }: { userData: any }) {
       }
 
       try {
-        const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
-        const res = await fetch(`${base}/api/send-scripts-zip`)
+        const res = await fetch("/api/send-scripts-zip")
         if (res.ok) {
           globalThis.preloadedZipData = await res.blob()
           setZipPreloaded(true)
@@ -92,8 +91,7 @@ export default function PatternEditor({ userData }: { userData: any }) {
             zipBlob = globalThis.preloadedZipData
           } else {
             // Fallback: fetch the zip file if preloading failed
-            const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
-            const res = await fetch(`${base}/api/send-scripts-zip`)
+            const res = await fetch("/api/send-scripts-zip")
             if (!res.ok) throw new Error(`Failed to fetch core libraries zip: ${res.status}`)
             zipBlob = await res.blob()
           }
