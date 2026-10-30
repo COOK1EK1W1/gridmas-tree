@@ -11,10 +11,10 @@ import attribute
 from pixel_driver import DriverRegistry
 from fixture import setActiveFixture
 import legacy_display
+import music
 from util import tcolors
 import math
 import importlib
-import time
 
 
 def print_tabulated(item1: str, item2: str, item3: str, max_length: int):
@@ -70,8 +70,7 @@ class PatternManager:
 
         self.driver_registry = driver_registry
 
-        self.display_last_update = 0
-        self.display_fps = 1/60
+        self.current_song: music.Song | None = None
 
     def list_patterns(self) -> Iterable[str]:
         pattern_files = [f for f in os.listdir(self.pattern_dir) if f.endswith(".py")]
@@ -85,10 +84,12 @@ class PatternManager:
 
         module_string = self.pattern_dir.replace("/", ".") + f"{name}"
 
-        # patterns run module-level API calls (coords(), set_fps(), ...) on import,
+        # patterns run module-level API calls (coords(), set_fps(), set_music(), ...) on import,
         # before we know whether they are a display or a draw()-only pattern
         legacy_display.tree.set_draw_fn(None)
+        music._clear_pending()
         setActiveFixture(legacy_display.tree)
+        legacy_display.tree._fps = 45
         try:
             existing = sys.modules.get(module_string)
             if existing is None:
@@ -97,18 +98,22 @@ class PatternManager:
                 pattern_module = importlib.reload(existing)
         except Exception as e:
             traceback.print_exception(e)
+            self.unload_pattern()
             return False
         finally:
             setActiveFixture(None)
+        song = music._take_pending()
 
         display_update = getattr(pattern_module, "display_update", None)
         draw = getattr(pattern_module, "draw", None)
 
         if display_update is not None and draw is not None:
             print(f"{name} defines both draw() and display_update(), it must be either a pattern or a display")
+            self.unload_pattern()
             return False
         if display_update is None and draw is None:
             print(f"{name} defines neither draw() nor display_update()")
+            self.unload_pattern()
             return False
 
         if draw is not None:
@@ -116,18 +121,24 @@ class PatternManager:
 
         self.current_pattern_module = pattern_module
         self.display_update = display_update
+        self.current_song = song
+
+        t0 = self.driver_registry.start(display_update)
+        if song is not None:
+            try:
+                music.player.play(song, t0)
+            except Exception as e:
+                traceback.print_exception(e)
+                self.unload_pattern()
+                return False
         return True
 
-    def run_display_update(self):
-        now = time.perf_counter()
-        if self.display_update is not None and now > self.display_last_update + self.display_fps:
-            self.display_update()
-            self.display_last_update = now
-
     def unload_pattern(self):
+        music.player.stop()
         self.driver_registry.clear()
         self.current_pattern_module = None
         self.display_update = None
+        self.current_song = None
 
     def get_current_module(self) -> None | ModuleType:
         return self.current_pattern_module

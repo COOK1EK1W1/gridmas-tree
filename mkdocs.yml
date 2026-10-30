@@ -1,4 +1,6 @@
 site_name: GRIDmas Tree Docs
+site_url: https://gridmas-tree.vercel.app/docs/
+use_directory_urls: false
 repo_url: https://github.com/COOK1EK1W1/gridmas-tree
 
 plugins:

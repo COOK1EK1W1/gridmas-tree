@@ -10,3 +10,8 @@ scanning/results/
 site/
 
 web-editor/public/docs
+# pattern music, keep songs out of git
+backend/patterns/**/*.mp3
+backend/patterns/**/*.wav
+backend/patterns/**/*.flac
+backend/patterns/**/*.ogg

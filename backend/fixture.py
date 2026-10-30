@@ -13,6 +13,37 @@ if TYPE_CHECKING:
     from geometry import Shape
 
 
+class Clock:
+    """Where one scope (a fixture's draw() or a display's display_update()) is on the presentation timeline.
+
+    Times are the wall-clock moments frames will be *displayed*, computed
+    speculatively from the shared show epoch / start of pattern, never read from time.time().
+    """
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.frame = 0
+        self.started_at: Optional[float] = None
+        self.frame_time: Optional[float] = None
+
+    def begin_frame(self, t: float):
+        """Enter the frame that will be displayed at unix time t"""
+        if self.started_at is None:
+            self.started_at = t
+        self.frame_time = t
+
+    def end_frame(self):
+        self.frame += 1
+
+    def elapsed(self) -> float:
+        """Seconds between this scope's first frame and the current frame"""
+        if self.frame_time is None or self.started_at is None:
+            return 0.0
+        return self.frame_time - self.started_at
+
+
 class Fixture(ABC):
     """This is a class which holds the tree data, it shouldn't be used directly """
 
@@ -65,14 +96,15 @@ class Fixture(ABC):
         self._render_times: list[float] = []
         """A list of the render times for frames"""
 
-        self._pattern_started_at = time.time()
-        self._frame = 0
-        """The current frame that the animation is on"""
+        self._clock = Clock()
+        """The frame count and presentation time of the running draw()"""
+
+        self._fps = 45
 
         self._shapes: list[Shape] = []
         """The list of shapes that the tree can draw"""
 
-        self._background = None
+        self._background: Optional[Color] = None
 
         self._draw_fn: Optional[Callable[[], Optional[Generator[None, None, None]]]] = None
         self._draw_generator = None
@@ -82,17 +114,15 @@ class Fixture(ABC):
         """set_draw_fn Reset the currently running pattern
 
         Resets all the runtime data of a pattern.
-        Sets the start time to now, sets the frame to 0, clears the background and resets the frame rate back to 45
+        Restarts the pattern's clock (its next frame is frame 0 at 0 seconds) and clears the background.
         """
         if self._draw_fn == draw_fn:
             return
         self._draw_fn = draw_fn
         self._draw_generator = None
 
-        self._pattern_started_at = time.time()
-        self._frame = 0
+        self._clock.reset()
         self._background = None
-        self._fps = 45
 
     def _render_shapes(self):
         """_render_shapes Renders all shapes that are currently in use
@@ -118,7 +148,9 @@ class Fixture(ABC):
         self._shapes = []
 
 
-    def _request_frame(self):
+    def _request_frame(self, t: float):
+        """Render the frame that will be displayed at unix time t"""
+        self._clock.begin_frame(t)
         setActiveFixture(self)
         if self._draw_generator is not None:
             try:
@@ -137,7 +169,7 @@ class Fixture(ABC):
         changed = self._changed_arr
 
         if self._background:
-            rgb[~changed] = self._background
+            rgb[~changed] = self._background.to_tuple()
 
         # Reset lerps
         self._lerp_prev[changed] = rgb[changed]
@@ -147,7 +179,7 @@ class Fixture(ABC):
 
         self._advance_all_lerps()
 
-        self._frame += 1
+        self._clock.end_frame()
         setActiveFixture(None)
         return rgb
 
@@ -199,9 +231,16 @@ class Fixture(ABC):
 
 
 _active_fixture: Optional[Fixture] = None
+_active_clock: Optional[Clock] = None
 def setActiveFixture(fixture: Optional[Fixture]):
-    global _active_fixture
+    global _active_fixture, _active_clock
     _active_fixture = fixture
+    _active_clock = fixture._clock if fixture is not None else None
+
+def set_active_clock(clock: Optional[Clock]):
+    """Make frame()/seconds()/millis() read from clock, used while running display_update()"""
+    global _active_clock
+    _active_clock = clock
 
 def get_active_fixture():
     return _active_fixture
@@ -295,6 +334,7 @@ def set_pixel(n: int, color: Color):
     get_active_fixture()._rgb[n][2] = color._b
 
     get_active_fixture()._changed_arr[n] = True
+    get_active_fixture()._lerp_target[n] = color.to_tuple()
 
 
 def set_fps(fps: int):
@@ -312,7 +352,11 @@ def set_fps(fps: int):
         ```
 
     """
-    get_active_fixture()._fps = fps
+    fixture = get_active_fixture()
+    if fixture is None:
+        print("No current fixture")
+        return
+    fixture._fps = fps
 
 
 def fade(n: int = 10):
@@ -356,6 +400,7 @@ def fill(color: Color):
     """
     get_active_fixture()._rgb[:] = color.to_tuple()
     get_active_fixture()._changed_arr[:] = True
+    get_active_fixture()._lerp_target[:] = color.to_tuple()
 
 
 def lerp(color: Color, frames: int, fn: Callable[[float], float] = linear):
@@ -421,18 +466,24 @@ def frame() -> int:
             example:
             ```
             def draw():
-                f = frame() # 1, 2, 3
+                f = frame() # 0, 1, 2
                 print(f"{f} frames since the pattern started")
             ```
 """
-    return get_active_fixture()._frame
+    return _active_clock.frame if _active_clock is not None else 0
 
 def seconds() -> int:
-    """The number of seconds since the start of the pattern"""
-    return math.floor(time.time() - get_active_fixture()._pattern_started_at)
+    """The number of seconds since the first draw() call
+
+    This is presentation time, not the time the frame is computed
+    """
+    elapsed = _active_clock.elapsed() if _active_clock is not None else 0.0
+    return math.floor(elapsed)
 
 def millis() -> int:
-    """The number of milliseconds since the start of the pattern
+    """The number of milliseconds since the first draw() call
+
+    This is presentation time, not the time the frame is computed
 
         example:
             ```
@@ -442,7 +493,8 @@ def millis() -> int:
                 print(f"{s}:{m} since the pattern started")
             ```
     """
-    return math.floor((time.time() - get_active_fixture()._pattern_started_at) * 1000)
+    elapsed = _active_clock.elapsed() if _active_clock is not None else 0.0
+    return math.floor(elapsed * 1000)
 
 
 def _rotated_z(theta: float, alpha: float) -> np.ndarray:

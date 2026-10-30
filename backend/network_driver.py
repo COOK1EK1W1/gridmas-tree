@@ -58,8 +58,8 @@ class NetworkPixelDriver(PixelDriver):
     # late-grace window.
     LATE_GRACE_S = 0.25
 
-    def __init__( self, address: str, pixel_count: int, name: str, fps: int, port: int=DEFAULT_PORT):
-        super().__init__(pixel_count, name, fps)
+    def __init__( self, address: str, pixel_count: int, name: str, port: int=DEFAULT_PORT):
+        super().__init__(pixel_count, name)
         self._address = address
         self.port = port
         self._base_url = f"http://{address}:{port}"
@@ -67,7 +67,7 @@ class NetworkPixelDriver(PixelDriver):
 
         self._session = self._make_http_session()
 
-        frame_capacity = max(1, int(fps * (PREROLL + BUFFER)))
+        frame_capacity = max(1, int(self.fps * (PREROLL + BUFFER)))
         self._out_queue: "queue.Queue[tuple[int, float, bytes]]" = queue.Queue(maxsize=frame_capacity)
 
         self._credit_lock = threading.Lock()

@@ -12,10 +12,10 @@ This entry made seriously clever use of vector math and spatial transforms to pr
 I've been told there are even secret messages hidden in the pattern for you to decipher.
 
 **Entry:**  
-[View the code / project →](https://gridmas-tree.vercel.app/p/bf83f57c-4df9-4d70-9ffd-76e4a56f269e) <!-- replace with link -->
+[View the code / project →](https://gridmas-tree.vercel.app/p/bf83f57c-4df9-4d70-9ffd-76e4a56f269e)
 
 **Preview:**  
-![3D Vector Cube](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/vector.png?raw=true){width=400} <!-- replace with image link -->
+![3D Vector Cube](../vector.png){width=400}
 
 ---
 
@@ -28,7 +28,7 @@ Charming, creative, and technically sound!
 [View the code / project →](https://gridmas-tree.vercel.app/p/5ef98872-78c0-4d2a-bc4d-bb222aff29b5)
 
 **Preview:**  
-![Pick Apples Animation](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/pick.png?raw=true){width=400}
+![Pick Apples Animation](../pick.png){width=400}
 
 ---
 
@@ -41,7 +41,7 @@ Smooth timing, great use of space, and very *very* Christmas-core.
 [View the code / project →](https://gridmas-tree.vercel.app/p/a5d677a8-6387-4377-b1dd-91f0864cabf9)
 
 **Preview:**  
-![Christmas Helix](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/helix.png?raw=true){width=400}
+![Christmas Helix](../helix.png){width=400}
 
 ---
 
@@ -51,7 +51,7 @@ Here are some shots from the live tree during the showcase event:
 
 | |
 |:--:|
-| ![Display Photo 1](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/lightdisplay1.JPG?raw=true) |
-| ![Display Photo 2](https://github.com/COOK1EK1W1/gridmas-tree/blob/web-editor/docs/lightdisplay2.jpg?raw=true) |
+| ![Display Photo 1](../lightdisplay1.JPG) |
+| ![Display Photo 2](../lightdisplay2.jpg) |
 
 ---
