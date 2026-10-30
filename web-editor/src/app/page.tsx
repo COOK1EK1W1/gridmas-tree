@@ -1,7 +1,6 @@
 import ExampleProjects from "@/components/landing/exampleProjects";
 import PersonalPatterns from "@/components/landing/personalProjects";
 import SignoutBit from "@/components/landing/signout";
-import Snow from "@/components/landing/snowLayer";
 import StartModal from "@/components/startModal";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/util/auth";
@@ -38,18 +37,15 @@ export default async function Home() {
   const patterns: Pick<Pattern, "title" | "modifiedAt" | "id">[] = [];
 
   return (
-    <div className="overflow-auto h-full bg-gradient-to-b from-emerald-900 via-green-900 to-emerald-950 text-orange-100 w-full flex flex-col items-center">
+    <div className="overflow-auto h-full text-orange-100 w-full flex flex-col items-center">
       <StartModal />
 
-      {/* Background festive glows */}
-      <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-red-500/20 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute bottom-10 right-10 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
 
       <div className="w-full text-center py-8">
         <span className="text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-yellow-300 to-green-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.15)]">
           GRIDmas Tree
         </span>
-        <h2 className="text-2xl mt-2">Program GRID&apos;s Tree ✨❄️</h2>
+        <h2 className="text-2xl mt-2">Program GRID&apos;s Tree</h2>
       </div>
 
       <FestiveLights position="top" />
@@ -64,11 +60,11 @@ export default async function Home() {
       </div>
 
       <div>
-        <div className="flex justify-between">
-          <span className="font-semibold tracking-wide">🎄 Your Patterns</span>
-          <SignoutBit userData={userData} />
-        </div>
-        <div className="candy-frame rounded-4xl my-2">
+        <div className="candy-frame rounded-4xl my-2 text-red-800">
+          <div className="flex justify-between px-6">
+            <span className="font-semibold">Your Patterns</span>
+            <SignoutBit userData={userData} />
+          </div>
           <Suspense>
             <PersonalPatterns patterns={patterns} userData={userData} />
           </Suspense>
@@ -76,7 +72,7 @@ export default async function Home() {
       </div>
 
       <div>
-        <h3 className="font-semibold tracking-wide">🎁 Example Patterns</h3>
+        <h3 className="font-semibold tracking-wide">Example Patterns</h3>
         <div className="candy-frame rounded-4xl my-2">
           <ExampleProjects />
         </div>

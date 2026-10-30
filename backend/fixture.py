@@ -256,28 +256,24 @@ class Volume(Fixture):
 
     @classmethod
     def from_csv(cls: type[V], path: str) -> V:
-        return cls(read_tree_csv(path))
-
-    @classmethod
-    def from_grid(cls: type[V], dim: tuple[int, int, int], pitch: float) -> V:
-        ...
+        return cls(read_tree_csv(path)[0])
 
 W = TypeVar('W', bound='Wall')
 class Wall(Fixture):
     @classmethod
     def from_csv(cls: type[W], path: str) -> W:
-        return cls(read_tree_csv(path))
-
-    @classmethod
-    def from_grid(cls: type[W], dim: tuple[int, int], pitch: float) -> W:
-        ...
+        return cls(read_tree_csv(path)[0])
 
 
 E = TypeVar('E', bound='Graph')
 class Graph(Fixture):
+    def __init__(self, positions: list[tuple[float, float, float]], edges: list[tuple[int, int]]):
+        super().__init__(positions)
+        self.edges = edges
+
     @classmethod
-    def from_csv(cls: type[E], b: str) -> E:
-        ...
+    def from_txt(cls: type[E], path: str) -> E:
+        return cls(*read_tree_csv(path))
 
 class CompoundFixture(Fixture):
     def add(self, f: Fixture, name: str):

@@ -95,8 +95,7 @@ class PixelDriver(ABC):
     def _draw_fixtures(self, t: float):
         for fixture, offset in self.fixtures:
             if fixture._draw_fn is not None:
-                self.pixel_buffer[offset:] = fixture._request_frame(t)
-                self.fps = fixture._fps
+                self.pixel_buffer[offset:offset+fixture._num_pixels] = fixture._request_frame(t)
         self.flush(t)
 
     @abstractmethod

@@ -39,8 +39,7 @@ export default function PatternEditor({ userData }: { userData: any }) {
       }
 
       try {
-        const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
-        const res = await fetch(`${base}/api/send-scripts-zip`)
+        const res = await fetch("/api/send-scripts-zip")
         if (res.ok) {
           globalThis.preloadedZipData = await res.blob()
           setZipPreloaded(true)
@@ -92,8 +91,7 @@ export default function PatternEditor({ userData }: { userData: any }) {
             zipBlob = globalThis.preloadedZipData
           } else {
             // Fallback: fetch the zip file if preloading failed
-            const base = process.env.NEXT_PUBLIC_BASEURL ?? ""
-            const res = await fetch(`${base}/api/send-scripts-zip`)
+            const res = await fetch("/api/send-scripts-zip")
             if (!res.ok) throw new Error(`Failed to fetch core libraries zip: ${res.status}`)
             zipBlob = await res.blob()
           }
@@ -187,7 +185,7 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
   function updatePattern() {
 
     if (!pyodide || !codeRef.current) {
-      setOutput([{ content: "Pyodide is still loading...", error: true, frame: 0 }]);
+      appendOutput("Pyodide is still loading", 0, true)
       return false;
     }
 
@@ -199,7 +197,6 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
     try {
       pyodide.FS.writeFile("curPattern.py", codeRef.current.getValue())
       if (!pyodide.runPython(`pattern_manager.load_pattern("curPattern")`)) {
-        setRunning(false)
         return false
       }
 
@@ -208,15 +205,9 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
 
       return true;
     } catch (error: any) {
-      setRunning(false)
       setOutput([{ content: error.toString(), error: true, frame: 0 }]);
       return false;
     }
-  }
-
-  //update the pattern in the filesystem
-  function handleUpdate() {
-    updatePattern();
   }
 
   function handleRun() {
@@ -229,6 +220,8 @@ list(map(lambda x: (x.name, x.value.to_hex() if hasattr(x.value, 'to_hex') else 
     setOutput([])
     if (updatePattern()) {
       setRunning(true)
+    } else {
+      setRunning(false)
     }
   }
 

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const displayName = "gridmasPopup"
+const displayName = "gridmasPopup.v2"
 
 export default function StartModal() {
   const [displayPopUp, setDisplayPopUp] = useState(false);
