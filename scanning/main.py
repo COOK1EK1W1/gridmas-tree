@@ -7,7 +7,16 @@ import numpy as np
 import cv2
 from cv2.typing import MatLike
 import requests
+import sys
+import termios
 import time
+import tty
+from pathlib import Path
+
+# append, not insert: backend/main.py must not shadow this file
+sys.path.append(str(Path(__file__).resolve().parents[1] / "backend"))
+from network_driver import NetworkPixelDriver
+from pixel_driver import PREROLL
 
 print("init camera")
 
@@ -15,13 +24,13 @@ parser = argparse.ArgumentParser(description="Process num_light and url.")
 
 # Add arguments with flags
 parser.add_argument("--num-light", type=int, required=True, help="The number of lights")
-parser.add_argument("--url", type=str, required=True, help="The URL to be processed")
+parser.add_argument("--url", type=str, required=True, help="The device to scan, as host or host:port")
 
 # Parse the arguments
 args = parser.parse_args()
 
 light_amount = int(args.num_light)
-url = "http://" + str(args.url)
+address, _, device_port = str(args.url).partition(":")
 
 cam_port = 0
 
@@ -33,6 +42,29 @@ cam = VideoCapture(cam_port)
 
 directions: list[tuple[int, list[Optional[tuple[float, float]]]]] = []
 
+FRAME_RETRY_S = 0.5
+KEY_LEFT = "\x1b[D"
+KEY_RIGHT = "\x1b[C"
+
+driver = NetworkPixelDriver(address, light_amount, "scanner", fps=45, port=int(device_port or NetworkPixelDriver.DEFAULT_PORT))
+
+
+def show_lights(lights: list[list[int]]):
+    """Put a frame on the device, blocking until it has gone out on the socket.
+
+    The driver drops a frame that goes stale waiting on a connection, which
+    is fine for a pattern but not here, so keep trying until one is sent.
+    """
+    driver.pixel_buffer[:] = lights
+    sent_before = driver.stats()["sent"]
+    while True:
+        driver.flush(time.time() + PREROLL)
+        deadline = time.time() + FRAME_RETRY_S
+        while time.time() < deadline:
+            if driver.stats()["sent"] > sent_before:
+                return
+            time.sleep(0.005)
+
 
 def get_img():
     a, image = cam.read()
@@ -42,12 +74,7 @@ def get_img():
 
 
 def get_photo_of(lights: list[list[int]]) -> MatLike:
-    sent = False
-    while not sent:
-        x = requests.post(f"{url}/setalllight", data=str(lights))
-        if x.status_code == 200:
-            sent=True
-
+    show_lights(lights)
     time.sleep(0.4)
     _, image = get_img()
     return image
@@ -55,13 +82,7 @@ def get_photo_of(lights: list[list[int]]) -> MatLike:
 
 def clear_tree():
     print("clearing light")
-    sent = False
-    while not sent:
-        x = requests.get(url + "/lightoff")
-        if x.status_code != 200:
-            raise Exception("No Light Server")
-        else:
-            sent=True
+    show_lights([[0, 0, 0] for _ in range(light_amount)])
 
 
 
@@ -261,7 +282,7 @@ def scan(dir: int):
 
 
 def camera_test():
-    requests.post(f"{url}/setalllight", data=str([[255, 255, 255] for _ in range(light_amount)]))
+    show_lights([[255, 255, 255] for _ in range(light_amount)])
     while True:
         _, image = get_img()
         cv2.line(image, (image.shape[1] // 2, 0), (image.shape[1] // 2, image.shape[0]), (100, 0, 0), 2)
@@ -269,6 +290,39 @@ def camera_test():
         key = waitKey(20)
         if key == 27:
             break
+
+
+def read_key() -> str:
+    key = sys.stdin.read(1)
+    if key == "\x1b":  # arrow keys arrive as a three character escape sequence
+        key += sys.stdin.read(2)
+    return key
+
+
+def step_lights():
+    """Light one LED at a time, moved with the left and right arrow keys."""
+    print("left/right: move, q: back to menu")
+    stdin_fd = sys.stdin.fileno()
+    terminal_settings = termios.tcgetattr(stdin_fd)
+    tty.setcbreak(stdin_fd)
+    light = 0
+    try:
+        while True:
+            colors = [[0, 0, 0] for _ in range(light_amount)]
+            colors[light] = [255, 255, 255]
+            show_lights(colors)
+            print(f"led {light} / {light_amount - 1}    ", end="\r", flush=True)
+
+            key = read_key()
+            if key == KEY_LEFT:
+                light = (light - 1) % light_amount
+            elif key == KEY_RIGHT:
+                light = (light + 1) % light_amount
+            elif key == "q":
+                break
+    finally:
+        termios.tcsetattr(stdin_fd, termios.TCSADRAIN, terminal_settings)
+        print()
 
 
 def combine_scans(scans: list[tuple[int, list[Optional[tuple[float, float]]]]]) -> list[tuple[float, float, float]]:
@@ -360,7 +414,7 @@ def fuse_data():
             lights.append([255, 255, 255])
         else:
             lights.append([0, 0, 0])
-    requests.post(f"{url}/setalllight", data=str(lights))
+    show_lights(lights)
     res = input("ok? (y)")
     if res != "y":
         return
@@ -413,6 +467,8 @@ def run(option: int):
         waitKey(20)
     elif option == 8:
         fuse_data()
+    elif option == 9:
+        step_lights()
 
 
 if __name__ == "__main__":
@@ -428,7 +484,8 @@ please select a function:
     5: scan y-
     6: pixel find test
     7: difference test
-    8: fuse data + send""")
+    8: fuse data + send
+    9: step through leds""")
         option = input("choose:")
         try:
             if not int(option):

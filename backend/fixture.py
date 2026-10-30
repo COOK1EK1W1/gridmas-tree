@@ -231,7 +231,6 @@ class Graph(Fixture):
     def __init__(self, positions: list[tuple[float, float, float]], edges: list[tuple[int, int]]):
         super().__init__(positions)
         self.edges = edges
-        return self
 
     @classmethod
     def from_txt(cls: type[E], path: str) -> E:
