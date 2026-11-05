@@ -1,6 +1,6 @@
 from collections import defaultdict
 import argparse
-from typing import List, Optional
+from typing import Optional
 from cv2 import VideoCapture, imwrite, imshow, waitKey
 import numpy as np
 
@@ -16,7 +16,9 @@ from pathlib import Path
 # append, not insert: backend/main.py must not shadow this file
 sys.path.append(str(Path(__file__).resolve().parents[1] / "backend"))
 from network_driver import NetworkPixelDriver
-from pixel_driver import PREROLL
+
+from decode import decode_lights, find_suspects, gray_encode, num_bits
+from postprocess import PartialPosition, clean_positions, scale_locations_to_GIFT
 
 print("init camera")
 
@@ -25,6 +27,7 @@ parser = argparse.ArgumentParser(description="Process num_light and url.")
 # Add arguments with flags
 parser.add_argument("--num-light", type=int, required=True, help="The number of lights")
 parser.add_argument("--url", type=str, required=True, help="The device to scan, as host or host:port")
+parser.add_argument("--outlier-percent", type=float, default=2, help="The percent of LEDs furthest out of line with their neighbours to interpolate, 0 for none")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -34,34 +37,49 @@ address, _, device_port = str(args.url).partition(":")
 
 cam_port = 0
 
-cam_dir = 90
+cam_dir = 0
 cam_flip = False
 
 
 cam = VideoCapture(cam_port)
 
+# a changing exposure breaks comparing one photo against another, but backends
+# differ in the value they want and some (macOS) ignore this altogether
+if not cam.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25):
+    print("warning: could not lock camera exposure")
+cam.set(cv2.CAP_PROP_AUTO_WB, 0)
+
 directions: list[tuple[int, list[Optional[tuple[float, float]]]]] = []
 
+# scanning has nothing to keep in sync, so frames only lead by enough to arrive on time
+DISPLAY_LEAD_S = 0.2
 FRAME_RETRY_S = 0.5
+# in scan space, where the image is 2 wide
+MAX_HEIGHT_SPREAD = 0.1
+# frames sat in the camera's buffer from before the lights changed
+STALE_CAMERA_FRAMES = 5
 KEY_LEFT = "\x1b[D"
 KEY_RIGHT = "\x1b[C"
 
-driver = NetworkPixelDriver(address, light_amount, "scanner", fps=45, port=int(device_port or NetworkPixelDriver.DEFAULT_PORT))
+driver = NetworkPixelDriver(address, 1000, "scanner", port=int(device_port or NetworkPixelDriver.DEFAULT_PORT))
 
+offset=0
 
 def show_lights(lights: list[list[int]]):
-    """Put a frame on the device, blocking until it has gone out on the socket.
+    """Put a frame on the device, blocking until its display time has passed.
 
     The driver drops a frame that goes stale waiting on a connection, which
     is fine for a pattern but not here, so keep trying until one is sent.
     """
-    driver.pixel_buffer[:] = lights
+    driver.pixel_buffer[offset:offset+light_amount] = lights
     sent_before = driver.stats()["sent"]
     while True:
-        driver.flush(time.time() + PREROLL)
+        display_at = time.time() + DISPLAY_LEAD_S
+        driver.flush(display_at)
         deadline = time.time() + FRAME_RETRY_S
         while time.time() < deadline:
             if driver.stats()["sent"] > sent_before:
+                time.sleep(max(0, display_at - time.time()))
                 return
             time.sleep(0.005)
 
@@ -76,6 +94,8 @@ def get_img():
 def get_photo_of(lights: list[list[int]]) -> MatLike:
     show_lights(lights)
     time.sleep(0.4)
+    for _ in range(STALE_CAMERA_FRAMES):
+        cam.grab()
     _, image = get_img()
     return image
 
@@ -95,7 +115,7 @@ def countdown(seconds: int):
 dirs = [0, 90, 180, 270]
 
 
-def loc_img2space(image: MatLike, loc: tuple[int, int]) -> tuple[float, float]:
+def loc_img2space(image: MatLike, loc: tuple[float, float]) -> tuple[float, float]:
     width = image.shape[1]
     height = image.shape[0]
     return ((loc[0] / width) * 2 - 1, (height / width) - (loc[1] / width))
@@ -117,30 +137,6 @@ def find_light_loc(image: MatLike):
         return loc_img2space(image, (maxLoc[0], maxLoc[1]))
     else:
         return None
-
-
-def find_light_loc_countour(image: MatLike) -> Optional[tuple[float, float]]:
-    # Apply threshold to reduce noise
-    _, thresholded = cv2.threshold(image, 30, 255, cv2.THRESH_BINARY)
-
-    # Ensure the image is 8-bit single-channel for contour finding
-    thresholded_8bit = thresholded.astype(np.uint8)
-
-    # Find contours
-    contours, _ = cv2.findContours(thresholded_8bit, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    if contours:
-        # Find the largest contour
-        largest_contour = max(contours, key=cv2.contourArea)
-
-        # Calculate the centroid of the largest contour
-        M = cv2.moments(largest_contour)
-        if M["m00"] != 0:
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-            return loc_img2space(image, (cx, cy))
-
-    return None
 
 
 def show_points(img: MatLike, points: list[Optional[tuple[float, float]]]):
@@ -176,100 +172,61 @@ def find_individual(pixels: list[int], revalidate_clean_plate: int = 5) -> list[
     return positions
 
 
-def find_lights(all_on: MatLike, all_off: MatLike, images: list[MatLike]) -> list[Optional[tuple[float, float]]]:
-    all_on_subtracted = cv2.subtract(all_on, all_off)
+def gray_pattern(bit: int, inverted: bool) -> list[list[int]]:
+    """Light every LED whose gray code has this bit set, or clear if inverted"""
+    colors: list[list[int]] = []
+    for x in range(light_amount):
+        if bool(gray_encode(x) & (1 << bit)) != inverted:
+            colors.append([255, 255, 255])
+        else:
+            colors.append([0, 0, 0])
+    return colors
 
-    subtracted_images = list(map(lambda x: cv2.subtract(all_on, x), images))
 
+def find_lights(all_on: MatLike, positives: list[MatLike], negatives: list[MatLike]) -> tuple[list[Optional[tuple[float, float]]], list[int]]:
+    """Decode the photos into a location per LED, and the LEDs not to trust."""
+    decoded = decode_lights(
+        [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in positives],
+        [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in negatives],
+        light_amount,
+    )
     locations: list[Optional[tuple[float, float]]] = []
-
-    for pixelid in range(light_amount):
-        current_image = all_on_subtracted
-        for i, image in enumerate(subtracted_images):
-            if (pixelid & 0x1 << i) == 0:
-                current_image = cv2.subtract(current_image, image)
-            else:
-                current_image = cv2.subtract(current_image, cv2.subtract(all_on_subtracted, image))
-
-        locations.append(find_light_loc(current_image))
-    return locations
-
-
-def find_lights2(all_on: MatLike, all_off: MatLike, images: List[MatLike]) -> List[Optional[tuple[float, float]]]:
-    all_on_gray = cv2.cvtColor(all_on, cv2.COLOR_BGR2GRAY) if len(all_on.shape) == 3 else all_on
-    all_off_gray = cv2.cvtColor(all_off, cv2.COLOR_BGR2GRAY) if len(all_off.shape) == 3 else all_off
-    images_gray = [cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img for img in images]
-
-    all_on_subtracted = cv2.subtract(all_on_gray, all_off_gray)
-
-    # Precompute subtracted images
-    subtracted_images = [cv2.subtract(all_on_gray, img) for img in images_gray]
-
-    # Calculate the number of bits (images)
-    num_bits = len(images)
-
-    # Precompute inverse subtracted images
-    inverse_subtracted_images = [cv2.subtract(all_on_subtracted, img) for img in subtracted_images]
-
-    locations: List[Optional[tuple[float, float]]] = []
-
-    for pixelid in range(light_amount):
-        current_image = all_on_subtracted.copy()
-
-        for i in range(num_bits):
-            if (pixelid & (1 << i)) == 0:
-                current_image = cv2.subtract(current_image, subtracted_images[i])
-            else:
-                current_image = cv2.subtract(current_image, inverse_subtracted_images[i])
-
-        locations.append(find_light_loc_countour(current_image))
-
-        # Uncomment the following line if you want to visualize the process
-        # show_points(current_image, [locations[-1]] if locations[-1] else [])
-
-    return locations
+    for light in decoded:
+        locations.append(None if light is None else loc_img2space(all_on, (light[0], light[1])))
+    return locations, find_suspects(decoded)
 
 
 def scan(dir: int):
     countdown(3)
     dir_degrees = dirs[int(dir) - 2]
+    Path("results").mkdir(exist_ok=True)
 
-    # get all lights on
+    # only used to draw the results on
     all_on = get_photo_of([[255, 255, 255] for _ in range(light_amount)])
     print("on")
-    imwrite(f"results/results2-on-{dir_degrees}.png", all_on)
+    imwrite(f"results/results3-on-{dir_degrees}.png", all_on)
 
-    # get all lights off
-    all_off = get_photo_of([[0, 0, 0] for _ in range(light_amount)])
-    print("off")
-    imwrite(f"results/results2-off-{dir_degrees}.png", all_off)
+    positives: list[MatLike] = []
+    negatives: list[MatLike] = []
 
-    images: list[MatLike] = []
-
-    for a in range(light_amount.bit_length()):
-        colors: list[list[int]] = []
-        for x in range(light_amount):
-            if x & (1 << a) != 0:
-                colors.append([0, 0, 0])
-            else:
-                colors.append([255, 255, 255])
-
-        image = get_photo_of(colors)
-        images.append(image)
+    for a in range(num_bits(light_amount)):
+        positives.append(get_photo_of(gray_pattern(a, False)))
+        negatives.append(get_photo_of(gray_pattern(a, True)))
         print(1 << a)
-        imwrite(f"results/results2-{a}-{dir_degrees}.png", image)
+        imwrite(f"results/results3-{a}-pos-{dir_degrees}.png", positives[-1])
+        imwrite(f"results/results3-{a}-neg-{dir_degrees}.png", negatives[-1])
 
-    locations = find_lights(all_on, all_off, images)
+    locations, suspects = find_lights(all_on, positives, negatives)
 
     show_points(all_on, locations)
 
     count = len(locations) - locations.count(None)
-    print(f"locations found for {count} / {len(locations)}")
+    print(f"locations found for {count} / {len(locations)}, {len(suspects)} suspect")
 
-    none_positions = [index for index, location in enumerate(locations) if location is None]
+    rescan_positions = sorted(suspects + [index for index, location in enumerate(locations) if location is None])
 
-    fixed_positions = find_individual(none_positions)
-    for i, position in enumerate(none_positions):
+    fixed_positions = find_individual(rescan_positions)
+    for i, position in enumerate(rescan_positions):
         locations[position] = fixed_positions[i]
 
     count = len(locations) - locations.count(None)
@@ -325,7 +282,7 @@ def step_lights():
         print()
 
 
-def combine_scans(scans: list[tuple[int, list[Optional[tuple[float, float]]]]]) -> list[tuple[float, float, float]]:
+def combine_scans(scans: list[tuple[int, list[Optional[tuple[float, float]]]]]) -> list[PartialPosition]:
     # Accumulate observations for each light index
     observations: defaultdict[int, list[tuple[Optional[float], Optional[float], Optional[float]]]] = defaultdict(list)
 
@@ -345,7 +302,7 @@ def combine_scans(scans: list[tuple[int, list[Optional[tuple[float, float]]]]]) 
                 observations[light_index].append((None, None, None))
 
     # Estimate 3D positions
-    estimated_positions: list[tuple[float, float, float]] = []
+    estimated_positions: list[PartialPosition] = []
     for light_index, data in observations.items():
         x_values: list[float] = []
         y_values: list[float] = []
@@ -360,54 +317,28 @@ def combine_scans(scans: list[tuple[int, list[Optional[tuple[float, float]]]]]) 
                 z_values.append(z)
         print(x_values)
 
-        avg_x = 0
-        avg_y = 0
-        avg_z = 0
+        # every view measures height, so one bad view shows up here and the median ignores it
+        if len(z_values) > 1 and max(z_values) - min(z_values) > MAX_HEIGHT_SPREAD:
+            print(f"warning: views disagree on the height of led {light_index}: {z_values}")
+
+        avg_x = None
+        avg_y = None
+        avg_z = None
         if len(x_values) > 0:
             avg_x = float(np.mean(x_values))
         if len(y_values) > 0:
             avg_y = float(np.mean(y_values))
         if len(z_values) > 0:
-            avg_z = float(np.mean(z_values))
+            avg_z = float(np.median(z_values))
 
         estimated_positions.append((avg_x, avg_y, avg_z))
 
     return estimated_positions
 
 
-def scale_locations_to_GIFT(locations: list[tuple[float, float, float]]):
-    max_x = -1
-    min_x = 1
-    max_y = -1
-    min_y = 1
-    min_z = 100
-
-    for location in locations:
-        max_x = max(location[0], max_x)
-        min_x = min(location[0], min_x)
-        max_y = max(location[1], max_y)
-        min_y = min(location[1], min_y)
-        min_z = min(location[2], min_z)
-
-    width = max_x - min_x
-    depth = max_y - min_y
-
-    scale_factor = 1
-
-    if width > depth:
-        scale_factor = 2 / width
-    else:
-        scale_factor = 2 / depth
-
-    new_locations: list[tuple[float, float, float]] = []
-    for location in locations:
-        new_locations.append((float(location[0] * scale_factor), float(location[1] * scale_factor), float((location[2] - min_z) * scale_factor)))
-
-    return new_locations
-
-
 def fuse_data():
-    new_locations = combine_scans(directions)
+    new_locations, outliers = clean_positions(combine_scans(directions), args.outlier_percent)
+    print(f"interpolated outliers: {outliers}")
     lights: list[list[int]] = []
     for i in range(len(new_locations)):
         if new_locations[i][0] > 0:
@@ -429,35 +360,17 @@ def run(option: int):
         scan(option)
     elif option == 6:
 
-        imagedirs = [
-            "results/results2-0-0.png",
-            "results/results2-1-0.png",
-            "results/results2-2-0.png",
-            "results/results2-3-0.png",
-            "results/results2-4-0.png",
-            "results/results2-5-0.png",
-            "results/results2-6-0.png",
-            "results/results2-7-0.png",
-            "results/results2-8-0.png",
-        ]
+        bits = range(num_bits(light_amount))
+        all_on = cv2.imread("results/results3-on-0.png")
+        positives = [cv2.imread(f"results/results3-{a}-pos-0.png") for a in bits]
+        negatives = [cv2.imread(f"results/results3-{a}-neg-0.png") for a in bits]
 
-        cleanplate = "results/results2-off-0.png"
-        cleanimage = cv2.imread(cleanplate)
-
-        all_on = cv2.imread("results/results2-on-0.png")
-        images = list(map(lambda x: cv2.imread(x), imagedirs))
-
-        locations = find_lights2(all_on, cleanimage, images)
+        locations, suspects = find_lights(all_on, positives, negatives)
         print(locations)
         show_points(all_on, locations)
         count = len(locations) - locations.count(None)
-        print(f"locations found for {count} / {len(locations)}")
+        print(f"locations found for {count} / {len(locations)}, suspect: {suspects}")
         directions.append((0, locations))
-
-        locations = find_lights(all_on, cleanimage, images)
-        show_points(all_on, locations)
-        count = len(locations) - locations.count(None)
-        print(f"locations found for {count} / {len(locations)}")
         waitKey(20)
     elif option == 7:
         countdown(2)

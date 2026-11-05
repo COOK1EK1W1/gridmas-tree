@@ -48,7 +48,7 @@ def clamp(val: Union[float, int], minv: Union[float, int], maxv: Union[float, in
 
 def read_tree_csv(location: str) -> tuple[list[tuple[float, float, float]], list[tuple[int, int]]]:
     points: list[tuple[float, float, float]] = []
-    vertices: list[tuple[int, int]] = []
+    edges: list[tuple[int, int]] = []
     with open(location, newline="") as file:
         prev = (0, 0, 0)
         count = 0
@@ -62,18 +62,13 @@ def read_tree_csv(location: str) -> tuple[list[tuple[float, float, float]], list
                     count = int(line[1:])
                 except:
                     raise Exception(f"Invalid number in line {line_count} in file {location}")
-            elif line[0] == "e":
-                parts = line[1:].split()
-                if 2 != len(parts):
-                    raise Exception(f"Invalid edge in line {line_count} in file {location}")
-                try:
-                    vertices.append((int(parts[0]), int(parts[1])))
-                except:
-                    raise Exception(f"Invalid number in line {line_count} in file {location}")
             else:
                 parts = line.split(",")
                 if 3 != len(parts):
                     raise Exception(f"Invalid coordinate in line {line_count} in file {location}")
+                # an l line joins the previous vertex to this one, without one there's no edge
+                if count and points:
+                    edges.append((len(points) - 1, len(points) + count))
                 # count pixels between the previous point and this one, then this point
                 for i in range(count + 1):
                     norm = (i + 1) / (count + 1)
@@ -88,7 +83,7 @@ def read_tree_csv(location: str) -> tuple[list[tuple[float, float, float]], list
                         raise Exception(f"Invalid number in line {line_count} in file {location}")
                 count = 0
                 prev = (float(parts[0]), float(parts[1]), float(parts[2]))
-    return points, vertices
+    return points, edges
 
 def dist(a: Iterable[float], b: Iterable[float]) -> float:
     """The distance between two vectors
