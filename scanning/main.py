@@ -63,6 +63,7 @@ KEY_RIGHT = "\x1b[C"
 
 driver = NetworkPixelDriver(address, 1000, "scanner", port=int(device_port or NetworkPixelDriver.DEFAULT_PORT))
 
+offset=0
 
 def show_lights(lights: list[list[int]]):
     """Put a frame on the device, blocking until its display time has passed.
@@ -70,7 +71,7 @@ def show_lights(lights: list[list[int]]):
     The driver drops a frame that goes stale waiting on a connection, which
     is fine for a pattern but not here, so keep trying until one is sent.
     """
-    driver.pixel_buffer[:offset+light_amount] = lights
+    driver.pixel_buffer[offset:offset+light_amount] = lights
     sent_before = driver.stats()["sent"]
     while True:
         display_at = time.time() + DISPLAY_LEAD_S
