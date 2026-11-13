@@ -22,7 +22,7 @@ def _pick_driver() -> PixelDriver:
         from web_driver import WebPixelDriver
         return WebPixelDriver(tree._num_pixels, "tree")
     else:
-        return NetworkPixelDriver("127.0.0.1", tree._num_pixels, "tree")
+        return NetworkPixelDriver("gridmas-pi02.local", tree._num_pixels, "tree")
 
 
 def attach(draw_fn: Callable[[], Optional[Generator[None, None, None]]]):

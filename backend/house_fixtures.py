@@ -1,10 +1,10 @@
-from fixture import Graph
+from fixture import Graph, Wall
 from network_driver import NetworkPixelDriver
 from pixel_driver import driver_registry
 
 fence_graph = Graph.from_txt("../point-clouds/house-fence.txt")
 front_graph = Graph.from_txt("../point-clouds/house-front.txt")
-hedge_wall = Graph.from_txt("../point-clouds/house-hedge.txt")
+hedge_wall = Wall.from_csv("../point-clouds/house-hedge.txt")
 
 
 def attach(fps: float = 45):

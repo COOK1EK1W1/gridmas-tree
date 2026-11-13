@@ -265,19 +265,394 @@ class Wall(Fixture):
         return cls(read_tree_csv(path)[0])
 
 
+class Vertex:
+    """A point where edges of a Graph meet, like a corner of the house or the end of a wire.
+
+    Don't make these yourself, get them from `vertices()` or from an Edge. Treat the
+    attributes as read only, they're shared by every pattern on the fixture.
+
+    Attributes:
+        id (int): The vertex's index, `vertices(vertex.id) is vertex`
+        position (np.ndarray): The (x, y, z) position of the vertex
+        pixels (list[Pixel]): The pixels sitting at this vertex, often there are none
+        indices (np.ndarray): The LED indices of `pixels`, for numpy
+        edges (list[Edge]): Every edge with an end at this vertex
+    """
+
+    __slots__ = ("id", "position", "pixels", "indices", "edges")
+
+    def __init__(self, id: int, position: tuple[float, float, float], pixels: list[Pixel]):
+        self.id = id
+        self.position = np.array(position, dtype=np.float64)
+        self.pixels = pixels
+        self.indices = np.array([p.id for p in pixels], dtype=np.intp)
+        self.edges: list["Edge"] = []
+
+    @property
+    def x(self) -> float:
+        """The x position of the vertex"""
+        return float(self.position[0])
+
+    @property
+    def y(self) -> float:
+        """The y position of the vertex"""
+        return float(self.position[1])
+
+    @property
+    def z(self) -> float:
+        """The z position of the vertex"""
+        return float(self.position[2])
+
+    @property
+    def degree(self) -> int:
+        """How many edges meet here, 1 is a dead end, 3 or more is a junction"""
+        return len(self.edges)
+
+    @property
+    def neighbours(self) -> list["Vertex"]:
+        """The vertices at the other end of each of this vertex's edges, in the same order as `edges`"""
+        return [e.other(self) for e in self.edges]
+
+    def __repr__(self) -> str:
+        return f"Vertex({self.id}, pixels={self.indices.tolist()}, edges={[e.id for e in self.edges]})"
+
+
+class Edge:
+    """A run of pixels along a wire between two vertices.
+
+    Don't make these yourself, get them from `edges()` or from a Vertex. Treat the
+    attributes as read only, they're shared by every pattern on the fixture.
+
+    An edge is a sequence of its pixels from start to end, so `for pixel in edge`,
+    `len(edge)` and `edge[0]` all work. The pixels at its vertices aren't part of it.
+
+    Attributes:
+        id (int): The edge's index, `edges(edge.id) is edge`
+        start (Vertex): The vertex the pixels run away from
+        end (Vertex): The vertex the pixels run towards
+        pixels (list[Pixel]): The pixels along the edge, ordered start to end
+        indices (np.ndarray): The LED indices of `pixels`, for numpy
+        t (np.ndarray): How far along the edge each pixel is, from 0 at start to 1 at end, by distance
+        length (float): The length of the wire from start, through every pixel, to end
+    """
+
+    __slots__ = ("id", "start", "end", "pixels", "indices", "t", "length",
+                 "_pixels_rev", "_indices_rev", "_t_rev", "_at_start", "_at_end")
+
+    def __init__(self, id: int, start: Vertex, end: Vertex, pixels: list[Pixel], positions: np.ndarray):
+        self.id = id
+        self.start = start
+        self.end = end
+        self.pixels = pixels
+        self.indices = np.array([p.id for p in pixels], dtype=np.intp)
+
+        # distance along the wire: start vertex -> each pixel -> end vertex
+        points = np.vstack([start.position, positions[self.indices].astype(np.float64), end.position])
+        along = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(points, axis=0), axis=1))])
+        self.length = float(along[-1])
+        if self.length > 0:
+            self.t = along[1:-1] / self.length
+        else:
+            self.t = np.arange(1, len(pixels) + 1, dtype=np.float64) / (len(pixels) + 1)
+
+        self._pixels_rev = pixels[::-1]
+        self._indices_rev = self.indices[::-1].copy()
+        self._t_rev = 1.0 - self.t[::-1]
+        # filled in by Graph once every edge exists
+        self._at_start: list[Edge] = []
+        self._at_end: list[Edge] = []
+
+    def __len__(self) -> int:
+        return len(self.pixels)
+
+    def __iter__(self):
+        return iter(self.pixels)
+
+    def __getitem__(self, i):
+        return self.pixels[i]
+
+    def __repr__(self) -> str:
+        return f"Edge({self.id}, {self.start.id}->{self.end.id}, pixels={self.indices.tolist()})"
+
+    @property
+    def vertices(self) -> tuple[Vertex, Vertex]:
+        """(start, end)"""
+        return (self.start, self.end)
+
+    def _is_start(self, v: Vertex) -> bool:
+        if v is self.start:
+            return True
+        if v is self.end:
+            return False
+        raise ValueError(f"{v} is not an end of {self}")
+
+    def other(self, v: Vertex) -> Vertex:
+        """The vertex at the other end of the edge from v
+
+        Example:
+            ```
+            next_vertex = edge.other(vertex)
+            ```
+        """
+        return self.end if self._is_start(v) else self.start
+
+    def pixels_from(self, v: Vertex) -> list[Pixel]:
+        """The edge's pixels ordered going away from vertex v"""
+        return self.pixels if self._is_start(v) else self._pixels_rev
+
+    def indices_from(self, v: Vertex) -> np.ndarray:
+        """The edge's LED indices ordered going away from vertex v"""
+        return self.indices if self._is_start(v) else self._indices_rev
+
+    def t_from(self, v: Vertex) -> np.ndarray:
+        """How far along the edge each pixel of `pixels_from(v)` is, 0 at v and 1 at the other end"""
+        return self.t if self._is_start(v) else self._t_rev
+
+    def edges_at(self, v: Vertex) -> list["Edge"]:
+        """The other edges meeting this one at vertex v, so the ways a chaser can carry on
+
+        Example:
+            ```
+            options = edge.edges_at(edge.end)
+            if options:
+                edge = random.choice(options)
+            ```
+        """
+        return self._at_start if self._is_start(v) else self._at_end
+
+    def pixel_at(self, t: float, v: Optional[Vertex] = None) -> Optional[Pixel]:
+        """The pixel nearest to the point t of the way along the edge, or None if the edge has no pixels
+
+        Args:
+            t (float): How far along, 0 to 1
+            v (Optional[Vertex]): Measure t from this vertex. Defaults to the start
+        """
+        if not self.pixels:
+            return None
+        if v is not None and not self._is_start(v):
+            t = 1.0 - t
+        return self.pixels[int(np.argmin(np.abs(self.t - t)))]
+
+
 E = TypeVar('E', bound='Graph')
 class Graph(Fixture):
-    def __init__(self, positions: list[tuple[float, float, float]], edges: list[tuple[int, int]]):
+    """A fixture made of wires: edges of pixels joining vertices.
+
+    Vertices are numbered by their position in `vertices`, edges by their position in `edges`.
+
+    Args:
+        positions: The position of every LED, in strip order
+        vertices: For each vertex, its position and the LEDs sitting at it (may be empty)
+        edges: For each edge, its start vertex, end vertex and the LEDs along it ordered start to end, not counting the LEDs at its vertices
+
+    Every LED belongs to at most one edge or vertex.
+    """
+
+    def __init__(self,
+                 positions: list[tuple[float, float, float]],
+                 vertices: list[tuple[tuple[float, float, float], list[int]]],
+                 edges: list[tuple[int, int, list[int]]]):
         super().__init__(positions)
-        self.edges = edges
+        n = self._num_pixels
+
+        self._pixel_vertex = np.full(n, -1, dtype=np.intp)
+        """For each LED, the id of the vertex it's at, or -1"""
+        self._pixel_edge = np.full(n, -1, dtype=np.intp)
+        """For each LED, the id of the edge it's on, or -1"""
+
+        def claim(i: int, what: str):
+            if not 0 <= i < n:
+                raise ValueError(f"{what} uses LED {i}, but there are only {n} LEDs")
+            if self._pixel_vertex[i] != -1 or self._pixel_edge[i] != -1:
+                raise ValueError(f"LED {i} is in {what} and also in another edge or vertex")
+
+        self._vertices: list[Vertex] = []
+        for vid, (pos, leds) in enumerate(vertices):
+            for i in leds:
+                claim(i, f"vertex {vid}")
+                self._pixel_vertex[i] = vid
+            self._vertices.append(Vertex(vid, pos, [self._pixels[i] for i in leds]))
+
+        self._edges: list[Edge] = []
+        for eid, (a, b, leds) in enumerate(edges):
+            for v in (a, b):
+                if not 0 <= v < len(self._vertices):
+                    raise ValueError(f"edge {eid} uses vertex {v}, but there are only {len(self._vertices)} vertices")
+            for i in leds:
+                claim(i, f"edge {eid}")
+                self._pixel_edge[i] = eid
+            edge = Edge(eid, self._vertices[a], self._vertices[b], [self._pixels[i] for i in leds], self._positions)
+            self._edges.append(edge)
+            edge.start.edges.append(edge)
+            if edge.end is not edge.start:
+                edge.end.edges.append(edge)
+
+        for edge in self._edges:
+            edge._at_start = [e for e in edge.start.edges if e is not edge]
+            edge._at_end = [e for e in edge.end.edges if e is not edge]
+
+        self._neighbours = self._generate_neighbours()
+        """For each LED, the LEDs next to it along the wires"""
+
+    def _generate_neighbours(self) -> list[list[Pixel]]:
+        # A chain per edge: start vertex, its pixels, end vertex. A vertex links to its own pixels.
+        # A pixel's neighbours are the pixels it reaches without passing another pixel or a
+        # vertex which has pixels (its own vertex excepted), so wires join through empty vertices.
+        pix_adj: list[list[tuple[str, int]]] = [[] for _ in range(self._num_pixels)]
+        vert_adj: list[list[tuple[str, int]]] = [[] for _ in self._vertices]
+
+        def link(a: tuple[str, int], b: tuple[str, int]):
+            (pix_adj if a[0] == "p" else vert_adj)[a[1]].append(b)
+            (pix_adj if b[0] == "p" else vert_adj)[b[1]].append(a)
+
+        for v in self._vertices:
+            for i in v.indices:
+                link(("v", v.id), ("p", int(i)))
+        for e in self._edges:
+            chain = [("v", e.start.id)] + [("p", int(i)) for i in e.indices] + [("v", e.end.id)]
+            for a, b in zip(chain, chain[1:]):
+                link(a, b)
+
+        result: list[list[Pixel]] = []
+        for i in range(self._num_pixels):
+            own = int(self._pixel_vertex[i])
+            found: list[int] = []
+            seen = {("p", i)}
+            stack = list(pix_adj[i])
+            while stack:
+                node = stack.pop()
+                if node in seen:
+                    continue
+                seen.add(node)
+                kind, k = node
+                if kind == "p":
+                    found.append(k)
+                elif k == own or len(self._vertices[k].pixels) == 0:
+                    stack.extend(vert_adj[k])
+                else:
+                    found.extend(int(j) for j in self._vertices[k].indices if j != i)
+                    seen.update(("p", int(j)) for j in self._vertices[k].indices)
+            result.append([self._pixels[j] for j in sorted(set(found))])
+        return result
 
     @classmethod
     def from_txt(cls: type[E], path: str) -> E:
-        return cls(*read_tree_csv(path))
+        """Load a graph from a graph text file"""
+        from util import read_graph_txt
+        return cls(*read_graph_txt(path))
+
+    def edges(self, n: Optional[int] = None):
+        """Same as the module level `edges()`, but for this graph rather than the active fixture"""
+        return self._edges if n is None else self._edges[n]
+
+    def vertices(self, n: Optional[int] = None):
+        """Same as the module level `vertices()`, but for this graph rather than the active fixture"""
+        return self._vertices if n is None else self._vertices[n]
+
+    def edge_of(self, p: Union[Pixel, int]) -> Optional[Edge]:
+        """Same as the module level `edge_of()`, but for this graph rather than the active fixture"""
+        e = self._pixel_edge[p.id if isinstance(p, Pixel) else int(p)]
+        return None if e < 0 else self._edges[e]
+
+    def vertex_of(self, p: Union[Pixel, int]) -> Optional[Vertex]:
+        """Same as the module level `vertex_of()`, but for this graph rather than the active fixture"""
+        v = self._pixel_vertex[p.id if isinstance(p, Pixel) else int(p)]
+        return None if v < 0 else self._vertices[v]
+
+    def neighbours(self, p: Union[Pixel, int]) -> list[Pixel]:
+        """Same as the module level `neighbours()`, but for this graph rather than the active fixture"""
+        return self._neighbours[p.id if isinstance(p, Pixel) else int(p)]
 
 class CompoundFixture(Fixture):
     def add(self, f: Fixture, name: str):
         ...
+
+
+def _active_graph(name: str) -> Graph:
+    fixture = get_active_fixture()
+    if isinstance(fixture, Graph):
+        return fixture
+    if fixture is None:
+        raise RuntimeError(f"{name}() only works while a fixture is drawing, use the Graph's own {name}() method outside draw()")
+    raise TypeError(f"{name}() only works on a Graph fixture, but this pattern is drawing on a {type(fixture).__name__}")
+
+@overload
+def edges() -> list[Edge]: ...
+@overload
+def edges(n: int) -> Edge: ...
+
+def edges(n: Optional[int] = None) -> Union[Edge, list[Edge]]:
+    """The edges of the graph being drawn, like pixels() but for wires. Only works on a Graph fixture
+
+    Args:
+        n (Optional[int]): Grab only the nth edge
+
+    Example:
+        ```
+        def draw():
+            for edge in edges():
+                for pixel, t in zip(edge.pixels, edge.t):
+                    pixel.set(Color.mix(Color.red(), Color.blue(), t))
+        ```
+    """
+    return _active_graph("edges").edges(n)
+
+@overload
+def vertices() -> list[Vertex]: ...
+@overload
+def vertices(n: int) -> Vertex: ...
+
+def vertices(n: Optional[int] = None) -> Union[Vertex, list[Vertex]]:
+    """The vertices of the graph being drawn, the points where edges meet. Only works on a Graph fixture
+
+    Args:
+        n (Optional[int]): Grab only the nth vertex
+
+    Example:
+        ```
+        def draw():
+            for vertex in vertices():
+                if vertex.degree > 2:
+                    for pixel in vertex.pixels:
+                        pixel.set_white()
+        ```
+    """
+    return _active_graph("vertices").vertices(n)
+
+def edge_of(p: Union[Pixel, int]) -> Optional[Edge]:
+    """The edge a pixel is on, or None if it's at a vertex or on no edge. Only works on a Graph fixture
+
+    Args:
+        p (Pixel | int): The pixel or its index
+    """
+    return _active_graph("edge_of").edge_of(p)
+
+def vertex_of(p: Union[Pixel, int]) -> Optional[Vertex]:
+    """The vertex a pixel sits at, or None if it isn't at one. Only works on a Graph fixture
+
+    Args:
+        p (Pixel | int): The pixel or its index
+    """
+    return _active_graph("vertex_of").vertex_of(p)
+
+def neighbours(p: Union[Pixel, int]) -> list[Pixel]:
+    """The pixels next to a pixel along the wires. Only works on a Graph fixture
+
+    In the middle of an edge that's the pixels either side. Wires join up at vertices: a
+    pixel at the end of an edge neighbours the pixels at its vertex, or if the vertex
+    has none, the end pixels of the other edges there. Don't modify the list.
+
+    Args:
+        p (Pixel | int): The pixel or its index
+
+    Example:
+        ```
+        # spread a glow along the wire
+        for n in neighbours(spark):
+            n.set_red()
+        ```
+    """
+    return _active_graph("neighbours").neighbours(p)
 
 
 def height() -> float:

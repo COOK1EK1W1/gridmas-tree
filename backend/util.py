@@ -85,6 +85,140 @@ def read_tree_csv(location: str) -> tuple[list[tuple[float, float, float]], list
                 prev = (float(parts[0]), float(parts[1]), float(parts[2]))
     return points, edges
 
+Vec3 = tuple[float, float, float]
+
+
+class GraphFormatError(ValueError):
+    """A graph txt file could not be parsed, the message names the file and line"""
+
+
+def _parse_coord(text: str, where: str) -> Vec3:
+    parts = text.split(",")
+    if len(parts) != 3:
+        raise GraphFormatError(f"{where}: expected a coordinate 'x, y, z', got {text.strip()!r}")
+    try:
+        return (float(parts[0]), float(parts[1]), float(parts[2]))
+    except ValueError:
+        raise GraphFormatError(f"{where}: invalid number in coordinate {text.strip()!r}") from None
+
+
+def read_graph_txt(location: str) -> tuple[list[Vec3], list[tuple[Vec3, list[int]]], list[tuple[int, int, list[int]]]]:
+    """Read a graph fixture (wires with LEDs along them) from a txt file
+
+    The file is read top to bottom and every LED line takes the next strip index, so the
+    order of the lines is the order of the LEDs on the strip. `#` starts a comment, blank
+    lines are ignored.
+
+    ```
+    v NAME x, y, z     declare a vertex (a corner / junction), no LED
+    @ NAME             the next LED sits at vertex NAME
+    @ NAME x, y, z     the same, but the LED's measured position is given
+    e FROM TO N        the next N LEDs run along the wire FROM -> TO (N may be 0 or left out)
+    x, y, z            the next LED, not on any vertex or edge (a plain csv line)
+    ```
+
+    Vertices must be declared before they are used, and can be shared by any number of
+    edges and hold any number of LEDs (or none). An edge's LEDs are evenly spaced between
+    its two ends, not on them. Each end is the vertex position, unless the LED right next
+    to the run on the strip is an `@` LED of that vertex, then it is that LED's position,
+    so `@ A` / `e A B 3` / `@ B` spaces the LEDs exactly like the strip does. The same pair
+    of vertices may be joined by more than one edge, e.g. when the strip runs a corner to
+    corner wire twice.
+
+    example:
+        ```
+        v A 0, 0, 0
+        v B 0, 0, 2
+        v C -1.7, 0, 2
+        @ A              # LED 0 on corner A
+        e A B 25         # LEDs 1-25 up the wire
+        @ B              # LED 26 on corner B
+        e B C 21         # LEDs 27-47
+        @ C -1.69, 0, 2  # LED 48, a touch short of C
+        ```
+
+    Returns:
+        positions: one (x, y, z) per LED in strip order
+        vertices: (position, LED indices at the vertex) per vertex, a vertex id is its index
+        edges: (start vertex id, end vertex id, LED indices along the edge ordered start -> end)
+    """
+    # first pass: work out what every LED is, positions of edge LEDs need their neighbours
+    # LED kinds: ("free", pos) / ("vertex", vid, pos) / ("edge", eid)
+    leds: list[tuple] = []
+    vertices: list[tuple[Vec3, list[int]]] = []
+    names: dict[str, int] = {}
+    edges: list[tuple[int, int, list[int]]] = []
+
+    def vertex_id(name: str, where: str) -> int:
+        if name not in names:
+            raise GraphFormatError(f"{where}: unknown vertex {name!r}, declare it first with 'v {name} x, y, z'")
+        return names[name]
+
+    with open(location, newline="") as file:
+        for line_no, raw in enumerate(file, 1):
+            where = f"{location} line {line_no}"
+            line = raw.split("#", 1)[0].strip()
+            if not line:
+                continue
+            kind, rest = (line.split(None, 1) + [""])[:2]
+            if kind == "v":
+                name, coord = (rest.split(None, 1) + [""])[:2]
+                if not name or not coord.strip():
+                    raise GraphFormatError(f"{where}: expected 'v NAME x, y, z'")
+                if "," in name:
+                    raise GraphFormatError(f"{where}: expected 'v NAME x, y, z', vertex names can't contain ','")
+                if name in names:
+                    raise GraphFormatError(f"{where}: vertex {name!r} is already declared")
+                names[name] = len(vertices)
+                vertices.append((_parse_coord(coord, where), []))
+            elif kind == "@":
+                name, coord = (rest.split(None, 1) + [""])[:2]
+                if not name:
+                    raise GraphFormatError(f"{where}: expected '@ NAME' or '@ NAME x, y, z'")
+                vid = vertex_id(name, where)
+                pos = _parse_coord(coord, where) if coord.strip() else vertices[vid][0]
+                vertices[vid][1].append(len(leds))
+                leds.append(("vertex", vid, pos))
+            elif kind == "e":
+                parts = rest.split()
+                if len(parts) not in (2, 3):
+                    raise GraphFormatError(f"{where}: expected 'e FROM TO N'")
+                start, end = vertex_id(parts[0], where), vertex_id(parts[1], where)
+                try:
+                    count = int(parts[2]) if len(parts) == 3 else 0
+                except ValueError:
+                    raise GraphFormatError(f"{where}: invalid LED count {parts[2]!r}") from None
+                if count < 0:
+                    raise GraphFormatError(f"{where}: LED count can't be negative")
+                eid = len(edges)
+                edges.append((start, end, list(range(len(leds), len(leds) + count))))
+                leds.extend(("edge", eid) for _ in range(count))
+            elif kind[0] == "l" and kind[1:].isdigit():
+                raise GraphFormatError(f"{where}: 'lN' lines are the old point cloud format, use 'e FROM TO N' between declared vertices")
+            elif "," in line:
+                leds.append(("free", _parse_coord(line, where)))
+            else:
+                raise GraphFormatError(f"{where}: unrecognised line {line!r}")
+
+    # second pass: place the edge LEDs between their anchors
+    positions: list[Vec3] = [led[-1] if led[0] != "edge" else (0.0, 0.0, 0.0) for led in leds]
+    for start, end, idxs in edges:
+        if not idxs:
+            continue
+        a, b = vertices[start][0], vertices[end][0]
+        before, after = idxs[0] - 1, idxs[-1] + 1
+        if before >= 0 and leds[before][0] == "vertex" and leds[before][1] == start:
+            a = leds[before][2]
+        if after < len(leds) and leds[after][0] == "vertex" and leds[after][1] == end:
+            b = leds[after][2]
+        n = len(idxs)
+        for i, idx in enumerate(idxs):
+            t = (i + 1) / (n + 1)
+            positions[idx] = (a[0] * (1 - t) + b[0] * t, a[1] * (1 - t) + b[1] * t, a[2] * (1 - t) + b[2] * t)
+
+    return positions, vertices, edges
+
+
 def dist(a: Iterable[float], b: Iterable[float]) -> float:
     """The distance between two vectors
 

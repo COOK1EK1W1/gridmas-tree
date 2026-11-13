@@ -1,41 +1,68 @@
-0, 0, 0
-l25
-0, 0, 2
-l21
--1.7, 0, 2
-l25
--1.7, 0, 0
-l24
--0.01, 0, 0
+# front of the house, x along the wall, z up
+# format: see docs/docs/graph-format.md
 
--3.9, 0, 2
-l20
--5.6, 0, 2
-l17
--5.6, 0, 0.6
-l20
--3.9, 0, 0.6
-l17
--3.9, 0, 1.99
+# rectangle x 0..-1.7, z 0..2
+v A 0, 0, 0
+v B 0, 0, 2
+v C -1.7, 0, 2
+v D -1.7, 0, 0
 
-l18
--3.9, 0, 4
-l12
--3.9, 0, 5
-l20
--5.6, 0, 5
-l13
--5.6, 0, 4
-l20
--3.9, 0, 4
+# rectangle x -3.9..-5.6, z 0.6..2
+v E -3.9, 0, 2
+v F -5.6, 0, 2
+v G -5.6, 0, 0.6
+v H -3.9, 0, 0.6
 
-l20
--1.7, 0, 4
-l12
--1.7, 0, 5
-l20
--0, 0, 5
-l13
--0, 0, 4
-l20
--1.7, 0, 4
+# upper rectangles, z 4..5 (P-B joins them to the first one)
+v I -3.9, 0, 4
+v J -3.9, 0, 5
+v K -5.6, 0, 5
+v L -5.6, 0, 4
+v M -1.7, 0, 4
+v N -1.7, 0, 5
+v O 0, 0, 5
+v P 0, 0, 4
+
+@ A
+e A B 25
+@ B
+e B C 21
+@ C
+e C D 25
+@ D
+e D A 24
+@ A -0.01, 0, 0
+
+@ E
+e E F 20
+@ F
+e F G 17
+@ G
+e G H 20
+@ H
+e H E 17
+@ E -3.9, 0, 1.99
+
+e E I 18
+@ I
+e I J 12
+@ J
+e J K 20
+@ K
+e K L 13
+@ L
+e L I 20
+@ I
+
+e I M 29
+@ M
+e M N 15
+@ N
+e N O 20
+@ O
+e O P 13
+@ P
+e P B 20
+@ B
+e B A 32
+@ A
