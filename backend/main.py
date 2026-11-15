@@ -22,6 +22,8 @@ parser.add_argument("--port", type=int, required=False, help="The port to host t
 parser.add_argument("--rate-limit", action="store_true", required=False, help="Use this to enable rate limiting on the web server")
 parser.add_argument("--pattern-dir", type=str, required=False, help="Specify the directory where pattern files are stored")
 parser.add_argument("--auto-pattern", type=int, required=False, help="Automatically run through random patterns at the interval you set")
+parser.add_argument("--idle-pattern", type=str, required=False, help="Load this pattern at startup and go back to it IDLE_RETURN seconds after someone picks another")
+parser.add_argument("--idle-return", type=int, default=300, help="Seconds a pattern picked on the web page runs before going back to the idle pattern")
 parser.add_argument("--audio-device", type=str, help="Play pattern music on this output device (index, name, or 'default'). Without it music is not played.")
 parser.add_argument("--list-audio-devices", action="store_true", help="Print the available audio output devices and exit")
 parser.add_argument("--audio-offset-ms", type=float, default=0, help="Delay the audio relative to the lights by this many ms (negative plays it earlier)")
@@ -70,6 +72,12 @@ if __name__ == '__main__':
     t = 0
     last_change = time.time()
 
+    idle_pattern = args.idle_pattern
+    showing_idle = False
+    if idle_pattern is not None:
+        showing_idle = patternManager.load_pattern(idle_pattern)
+    last_user_action = time.time()
+
     ## main loop
     try:
         while True:
@@ -78,6 +86,11 @@ if __name__ == '__main__':
             if (auto_pattern is not None and time.time() - last_change > auto_pattern):
                 web_server.request_queue.put(RandomPattern())
 
+            # go back to the idle pattern a while after someone picked something else (or it failed to load)
+            if idle_pattern is not None and not showing_idle and time.time() - last_user_action > args.idle_return:
+                showing_idle = patternManager.load_pattern(idle_pattern)
+                last_user_action = time.time()
+
             # 1 handle web request queue
             req = web_server.get_next_request()
             handled_request = req is not None
@@ -85,9 +98,13 @@ if __name__ == '__main__':
                 match req:
                     case StopPattern():
                         patternManager.unload_pattern()
+                        showing_idle = False
+                        last_user_action = time.time()
 
                     case StartPattern(name=name):
                         patternManager.load_pattern(name)
+                        showing_idle = name == idle_pattern
+                        last_user_action = time.time()
                         last_change = time.time() + 300
                         # Make user selected patterns run for 5 mins from the point they start
 
@@ -96,6 +113,7 @@ if __name__ == '__main__':
                         a = list(patternManager.list_patterns())
                         random.shuffle(a)
                         patternManager.load_pattern(a[0])
+                        showing_idle = a[0] == idle_pattern
                         last_change = time.time()
 
                     case SetAudioOffset(offset_ms=offset_ms):
